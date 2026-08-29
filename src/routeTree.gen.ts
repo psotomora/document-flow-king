@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BancosRouteImport } from './routes/bancos'
+import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ErogacionesRouteImport } from './routes/erogaciones'
 import { Route as FacturasRouteImport } from './routes/facturas'
 import { Route as PagosRouteImport } from './routes/pagos'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const BancosRoute = BancosRouteImport.update({
   id: '/bancos',
   path: '/bancos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContratosRoute = ContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ErogacionesRoute = ErogacionesRouteImport.update({
@@ -50,6 +56,7 @@ const ProyeccionRoute = ProyeccionRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/bancos': typeof BancosRoute
+  '/contratos': typeof ContratosRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/bancos': typeof BancosRoute
+  '/contratos': typeof ContratosRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/bancos': typeof BancosRoute
+  '/contratos': typeof ContratosRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
@@ -75,13 +84,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/bancos' | '/erogaciones' | '/facturas' | '/pagos' | '/proyeccion'
+    | '/'
+    | '/bancos'
+    | '/contratos'
+    | '/erogaciones'
+    | '/facturas'
+    | '/pagos'
+    | '/proyeccion'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bancos' | '/erogaciones' | '/facturas' | '/pagos' | '/proyeccion'
+  to:
+    | '/'
+    | '/bancos'
+    | '/contratos'
+    | '/erogaciones'
+    | '/facturas'
+    | '/pagos'
+    | '/proyeccion'
   id:
     | '__root__'
     | '/'
     | '/bancos'
+    | '/contratos'
     | '/erogaciones'
     | '/facturas'
     | '/pagos'
@@ -91,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BancosRoute: typeof BancosRoute
+  ContratosRoute: typeof ContratosRoute
   ErogacionesRoute: typeof ErogacionesRoute
   FacturasRoute: typeof FacturasRoute
   PagosRoute: typeof PagosRoute
@@ -111,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/bancos'
       fullPath: '/bancos'
       preLoaderRoute: typeof BancosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contratos': {
+      id: '/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof ContratosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/erogaciones': {
@@ -147,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BancosRoute: BancosRoute,
+  ContratosRoute: ContratosRoute,
   ErogacionesRoute: ErogacionesRoute,
   FacturasRoute: FacturasRoute,
   PagosRoute: PagosRoute,
