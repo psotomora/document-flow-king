@@ -14,6 +14,7 @@ import { Route as BancosRouteImport } from './routes/bancos'
 import { Route as ErogacionesRouteImport } from './routes/erogaciones'
 import { Route as FacturasRouteImport } from './routes/facturas'
 import { Route as PagosRouteImport } from './routes/pagos'
+import { Route as ProyeccionRouteImport } from './routes/proyeccion'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const PagosRoute = PagosRouteImport.update({
   path: '/pagos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProyeccionRoute = ProyeccionRouteImport.update({
+  id: '/proyeccion',
+  path: '/proyeccion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
+  '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
+  '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,22 @@ export interface FileRoutesById {
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
+  '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/bancos' | '/erogaciones' | '/facturas' | '/pagos'
+  fullPaths:
+    '/' | '/bancos' | '/erogaciones' | '/facturas' | '/pagos' | '/proyeccion'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/bancos' | '/erogaciones' | '/facturas' | '/pagos'
-  id: '__root__' | '/' | '/bancos' | '/erogaciones' | '/facturas' | '/pagos'
+  to: '/' | '/bancos' | '/erogaciones' | '/facturas' | '/pagos' | '/proyeccion'
+  id:
+    | '__root__'
+    | '/'
+    | '/bancos'
+    | '/erogaciones'
+    | '/facturas'
+    | '/pagos'
+    | '/proyeccion'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +94,7 @@ export interface RootRouteChildren {
   ErogacionesRoute: typeof ErogacionesRoute
   FacturasRoute: typeof FacturasRoute
   PagosRoute: typeof PagosRoute
+  ProyeccionRoute: typeof ProyeccionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PagosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proyeccion': {
+      id: '/proyeccion'
+      path: '/proyeccion'
+      fullPath: '/proyeccion'
+      preLoaderRoute: typeof ProyeccionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   ErogacionesRoute: ErogacionesRoute,
   FacturasRoute: FacturasRoute,
   PagosRoute: PagosRoute,
+  ProyeccionRoute: ProyeccionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
