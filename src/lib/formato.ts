@@ -42,7 +42,7 @@ export function formatearFecha(iso: string): string {
 
 export function formatearFechaHora(iso: string): string {
   if (!iso) return "";
-  const [fecha, hora = ""] = iso.split("T");
+  const [fecha = "", hora = ""] = iso.split("T");
   return `${formatearFecha(fecha)} ${hora.slice(0, 5)}`.trim();
 }
 
