@@ -28,7 +28,7 @@ export interface Factura {
   plazoDias: number;
   moneda: Moneda;
   monto: number;
-  notas?: string;
+  notas?: string | undefined;
 }
 
 export interface Pago {
@@ -38,9 +38,9 @@ export interface Pago {
   bancoId: string;
   monto: number;
   moneda: Moneda;
-  tipoCambioOperacion?: number;
+  tipoCambioOperacion?: number | undefined;
   metodo: string;
-  referencia?: string;
+  referencia?: string | undefined;
 }
 
 export interface Erogacion {
@@ -52,7 +52,7 @@ export interface Erogacion {
   fecha: string;
   moneda: Moneda;
   monto: number;
-  notas?: string;
+  notas?: string | undefined;
 }
 
 export type Periodicidad = "Mensual" | "Bimestral" | "Trimestral" | "Semestral" | "Anual";
@@ -71,7 +71,7 @@ export interface Contrato {
   monto: number;
   facturado: boolean;
   estado: EstadoContrato;
-  notas?: string;
+  notas?: string | undefined;
 }
 
 export type EstadoPedido = "Pendiente" | "En proceso" | "Facturado" | "Anulado";
@@ -104,8 +104,8 @@ export interface RegistroBitacora {
   modulo: string;
   registro: string;
   operacion: OperacionBitacora;
-  valorAnterior?: string;
-  valorNuevo?: string;
+  valorAnterior?: string | undefined;
+  valorNuevo?: string | undefined;
 }
 
 export interface Usuario {
