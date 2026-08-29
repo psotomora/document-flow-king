@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FacturasRouteImport } from './routes/facturas'
+import { Route as PagosRouteImport } from './routes/pagos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const FacturasRoute = FacturasRouteImport.update({
   path: '/facturas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PagosRoute = PagosRouteImport.update({
+  id: '/pagos',
+  path: '/pagos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/facturas': typeof FacturasRoute
+  '/pagos': typeof PagosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/facturas': typeof FacturasRoute
+  '/pagos': typeof PagosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/facturas': typeof FacturasRoute
+  '/pagos': typeof PagosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/facturas'
+  fullPaths: '/' | '/facturas' | '/pagos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/facturas'
-  id: '__root__' | '/' | '/facturas'
+  to: '/' | '/facturas' | '/pagos'
+  id: '__root__' | '/' | '/facturas' | '/pagos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FacturasRoute: typeof FacturasRoute
+  PagosRoute: typeof PagosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FacturasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pagos': {
+      id: '/pagos'
+      path: '/pagos'
+      fullPath: '/pagos'
+      preLoaderRoute: typeof PagosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FacturasRoute: FacturasRoute,
+  PagosRoute: PagosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
