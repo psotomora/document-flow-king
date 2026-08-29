@@ -15,6 +15,7 @@ import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ErogacionesRouteImport } from './routes/erogaciones'
 import { Route as FacturasRouteImport } from './routes/facturas'
 import { Route as PagosRouteImport } from './routes/pagos'
+import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as ProyeccionRouteImport } from './routes/proyeccion'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +48,11 @@ const PagosRoute = PagosRouteImport.update({
   path: '/pagos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PedidosRoute = PedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProyeccionRoute = ProyeccionRouteImport.update({
   id: '/proyeccion',
   path: '/proyeccion',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
+  '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
+  '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
+  '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/erogaciones'
     | '/facturas'
     | '/pagos'
+    | '/pedidos'
     | '/proyeccion'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/erogaciones'
     | '/facturas'
     | '/pagos'
+    | '/pedidos'
     | '/proyeccion'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/erogaciones'
     | '/facturas'
     | '/pagos'
+    | '/pedidos'
     | '/proyeccion'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   ErogacionesRoute: typeof ErogacionesRoute
   FacturasRoute: typeof FacturasRoute
   PagosRoute: typeof PagosRoute
+  PedidosRoute: typeof PedidosRoute
   ProyeccionRoute: typeof ProyeccionRoute
 }
 
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PagosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pedidos': {
+      id: '/pedidos'
+      path: '/pedidos'
+      fullPath: '/pedidos'
+      preLoaderRoute: typeof PedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/proyeccion': {
       id: '/proyeccion'
       path: '/proyeccion'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   ErogacionesRoute: ErogacionesRoute,
   FacturasRoute: FacturasRoute,
   PagosRoute: PagosRoute,
+  PedidosRoute: PedidosRoute,
   ProyeccionRoute: ProyeccionRoute,
 }
 export const routeTree = rootRouteImport
