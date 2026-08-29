@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BancosRouteImport } from './routes/bancos'
+import { Route as ContratosRouteImport } from './routes/contratos'
+import { Route as ErogacionesRouteImport } from './routes/erogaciones'
+import { Route as FacturasRouteImport } from './routes/facturas'
+import { Route as PagosRouteImport } from './routes/pagos'
+import { Route as PedidosRouteImport } from './routes/pedidos'
+import { Route as ProyeccionRouteImport } from './routes/proyeccion'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BancosRoute = BancosRouteImport.update({
+  id: '/bancos',
+  path: '/bancos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContratosRoute = ContratosRouteImport.update({
+  id: '/contratos',
+  path: '/contratos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ErogacionesRoute = ErogacionesRouteImport.update({
+  id: '/erogaciones',
+  path: '/erogaciones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FacturasRoute = FacturasRouteImport.update({
+  id: '/facturas',
+  path: '/facturas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PagosRoute = PagosRouteImport.update({
+  id: '/pagos',
+  path: '/pagos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PedidosRoute = PedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProyeccionRoute = ProyeccionRouteImport.update({
+  id: '/proyeccion',
+  path: '/proyeccion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/bancos': typeof BancosRoute
+  '/contratos': typeof ContratosRoute
+  '/erogaciones': typeof ErogacionesRoute
+  '/facturas': typeof FacturasRoute
+  '/pagos': typeof PagosRoute
+  '/pedidos': typeof PedidosRoute
+  '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/bancos': typeof BancosRoute
+  '/contratos': typeof ContratosRoute
+  '/erogaciones': typeof ErogacionesRoute
+  '/facturas': typeof FacturasRoute
+  '/pagos': typeof PagosRoute
+  '/pedidos': typeof PedidosRoute
+  '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/bancos': typeof BancosRoute
+  '/contratos': typeof ContratosRoute
+  '/erogaciones': typeof ErogacionesRoute
+  '/facturas': typeof FacturasRoute
+  '/pagos': typeof PagosRoute
+  '/pedidos': typeof PedidosRoute
+  '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/bancos'
+    | '/contratos'
+    | '/erogaciones'
+    | '/facturas'
+    | '/pagos'
+    | '/pedidos'
+    | '/proyeccion'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/bancos'
+    | '/contratos'
+    | '/erogaciones'
+    | '/facturas'
+    | '/pagos'
+    | '/pedidos'
+    | '/proyeccion'
+  id:
+    | '__root__'
+    | '/'
+    | '/bancos'
+    | '/contratos'
+    | '/erogaciones'
+    | '/facturas'
+    | '/pagos'
+    | '/pedidos'
+    | '/proyeccion'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BancosRoute: typeof BancosRoute
+  ContratosRoute: typeof ContratosRoute
+  ErogacionesRoute: typeof ErogacionesRoute
+  FacturasRoute: typeof FacturasRoute
+  PagosRoute: typeof PagosRoute
+  PedidosRoute: typeof PedidosRoute
+  ProyeccionRoute: typeof ProyeccionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bancos': {
+      id: '/bancos'
+      path: '/bancos'
+      fullPath: '/bancos'
+      preLoaderRoute: typeof BancosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contratos': {
+      id: '/contratos'
+      path: '/contratos'
+      fullPath: '/contratos'
+      preLoaderRoute: typeof ContratosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/erogaciones': {
+      id: '/erogaciones'
+      path: '/erogaciones'
+      fullPath: '/erogaciones'
+      preLoaderRoute: typeof ErogacionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/facturas': {
+      id: '/facturas'
+      path: '/facturas'
+      fullPath: '/facturas'
+      preLoaderRoute: typeof FacturasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pagos': {
+      id: '/pagos'
+      path: '/pagos'
+      fullPath: '/pagos'
+      preLoaderRoute: typeof PagosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pedidos': {
+      id: '/pedidos'
+      path: '/pedidos'
+      fullPath: '/pedidos'
+      preLoaderRoute: typeof PedidosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proyeccion': {
+      id: '/proyeccion'
+      path: '/proyeccion'
+      fullPath: '/proyeccion'
+      preLoaderRoute: typeof ProyeccionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BancosRoute: BancosRoute,
+  ContratosRoute: ContratosRoute,
+  ErogacionesRoute: ErogacionesRoute,
+  FacturasRoute: FacturasRoute,
+  PagosRoute: PagosRoute,
+  PedidosRoute: PedidosRoute,
+  ProyeccionRoute: ProyeccionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
