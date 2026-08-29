@@ -253,6 +253,7 @@ function Tablero() {
                     innerRadius={55}
                     outerRadius={85}
                     paddingAngle={2}
+                    isAnimationActive={false}
                   >
                     {distribucion.map((d) => (
                       <Cell key={d.nombre} fill={d.color} />
