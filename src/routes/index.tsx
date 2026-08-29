@@ -242,34 +242,41 @@ function Tablero() {
 
         <div className="rounded-lg border border-border bg-card p-4">
           <p className="mb-3 text-sm font-medium">Estado de las facturas ({moneda})</p>
-          {distribucion.length ? (
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={distribucion}
-                    dataKey="valor"
-                    nameKey="nombre"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={2}
-                    isAnimationActive={false}
-                  >
-                    {distribucion.map((d) => (
-                      <Cell key={d.nombre} fill={d.color} />
-                    ))}
-                  </Pie>
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--card)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 8,
-                      fontSize: 12,
+          {totalFacturas > 0 ? (
+            <div className="space-y-4">
+              <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted">
+                {distribucion.map((d) => (
+                  <div
+                    key={d.nombre}
+                    style={{
+                      width: `${(d.valor / totalFacturas) * 100}%`,
+                      backgroundColor: d.color,
                     }}
+                    title={`${d.nombre}: ${d.valor}`}
                   />
-                </PieChart>
-              </ResponsiveContainer>
+                ))}
+              </div>
+              <ul className="space-y-3">
+                {distribucion.map((d) => (
+                  <li key={d.nombre} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="flex items-center gap-2">
+                      <span
+                        aria-hidden
+                        className="size-2.5 rounded-full"
+                        style={{ backgroundColor: d.color }}
+                      />
+                      {d.nombre}
+                    </span>
+                    <span className="font-mono tabular-nums text-muted-foreground">
+                      {d.valor} · {formatearPorcentaje((d.valor / totalFacturas) * 100)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+                {totalFacturas} facturas en {moneda}. Saldo por cobrar{" "}
+                {formatearMoneda(indicadores.saldoPorCobrar, moneda)}.
+              </div>
             </div>
           ) : (
             <p className="py-16 text-center text-sm text-muted-foreground">
