@@ -114,6 +114,8 @@ function Tablero() {
     { nombre: "Vencidas", valor: indicadores.vencidas, color: "var(--destructive)" },
   ].filter((d) => d.valor > 0);
 
+  const totalFacturas = distribucion.reduce((s, d) => s + d.valor, 0);
+
   const proximas = [...facturas]
     .filter((f) => f.saldoPendiente > 0.009)
     .sort((a, b) => (a.diasParaVencer ?? 0) - (b.diasParaVencer ?? 0))
