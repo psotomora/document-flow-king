@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccesoRouteImport } from './routes/acceso'
 import { Route as BancosRouteImport } from './routes/bancos'
 import { Route as BitacoraRouteImport } from './routes/bitacora'
 import { Route as CatalogosRouteImport } from './routes/catalogos'
@@ -26,6 +27,11 @@ import { Route as ProyeccionRouteImport } from './routes/proyeccion'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccesoRoute = AccesoRouteImport.update({
+  id: '/acceso',
+  path: '/acceso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BancosRoute = BancosRouteImport.update({
@@ -91,6 +97,7 @@ const ProyeccionRoute = ProyeccionRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acceso': typeof AccesoRoute
   '/bancos': typeof BancosRoute
   '/bitacora': typeof BitacoraRoute
   '/catalogos': typeof CatalogosRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acceso': typeof AccesoRoute
   '/bancos': typeof BancosRoute
   '/bitacora': typeof BitacoraRoute
   '/catalogos': typeof CatalogosRoute
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/acceso': typeof AccesoRoute
   '/bancos': typeof BancosRoute
   '/bitacora': typeof BitacoraRoute
   '/catalogos': typeof CatalogosRoute
@@ -139,6 +148,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/acceso'
     | '/bancos'
     | '/bitacora'
     | '/catalogos'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/acceso'
     | '/bancos'
     | '/bitacora'
     | '/catalogos'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/acceso'
     | '/bancos'
     | '/bitacora'
     | '/catalogos'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccesoRoute: typeof AccesoRoute
   BancosRoute: typeof BancosRoute
   BitacoraRoute: typeof BitacoraRoute
   CatalogosRoute: typeof CatalogosRoute
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acceso': {
+      id: '/acceso'
+      path: '/acceso'
+      fullPath: '/acceso'
+      preLoaderRoute: typeof AccesoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bancos': {
@@ -297,6 +317,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccesoRoute: AccesoRoute,
   BancosRoute: BancosRoute,
   BitacoraRoute: BitacoraRoute,
   CatalogosRoute: CatalogosRoute,
