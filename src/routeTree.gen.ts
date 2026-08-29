@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ErogacionesRouteImport } from './routes/erogaciones'
 import { Route as FacturasRouteImport } from './routes/facturas'
 import { Route as PagosRouteImport } from './routes/pagos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ErogacionesRoute = ErogacionesRouteImport.update({
+  id: '/erogaciones',
+  path: '/erogaciones',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FacturasRoute = FacturasRouteImport.update({
@@ -31,30 +37,34 @@ const PagosRoute = PagosRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/pagos': typeof PagosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/facturas' | '/pagos'
+  fullPaths: '/' | '/erogaciones' | '/facturas' | '/pagos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/facturas' | '/pagos'
-  id: '__root__' | '/' | '/facturas' | '/pagos'
+  to: '/' | '/erogaciones' | '/facturas' | '/pagos'
+  id: '__root__' | '/' | '/erogaciones' | '/facturas' | '/pagos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ErogacionesRoute: typeof ErogacionesRoute
   FacturasRoute: typeof FacturasRoute
   PagosRoute: typeof PagosRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/erogaciones': {
+      id: '/erogaciones'
+      path: '/erogaciones'
+      fullPath: '/erogaciones'
+      preLoaderRoute: typeof ErogacionesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/facturas': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ErogacionesRoute: ErogacionesRoute,
   FacturasRoute: FacturasRoute,
   PagosRoute: PagosRoute,
 }
