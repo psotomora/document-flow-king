@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccesoRouteImport } from './routes/acceso'
 import { Route as BancosRouteImport } from './routes/bancos'
+import { Route as BitacoraRouteImport } from './routes/bitacora'
+import { Route as CatalogosRouteImport } from './routes/catalogos'
+import { Route as ConsolidadoRouteImport } from './routes/consolidado'
 import { Route as ContratosRouteImport } from './routes/contratos'
 import { Route as ErogacionesRouteImport } from './routes/erogaciones'
 import { Route as FacturasRouteImport } from './routes/facturas'
+import { Route as ImportarRouteImport } from './routes/importar'
 import { Route as PagosRouteImport } from './routes/pagos'
+import { Route as ParametrosRouteImport } from './routes/parametros'
 import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as ProyeccionRouteImport } from './routes/proyeccion'
 
@@ -23,9 +29,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccesoRoute = AccesoRouteImport.update({
+  id: '/acceso',
+  path: '/acceso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BancosRoute = BancosRouteImport.update({
   id: '/bancos',
   path: '/bancos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BitacoraRoute = BitacoraRouteImport.update({
+  id: '/bitacora',
+  path: '/bitacora',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogosRoute = CatalogosRouteImport.update({
+  id: '/catalogos',
+  path: '/catalogos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsolidadoRoute = ConsolidadoRouteImport.update({
+  id: '/consolidado',
+  path: '/consolidado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContratosRoute = ContratosRouteImport.update({
@@ -43,9 +69,19 @@ const FacturasRoute = FacturasRouteImport.update({
   path: '/facturas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImportarRoute = ImportarRouteImport.update({
+  id: '/importar',
+  path: '/importar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PagosRoute = PagosRouteImport.update({
   id: '/pagos',
   path: '/pagos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParametrosRoute = ParametrosRouteImport.update({
+  id: '/parametros',
+  path: '/parametros',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PedidosRoute = PedidosRouteImport.update({
@@ -61,32 +97,50 @@ const ProyeccionRoute = ProyeccionRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acceso': typeof AccesoRoute
   '/bancos': typeof BancosRoute
+  '/bitacora': typeof BitacoraRoute
+  '/catalogos': typeof CatalogosRoute
+  '/consolidado': typeof ConsolidadoRoute
   '/contratos': typeof ContratosRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
+  '/importar': typeof ImportarRoute
   '/pagos': typeof PagosRoute
+  '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acceso': typeof AccesoRoute
   '/bancos': typeof BancosRoute
+  '/bitacora': typeof BitacoraRoute
+  '/catalogos': typeof CatalogosRoute
+  '/consolidado': typeof ConsolidadoRoute
   '/contratos': typeof ContratosRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
+  '/importar': typeof ImportarRoute
   '/pagos': typeof PagosRoute
+  '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/acceso': typeof AccesoRoute
   '/bancos': typeof BancosRoute
+  '/bitacora': typeof BitacoraRoute
+  '/catalogos': typeof CatalogosRoute
+  '/consolidado': typeof ConsolidadoRoute
   '/contratos': typeof ContratosRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
+  '/importar': typeof ImportarRoute
   '/pagos': typeof PagosRoute
+  '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
 }
@@ -94,42 +148,66 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/acceso'
     | '/bancos'
+    | '/bitacora'
+    | '/catalogos'
+    | '/consolidado'
     | '/contratos'
     | '/erogaciones'
     | '/facturas'
+    | '/importar'
     | '/pagos'
+    | '/parametros'
     | '/pedidos'
     | '/proyeccion'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/acceso'
     | '/bancos'
+    | '/bitacora'
+    | '/catalogos'
+    | '/consolidado'
     | '/contratos'
     | '/erogaciones'
     | '/facturas'
+    | '/importar'
     | '/pagos'
+    | '/parametros'
     | '/pedidos'
     | '/proyeccion'
   id:
     | '__root__'
     | '/'
+    | '/acceso'
     | '/bancos'
+    | '/bitacora'
+    | '/catalogos'
+    | '/consolidado'
     | '/contratos'
     | '/erogaciones'
     | '/facturas'
+    | '/importar'
     | '/pagos'
+    | '/parametros'
     | '/pedidos'
     | '/proyeccion'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccesoRoute: typeof AccesoRoute
   BancosRoute: typeof BancosRoute
+  BitacoraRoute: typeof BitacoraRoute
+  CatalogosRoute: typeof CatalogosRoute
+  ConsolidadoRoute: typeof ConsolidadoRoute
   ContratosRoute: typeof ContratosRoute
   ErogacionesRoute: typeof ErogacionesRoute
   FacturasRoute: typeof FacturasRoute
+  ImportarRoute: typeof ImportarRoute
   PagosRoute: typeof PagosRoute
+  ParametrosRoute: typeof ParametrosRoute
   PedidosRoute: typeof PedidosRoute
   ProyeccionRoute: typeof ProyeccionRoute
 }
@@ -143,11 +221,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/acceso': {
+      id: '/acceso'
+      path: '/acceso'
+      fullPath: '/acceso'
+      preLoaderRoute: typeof AccesoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/bancos': {
       id: '/bancos'
       path: '/bancos'
       fullPath: '/bancos'
       preLoaderRoute: typeof BancosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bitacora': {
+      id: '/bitacora'
+      path: '/bitacora'
+      fullPath: '/bitacora'
+      preLoaderRoute: typeof BitacoraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalogos': {
+      id: '/catalogos'
+      path: '/catalogos'
+      fullPath: '/catalogos'
+      preLoaderRoute: typeof CatalogosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consolidado': {
+      id: '/consolidado'
+      path: '/consolidado'
+      fullPath: '/consolidado'
+      preLoaderRoute: typeof ConsolidadoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contratos': {
@@ -171,11 +277,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FacturasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/importar': {
+      id: '/importar'
+      path: '/importar'
+      fullPath: '/importar'
+      preLoaderRoute: typeof ImportarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pagos': {
       id: '/pagos'
       path: '/pagos'
       fullPath: '/pagos'
       preLoaderRoute: typeof PagosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parametros': {
+      id: '/parametros'
+      path: '/parametros'
+      fullPath: '/parametros'
+      preLoaderRoute: typeof ParametrosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pedidos': {
@@ -197,11 +317,17 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccesoRoute: AccesoRoute,
   BancosRoute: BancosRoute,
+  BitacoraRoute: BitacoraRoute,
+  CatalogosRoute: CatalogosRoute,
+  ConsolidadoRoute: ConsolidadoRoute,
   ContratosRoute: ContratosRoute,
   ErogacionesRoute: ErogacionesRoute,
   FacturasRoute: FacturasRoute,
+  ImportarRoute: ImportarRoute,
   PagosRoute: PagosRoute,
+  ParametrosRoute: ParametrosRoute,
   PedidosRoute: PedidosRoute,
   ProyeccionRoute: ProyeccionRoute,
 }
