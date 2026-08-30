@@ -1,14 +1,18 @@
-# Welcome to your Lovable project
+# Cash Flow Insights
+
+Quiero hacer una aplicación web que maneje el flujo de caja con base en documento de especificación de requerimientos. ¿Es posible cargar o compartirle ese documento para que vea de qué se trata?
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://document-flow-king.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/c55a521e-8938-4fb9-b0d2-6ce8eb0ac8de).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +24,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
