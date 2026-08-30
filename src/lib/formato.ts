@@ -1,35 +1,33 @@
 import type { Moneda } from "@/data/tipos";
 
-const formatoUSD = new Intl.NumberFormat("es-CR", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const formatoCRC = new Intl.NumberFormat("es-CR", {
-  style: "currency",
-  currency: "CRC",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const formatoNumero = new Intl.NumberFormat("es-CR", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+/**
+ * Formato manual es-CR (miles con punto, decimales con coma). No se usa Intl
+ * porque el runtime del servidor y el del navegador pueden traer datos de
+ * localización distintos y eso provoca desajustes de hidratación.
+ */
+function formatearFijo(valor: number, decimales = 2): string {
+  const negativo = valor < 0 || Object.is(valor, -0);
+  const partes = Math.abs(valor).toFixed(decimales).split(".");
+  const entero = (partes[0] ?? "0").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const decimal = partes[1];
+  const texto = decimal ? `${entero},${decimal}` : entero;
+  return negativo ? `-${texto}` : texto;
+}
 
 export function formatearMoneda(valor: number, moneda: Moneda): string {
-  return moneda === "USD" ? formatoUSD.format(valor) : formatoCRC.format(valor);
+  const simbolo = moneda === "USD" ? "$" : "₡";
+  const negativo = valor < 0;
+  return `${negativo ? "-" : ""}${simbolo}${formatearFijo(Math.abs(valor))}`;
 }
 
 export function formatearNumero(valor: number): string {
-  return formatoNumero.format(valor);
+  return formatearFijo(valor);
 }
 
 export function formatearPorcentaje(valor: number): string {
-  return `${formatoNumero.format(valor)} %`;
+  return `${formatearFijo(valor)} %`;
 }
+
 
 /** Convierte "2026-08-29" al formato dd/mm/aaaa usado en Costa Rica. */
 export function formatearFecha(iso: string): string {
