@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { FileDown } from "lucide-react";
+import { Coins, FileDown } from "lucide-react";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -16,7 +17,7 @@ import {
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { Moneda } from "@/data/tipos";
 import { calcularSaldosPorBanco, totalizarSaldos } from "@/lib/calculos";
-import { formatearMoneda } from "@/lib/formato";
+import { formatearMoneda, formatearNumero } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/bancos")({
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/bancos")({
 });
 
 function PaginaBancos() {
-  const { bancos, pagos, erogaciones, companiaActiva, companias, usuario } = useApp();
+  const { bancos, pagos, erogaciones, companiaActiva, companias, usuario, tipoCambio } = useApp();
 
   const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
 
@@ -51,6 +52,11 @@ function PaginaBancos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [bancos, pagos, erogaciones, companiaActiva],
   );
+
+  const totalUSD = totalizarSaldos(saldos.USD).saldoNeto;
+  const totalCRC = totalizarSaldos(saldos.CRC).saldoNeto;
+  const equivalenteUSD = tipoCambio > 0 ? totalCRC / tipoCambio : 0;
+  const consolidadoUSD = totalUSD + equivalenteUSD;
 
   const exportar = (moneda: Moneda) =>
     exportarExcel(
@@ -75,6 +81,32 @@ function PaginaBancos() {
         requerimiento="RF-008"
         descripcion="Saldo disponible = saldo inicial + pagos recibidos − erogaciones. Los montos en dólares y en colones nunca se mezclan."
       />
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <TarjetaIndicador
+          titulo="Saldo disponible USD"
+          valor={formatearMoneda(totalUSD, "USD")}
+          detalle="Suma de cuentas en dólares"
+        />
+        <TarjetaIndicador
+          titulo="Saldo disponible CRC"
+          valor={formatearMoneda(totalCRC, "CRC")}
+          detalle="Suma de cuentas en colones"
+        />
+        <TarjetaIndicador
+          titulo="Colones en USD"
+          valor={formatearMoneda(equivalenteUSD, "USD")}
+          detalle={`Tipo de cambio ₡${formatearNumero(tipoCambio)}`}
+        />
+        <TarjetaIndicador
+          titulo="Consolidado en USD"
+          valor={formatearMoneda(consolidadoUSD, "USD")}
+          detalle="Dólares + colones convertidos"
+          tono="primario"
+          icono={<Coins className="size-4" />}
+        />
+      </div>
+
 
       <Tabs defaultValue="USD">
         <TabsList>
