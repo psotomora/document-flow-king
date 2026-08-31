@@ -291,8 +291,9 @@ function DialogoFactura({
   setAbierto: (v: boolean) => void;
   onGuardar: ReturnType<typeof useApp>["agregarFactura"];
 }) {
-  const { companias, facturas } = useApp();
+  const { companias, facturas, pedidos, actualizarPedido, hoy } = useApp();
   const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
+  const [pedidoId, setPedidoId] = useState<string>("ninguno");
   const [numero, setNumero] = useState("");
   const [cliente, setCliente] = useState("");
   const [fechaEmision, setFechaEmision] = useState("");
@@ -300,6 +301,26 @@ function DialogoFactura({
   const [moneda, setMoneda] = useState<Moneda>("USD");
   const [monto, setMonto] = useState("");
   const [notas, setNotas] = useState("");
+
+  // RF-011: los pedidos pendientes pueden convertirse en factura.
+  const pedidosPendientes = useMemo(
+    () => pedidos.filter((p) => p.estado === "Pendiente"),
+    [pedidos],
+  );
+
+  const tomarPedido = (id: string) => {
+    setPedidoId(id);
+    if (id === "ninguno") return;
+    const p = pedidos.find((x) => x.id === id);
+    if (!p) return;
+    setCompaniaId(p.companiaId);
+    setCliente(p.cliente);
+    setMoneda(p.moneda);
+    setMonto(String(p.monto));
+    setPlazoDias(String(p.plazoDias));
+    if (!fechaEmision) setFechaEmision(hoy);
+    setNotas(`Generada del pedido ${p.numero}`);
+  };
 
   const guardar = () => {
     if (!numero || !cliente || !fechaEmision) {
@@ -325,13 +346,21 @@ function DialogoFactura({
       monto: Number(monto),
       notas,
     });
-    toast.success(`Factura ${numero} registrada`);
+    const pedido = pedidoId !== "ninguno" ? pedidos.find((p) => p.id === pedidoId) : undefined;
+    if (pedido) {
+      actualizarPedido(pedido.id, { estado: "Facturado" });
+      toast.success(`Factura ${numero} registrada · pedido ${pedido.numero} facturado`);
+    } else {
+      toast.success(`Factura ${numero} registrada`);
+    }
     setAbierto(false);
+    setPedidoId("ninguno");
     setNumero("");
     setCliente("");
     setMonto("");
     setNotas("");
   };
+
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
