@@ -73,9 +73,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-        <div className="flex items-center gap-2 border-b border-sidebar-border px-5 py-4">
-          <div className="grid size-9 place-items-center rounded bg-sidebar-primary font-bold text-sidebar-primary-foreground">
-            A
+        <div className="flex items-center gap-2.5 border-b border-sidebar-border px-5 py-4">
+          <div className="grid size-9 shrink-0 place-items-center rounded bg-sidebar-primary p-1">
+            <img src={logoAplix.url} alt="Isotipo de Aplix" className="size-full object-contain" />
           </div>
           <div className="leading-tight">
             <p className="text-sm font-semibold">Aplix</p>
