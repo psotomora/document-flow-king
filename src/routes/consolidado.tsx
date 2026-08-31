@@ -20,13 +20,13 @@ import { exportarPdf } from "@/lib/exportar";
 export const Route = createFileRoute("/consolidado")({
   head: () => ({
     meta: [
-      { title: "Saldo proyectado consolidado | Flujo de Efectivo Aplix" },
+      { title: "Saldo proyectado consolidado | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Saldo bancario disponible más cuentas por cobrar, con equivalencia de colones a dólares al tipo de cambio vigente.",
       },
-      { property: "og:title", content: "Saldo proyectado consolidado | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Saldo proyectado consolidado | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Visión única del efectivo esperado en dólares para THERONIX y APLIX.",

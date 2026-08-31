@@ -18,13 +18,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/acceso")({
   head: () => ({
     meta: [
-      { title: "Usuarios y perfiles | Flujo de Efectivo Aplix" },
+      { title: "Usuarios y perfiles | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Perfiles administrador, registro y consulta con sus permisos simulados dentro de la maqueta.",
       },
-      { property: "og:title", content: "Usuarios y perfiles | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Usuarios y perfiles | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Control de acceso por perfil para el sistema de flujo de efectivo.",

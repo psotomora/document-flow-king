@@ -40,13 +40,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/contratos")({
   head: () => ({
     meta: [
-      { title: "Contratos recurrentes | Flujo de Efectivo Aplix" },
+      { title: "Contratos recurrentes | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Contratos con facturación periódica, próxima fecha de facturación y estado Activo o Cancelado.",
       },
-      { property: "og:title", content: "Contratos recurrentes | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Contratos recurrentes | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Ingresos recurrentes esperados por contrato, separados de los pedidos.",

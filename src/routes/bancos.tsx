@@ -23,13 +23,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/bancos")({
   head: () => ({
     meta: [
-      { title: "Saldo disponible por banco | Flujo de Efectivo Aplix" },
+      { title: "Saldo disponible por banco | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Saldo inicial, pagos recibidos, erogaciones y saldo neto por cuenta bancaria, separado por moneda.",
       },
-      { property: "og:title", content: "Saldo disponible por banco | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Saldo disponible por banco | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Disponibilidad real de efectivo en cada cuenta bancaria.",

@@ -40,13 +40,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/facturas")({
   head: () => ({
     meta: [
-      { title: "Facturas por cobrar | Flujo de Efectivo Aplix" },
+      { title: "Facturas por cobrar | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Registro y consulta de facturas por cobrar con vencimiento, saldo pendiente y estado calculados automáticamente.",
       },
-      { property: "og:title", content: "Facturas por cobrar | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Facturas por cobrar | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Cuentas por cobrar de THERONIX y APLIX con estado y saldo pendiente.",

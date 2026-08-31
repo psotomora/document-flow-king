@@ -20,13 +20,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/importar")({
   head: () => ({
     meta: [
-      { title: "Carga inicial desde Excel | Flujo de Efectivo Aplix" },
+      { title: "Carga inicial desde Excel | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Asistente de carga inicial de facturas desde un archivo Excel, con validación previa antes de incorporar los datos.",
       },
-      { property: "og:title", content: "Carga inicial desde Excel | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Carga inicial desde Excel | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Migración del control actual en Excel hacia el sistema.",

@@ -20,13 +20,13 @@ import { formatearFechaHora, formatearNumero } from "@/lib/formato";
 export const Route = createFileRoute("/parametros")({
   head: () => ({
     meta: [
-      { title: "Tipo de cambio | Flujo de Efectivo Aplix" },
+      { title: "Tipo de cambio | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Registro manual del tipo de cambio de colones a dólares con historial de valores y responsable del cambio.",
       },
-      { property: "og:title", content: "Tipo de cambio | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Tipo de cambio | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Parámetro usado para consolidar saldos en dólares.",

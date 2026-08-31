@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConexionApi } from "@/components/layout/ConexionApi";
 import { VersionApp } from "@/components/layout/VersionApp";
-import logoAplix from "@/assets/aplix-isotipo.png.asset.json";
+
 
 
 
@@ -74,15 +74,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-        <div className="flex items-center gap-2.5 border-b border-sidebar-border px-5 py-4">
-          <div className="grid size-10 shrink-0 place-items-center rounded-md bg-white p-1.5 shadow-sm">
-            <img src={logoAplix.url} alt="Isotipo de Aplix" className="size-full object-contain" />
-          </div>
+        <div className="flex items-center border-b border-sidebar-border px-5 py-4">
           <div className="leading-tight">
-            <p className="text-sm font-semibold">Aplix</p>
+            <p className="text-sm font-semibold">Aplix Cash Flow Insights</p>
             <p className="text-xs text-sidebar-foreground/70">Flujo de Efectivo</p>
           </div>
         </div>
+
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
           {navegacion.map((seccion) => (
