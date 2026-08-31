@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ConexionApi } from "@/components/layout/ConexionApi";
+import { VersionApp } from "@/components/layout/VersionApp";
+
 
 
 const navegacion = [
