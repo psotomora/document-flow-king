@@ -291,8 +291,9 @@ function DialogoFactura({
   setAbierto: (v: boolean) => void;
   onGuardar: ReturnType<typeof useApp>["agregarFactura"];
 }) {
-  const { companias, facturas } = useApp();
+  const { companias, facturas, pedidos, actualizarPedido, hoy } = useApp();
   const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
+  const [pedidoId, setPedidoId] = useState<string>("ninguno");
   const [numero, setNumero] = useState("");
   const [cliente, setCliente] = useState("");
   const [fechaEmision, setFechaEmision] = useState("");
@@ -300,6 +301,26 @@ function DialogoFactura({
   const [moneda, setMoneda] = useState<Moneda>("USD");
   const [monto, setMonto] = useState("");
   const [notas, setNotas] = useState("");
+
+  // RF-011: los pedidos pendientes pueden convertirse en factura.
+  const pedidosPendientes = useMemo(
+    () => pedidos.filter((p) => p.estado === "Pendiente"),
+    [pedidos],
+  );
+
+  const tomarPedido = (id: string) => {
+    setPedidoId(id);
+    if (id === "ninguno") return;
+    const p = pedidos.find((x) => x.id === id);
+    if (!p) return;
+    setCompaniaId(p.companiaId);
+    setCliente(p.cliente);
+    setMoneda(p.moneda);
+    setMonto(String(p.monto));
+    setPlazoDias(String(p.plazoDias));
+    if (!fechaEmision) setFechaEmision(hoy);
+    setNotas(`Generada del pedido ${p.numero}`);
+  };
 
   const guardar = () => {
     if (!numero || !cliente || !fechaEmision) {
@@ -325,13 +346,21 @@ function DialogoFactura({
       monto: Number(monto),
       notas,
     });
-    toast.success(`Factura ${numero} registrada`);
+    const pedido = pedidoId !== "ninguno" ? pedidos.find((p) => p.id === pedidoId) : undefined;
+    if (pedido) {
+      actualizarPedido(pedido.id, { estado: "Facturado" });
+      toast.success(`Factura ${numero} registrada · pedido ${pedido.numero} facturado`);
+    } else {
+      toast.success(`Factura ${numero} registrada`);
+    }
     setAbierto(false);
+    setPedidoId("ninguno");
     setNumero("");
     setCliente("");
     setMonto("");
     setNotas("");
   };
+
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
@@ -344,10 +373,31 @@ function DialogoFactura({
         <DialogHeader>
           <DialogTitle>Nueva factura por cobrar</DialogTitle>
           <DialogDescription>
-            El vencimiento, el saldo y el estado se calculan automáticamente.
+            Puede generarla desde un pedido pendiente o capturarla manualmente. El vencimiento, el
+            saldo y el estado se calculan automáticamente.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Pedido de origen</Label>
+            <Select value={pedidoId} onValueChange={tomarPedido}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione un pedido" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ninguno">Sin pedido (captura manual)</SelectItem>
+                {pedidosPendientes.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.numero} · {p.cliente} · {formatearMoneda(p.monto, p.moneda)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Al guardar, el pedido seleccionado pasa de Pendiente a Facturado.
+            </p>
+          </div>
+
           <div className="space-y-1.5">
             <Label>Compañía</Label>
             <Select value={companiaId} onValueChange={setCompaniaId}>

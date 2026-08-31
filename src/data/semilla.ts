@@ -121,7 +121,7 @@ export const contratos: Contrato[] = [
 
 export const pedidos: Pedido[] = [
   { id: "pd1", companiaId: "tx", numero: "PD-501", cliente: "Corporación Santa Ana", fechaCreacion: "2026-08-12", plazoDias: 30, moneda: "USD", monto: 8600, estado: "Pendiente" },
-  { id: "pd2", companiaId: "tx", numero: "PD-502", cliente: "Textiles Heredia", fechaCreacion: "2026-08-20", plazoDias: 15, moneda: "CRC", monto: 1950000, estado: "En proceso" },
+  { id: "pd2", companiaId: "tx", numero: "PD-502", cliente: "Textiles Heredia", fechaCreacion: "2026-08-20", plazoDias: 15, moneda: "CRC", monto: 1950000, estado: "Pendiente" },
   { id: "pd3", companiaId: "ax", numero: "PD-601", cliente: "Agroindustrial Zarcero", fechaCreacion: "2026-08-18", plazoDias: 30, moneda: "USD", monto: 5400, estado: "Pendiente" },
   { id: "pd4", companiaId: "ax", numero: "PD-602", cliente: "Farmacias Unidas", fechaCreacion: "2026-07-30", plazoDias: 30, moneda: "CRC", monto: 2300000, estado: "Facturado" },
   { id: "pd5", companiaId: "ax", numero: "PD-603", cliente: "Inversiones Escazú", fechaCreacion: "2026-08-25", plazoDias: 45, moneda: "USD", monto: 11200, estado: "Pendiente" },

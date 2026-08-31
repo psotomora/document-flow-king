@@ -295,7 +295,7 @@ export function calcularSaldoProyectado(
   const proyectadoCRC = saldoActualCRC + porCobrarCRC;
   const equivalenteUsdDeCrc = tipoCambio > 0 ? proyectadoCRC / tipoCambio : 0;
   const consolidadoUSD = proyectadoUSD + equivalenteUsdDeCrc;
-  const pendientes = pedidos.filter((p) => p.estado === "Pendiente" || p.estado === "En proceso");
+  const pendientes = pedidos.filter((p) => p.estado === "Pendiente");
   const pedidosPendientesUSD =
     pendientes.filter((p) => p.moneda === "USD").reduce((s, p) => s + p.monto, 0) +
     (tipoCambio > 0
