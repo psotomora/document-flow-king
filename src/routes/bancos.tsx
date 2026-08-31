@@ -81,6 +81,32 @@ function PaginaBancos() {
         descripcion="Saldo disponible = saldo inicial + pagos recibidos − erogaciones. Los montos en dólares y en colones nunca se mezclan."
       />
 
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <TarjetaIndicador
+          titulo="Saldo disponible USD"
+          valor={formatearMoneda(totalUSD, "USD")}
+          detalle="Suma de cuentas en dólares"
+        />
+        <TarjetaIndicador
+          titulo="Saldo disponible CRC"
+          valor={formatearMoneda(totalCRC, "CRC")}
+          detalle="Suma de cuentas en colones"
+        />
+        <TarjetaIndicador
+          titulo="Colones en USD"
+          valor={formatearMoneda(equivalenteUSD, "USD")}
+          detalle={`Tipo de cambio ₡${formatearNumero(tipoCambio)}`}
+        />
+        <TarjetaIndicador
+          titulo="Consolidado en USD"
+          valor={formatearMoneda(consolidadoUSD, "USD")}
+          detalle="Dólares + colones convertidos"
+          tono="primario"
+          icono={<Coins className="size-4" />}
+        />
+      </div>
+
+
       <Tabs defaultValue="USD">
         <TabsList>
           <TabsTrigger value="USD">Dólares (USD)</TabsTrigger>
