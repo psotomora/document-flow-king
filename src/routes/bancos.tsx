@@ -39,7 +39,7 @@ export const Route = createFileRoute("/bancos")({
 });
 
 function PaginaBancos() {
-  const { bancos, pagos, erogaciones, companiaActiva, companias, usuario } = useApp();
+  const { bancos, pagos, erogaciones, companiaActiva, companias, usuario, tipoCambio } = useApp();
 
   const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
 
@@ -51,6 +51,11 @@ function PaginaBancos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [bancos, pagos, erogaciones, companiaActiva],
   );
+
+  const totalUSD = totalizarSaldos(saldos.USD).saldoNeto;
+  const totalCRC = totalizarSaldos(saldos.CRC).saldoNeto;
+  const equivalenteUSD = tipoCambio > 0 ? totalCRC / tipoCambio : 0;
+  const consolidadoUSD = totalUSD + equivalenteUSD;
 
   const exportar = (moneda: Moneda) =>
     exportarExcel(
