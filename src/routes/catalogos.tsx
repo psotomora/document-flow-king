@@ -37,13 +37,13 @@ import { formatearMoneda } from "@/lib/formato";
 export const Route = createFileRoute("/catalogos")({
   head: () => ({
     meta: [
-      { title: "Catálogos de compañías y bancos | Flujo de Efectivo Aplix" },
+      { title: "Catálogos de compañías y bancos | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Administración de compañías y cuentas bancarias con sus saldos iniciales en dólares y colones.",
       },
-      { property: "og:title", content: "Catálogos de compañías y bancos | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Catálogos de compañías y bancos | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Mantenimiento de los catálogos base del sistema.",

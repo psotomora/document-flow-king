@@ -39,13 +39,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/pagos")({
   head: () => ({
     meta: [
-      { title: "Pagos recibidos | Flujo de Efectivo Aplix" },
+      { title: "Pagos recibidos | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Registro de pagos aplicados a facturas, incluidos pagos en moneda distinta con tipo de cambio de la operación.",
       },
-      { property: "og:title", content: "Pagos recibidos | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Pagos recibidos | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Aplicación de pagos por banco, moneda y factura.",

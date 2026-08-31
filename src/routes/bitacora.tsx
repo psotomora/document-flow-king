@@ -27,13 +27,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/bitacora")({
   head: () => ({
     meta: [
-      { title: "Bitácora de auditoría | Flujo de Efectivo Aplix" },
+      { title: "Bitácora de auditoría | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Registro de creaciones, modificaciones y eliminaciones con usuario, módulo y fecha y hora.",
       },
-      { property: "og:title", content: "Bitácora de auditoría | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Bitácora de auditoría | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Trazabilidad de las operaciones realizadas en el sistema.",

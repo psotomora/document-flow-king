@@ -32,13 +32,13 @@ import { exportarPdf } from "@/lib/exportar";
 export const Route = createFileRoute("/proyeccion")({
   head: () => ({
     meta: [
-      { title: "Proyección de cobros | Flujo de Efectivo Aplix" },
+      { title: "Proyección de cobros | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Facturas por cobrar agrupadas en tramos de vencimiento: vencido, 0-7, 8-15, 16-30, 31-60 y más de 60 días.",
       },
-      { property: "og:title", content: "Proyección de cobros | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Proyección de cobros | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Cuándo entra el efectivo esperado, por tramo de vencimiento y por cliente.",

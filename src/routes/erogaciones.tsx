@@ -39,13 +39,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/erogaciones")({
   head: () => ({
     meta: [
-      { title: "Erogaciones | Flujo de Efectivo Aplix" },
+      { title: "Erogaciones | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Salidas de efectivo por banco y moneda, con número de transferencia y proveedor.",
       },
-      { property: "og:title", content: "Erogaciones | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Erogaciones | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Control de pagos a proveedores y su efecto en el saldo bancario.",

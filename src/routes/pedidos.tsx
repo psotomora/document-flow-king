@@ -39,13 +39,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/pedidos")({
   head: () => ({
     meta: [
-      { title: "Pedidos pendientes | Flujo de Efectivo Aplix" },
+      { title: "Pedidos pendientes | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Pedidos aún no facturados que representan ingresos futuros probables, independientes de los contratos.",
       },
-      { property: "og:title", content: "Pedidos pendientes | Flujo de Efectivo Aplix" },
+      { property: "og:title", content: "Pedidos pendientes | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content: "Seguimiento de pedidos por estado y su aporte al flujo proyectado.",
