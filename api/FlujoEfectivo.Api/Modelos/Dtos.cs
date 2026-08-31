@@ -73,7 +73,7 @@ public record PedidoDto(
     decimal Monto,
     string Estado);
 
-public record TipoCambioDto(string Id, decimal Valor, string Fecha, string Usuario);
+public record TipoCambioDto(string Id, decimal Valor, string Fecha, string Usuario, string? Nota);
 
 public record BitacoraDto(
     string Id,
@@ -181,7 +181,7 @@ public record CambioBanco(
     decimal? SaldoInicialCRC,
     bool? Activo);
 
-public record NuevoTipoCambio(decimal Valor);
+public record NuevoTipoCambio(decimal Valor, string? Nota);
 
 public record LoteImportacion(
     List<NuevaFactura>? Facturas,

@@ -91,6 +91,7 @@ CREATE TABLE flujo.TipoCambio (
     Valor        DECIMAL(12,4) NOT NULL,          -- colones por dólar
     VigenteDesde DATETIME2(0)  NOT NULL,
     UsuarioId    INT           NULL,
+    Nota         NVARCHAR(200) NULL,           -- motivo del cambio (bitácora)
     CONSTRAINT FK_TipoCambio_Usuario FOREIGN KEY (UsuarioId) REFERENCES flujo.Usuario(UsuarioId),
     CONSTRAINT CK_TipoCambio_Valor CHECK (Valor > 0)
 );
