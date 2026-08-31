@@ -93,7 +93,7 @@ public static class RegistrosEndpoints
                 });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Pagos",
-                p.Referencia ?? factura.Value.Numero, "Creación", valorNuevo: $"{p.Moneda} {p.Monto}");
+                p.Referencia ?? factura.Numero, "Creación", valorNuevo: $"{p.Moneda} {p.Monto}");
             return Results.Ok(new { id = id.ToString() });
         });
 
