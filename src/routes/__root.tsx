@@ -11,8 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { ProveedorApp } from "@/contexto/AppContexto";
+import { ProveedorApp, useApp } from "@/contexto/AppContexto";
 import { AppShell } from "@/components/layout/AppShell";
+import { PantallaLogin } from "@/components/layout/PantallaLogin";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -121,16 +122,26 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function Aplicacion() {
+  const { modoApi, autenticado } = useApp();
+
+  if (modoApi && !autenticado) return <PantallaLogin />;
+
+  return (
+    <AppShell>
+      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <Outlet />
+    </AppShell>
+  );
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       <ProveedorApp>
-        <AppShell>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </AppShell>
+        <Aplicacion />
         <Toaster position="top-right" richColors />
       </ProveedorApp>
     </QueryClientProvider>
