@@ -69,11 +69,11 @@ public static class RegistrosEndpoints
         {
             if (!ctx.User.PuedeEditar()) return SinPermiso();
             using var cn = db.Abrir();
-            var factura = cn.QueryFirstOrDefault<(string Numero, string Moneda)?>(
+            var factura = cn.QueryFirstOrDefault<FilaFactura>(
                 "SELECT Numero, Moneda FROM flujo.Factura WHERE FacturaId=@id", new { id = Id(p.FacturaId) });
             if (factura is null) return Results.BadRequest(new { mensaje = "La factura indicada no existe." });
 
-            if (!string.Equals(factura.Value.Moneda.Trim(), p.Moneda, StringComparison.OrdinalIgnoreCase)
+            if (!string.Equals(factura.Moneda.Trim(), p.Moneda, StringComparison.OrdinalIgnoreCase)
                 && (p.TipoCambioOperacion is null or <= 0))
                 return Results.BadRequest(new
                 {
