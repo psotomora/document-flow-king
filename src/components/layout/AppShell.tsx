@@ -114,10 +114,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
 
-        <div className="border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/60">
+        <div className="space-y-1 border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/60">
           <p>Maqueta de demostración</p>
           <p>Fecha de corte: {formatearFecha(hoy)}</p>
+          <VersionApp />
         </div>
+
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
