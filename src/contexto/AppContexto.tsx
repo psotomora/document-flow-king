@@ -2,13 +2,17 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { toast } from "sonner";
 import * as semilla from "@/data/semilla";
 import type {
   Banco,
+  Compania,
   Contrato,
   Erogacion,
   Factura,
@@ -21,17 +25,35 @@ import type {
   Usuario,
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
+import { api, guardarToken, hayApi, obtenerToken } from "@/lib/api";
 
 let contador = 0;
 const nuevoId = (prefijo: string) => `${prefijo}-${Date.now().toString(36)}-${contador++}`;
+
+/** Respuesta de GET /estado en la API .NET. */
+interface EstadoServidor {
+  usuario: Usuario;
+  companias: Compania[];
+  bancos: Banco[];
+  facturas: Factura[];
+  pagos: Pago[];
+  erogaciones: Erogacion[];
+  contratos: Contrato[];
+  pedidos: Pedido[];
+  tiposCambio: TipoCambio[];
+  bitacora: RegistroBitacora[];
+}
 
 interface EstadoApp {
   hoy: string;
   usuario: Usuario;
   perfil: Perfil;
   autenticado: boolean;
+  modoApi: boolean;
+  cargando: boolean;
+  errorApi: string | null;
   companiaActiva: string | "todas";
-  companias: typeof semilla.companias;
+  companias: Compania[];
   bancos: Banco[];
   facturas: Factura[];
   pagos: Pago[];
@@ -45,6 +67,8 @@ interface EstadoApp {
   puedeEditar: boolean;
   esAdministrador: boolean;
   iniciarSesion: (usuarioId: string) => void;
+  autenticar: (usuario: string, contrasena: string) => Promise<void>;
+  recargar: () => Promise<void>;
   cerrarSesion: () => void;
   cambiarUsuario: (usuarioId: string) => void;
   setCompaniaActiva: (id: string | "todas") => void;
@@ -74,9 +98,13 @@ interface EstadoApp {
 const Contexto = createContext<EstadoApp | null>(null);
 
 export function ProveedorApp({ children }: { children: ReactNode }) {
+  const [modoApi, setModoApi] = useState(false);
+  const [cargando, setCargando] = useState(false);
+  const [errorApi, setErrorApi] = useState<string | null>(null);
   const [autenticado, setAutenticado] = useState(true);
   const [usuario, setUsuario] = useState<Usuario>(semilla.usuarios[0]!);
   const [companiaActiva, setCompaniaActiva] = useState<string | "todas">("todas");
+  const [companias, setCompanias] = useState<Compania[]>(semilla.companias);
   const [bancos, setBancos] = useState<Banco[]>(semilla.bancos);
   const [facturas, setFacturas] = useState<Factura[]>(semilla.facturas);
   const [pagos, setPagos] = useState<Pago[]>(semilla.pagos);
@@ -85,9 +113,91 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [pedidos, setPedidos] = useState<Pedido[]>(semilla.pedidos);
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>(semilla.bitacoraInicial);
+  const iniciado = useRef(false);
 
-  const hoy = semilla.FECHA_CORTE;
+  const hoy = modoApi ? new Date().toISOString().slice(0, 10) : semilla.FECHA_CORTE;
   const tipoCambio = tiposCambio[tiposCambio.length - 1]?.valor ?? 0;
+
+  const aplicarEstado = useCallback((estado: EstadoServidor) => {
+    setUsuario(estado.usuario);
+    setCompanias(estado.companias);
+    setBancos(estado.bancos);
+    setFacturas(estado.facturas);
+    setPagos(estado.pagos);
+    setErogaciones(estado.erogaciones);
+    setContratos(estado.contratos);
+    setPedidos(estado.pedidos);
+    setTiposCambio(estado.tiposCambio);
+    setBitacora(estado.bitacora);
+  }, []);
+
+  const recargar = useCallback(async () => {
+    if (!hayApi()) return;
+    setCargando(true);
+    try {
+      const estado = await api<EstadoServidor>("/estado");
+      aplicarEstado(estado);
+      setAutenticado(true);
+      setErrorApi(null);
+    } catch (e) {
+      const mensaje = e instanceof Error ? e.message : "Error desconocido";
+      setErrorApi(mensaje);
+      if (mensaje.includes("Sesión")) setAutenticado(false);
+    } finally {
+      setCargando(false);
+    }
+  }, [aplicarEstado]);
+
+  // Arranque: detecta si hay API configurada y restaura la sesión guardada.
+  useEffect(() => {
+    if (iniciado.current) return;
+    iniciado.current = true;
+    if (!hayApi()) {
+      setModoApi(false);
+      setAutenticado(true);
+      return;
+    }
+    setModoApi(true);
+    if (!obtenerToken()) {
+      setAutenticado(false);
+      return;
+    }
+    void recargar();
+  }, [recargar]);
+
+  const autenticar = useCallback(
+    async (nombreUsuario: string, contrasena: string) => {
+      const resp = await api<{ token: string; usuario: Usuario }>("/auth/login", {
+        metodo: "POST",
+        cuerpo: { usuario: nombreUsuario, contrasena },
+        sinToken: true,
+      });
+      guardarToken(resp.token);
+      setUsuario(resp.usuario);
+      setAutenticado(true);
+      await recargar();
+    },
+    [recargar],
+  );
+
+  /** Ejecuta una mutación contra la API y recarga el estado; en modo demo usa el callback local. */
+  const mutar = useCallback(
+    (ruta: string, metodo: string, cuerpo: unknown, local: () => void) => {
+      if (!hayApi()) {
+        local();
+        return;
+      }
+      void (async () => {
+        try {
+          await api(ruta, { metodo, cuerpo });
+          await recargar();
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "No se pudo guardar el cambio");
+        }
+      })();
+    },
+    [recargar],
+  );
 
   const anotar = useCallback(
     (
@@ -97,6 +207,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       valorNuevo?: string,
       valorAnterior?: string,
     ) => {
+      if (hayApi()) return; // la API registra la bitácora en SQL Server
       setBitacora((prev) => [
         {
           id: nuevoId("bit"),
@@ -128,8 +239,11 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       usuario,
       perfil: usuario.perfil,
       autenticado,
+      modoApi,
+      cargando,
+      errorApi,
       companiaActiva,
-      companias: semilla.companias,
+      companias,
       bancos,
       facturas,
       pagos,
@@ -142,119 +256,151 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       facturasCalculadas,
       puedeEditar,
       esAdministrador,
+      autenticar,
+      recargar,
       iniciarSesion: (usuarioId) => {
         const u = semilla.usuarios.find((x) => x.id === usuarioId);
         if (u) setUsuario(u);
         setAutenticado(true);
       },
-      cerrarSesion: () => setAutenticado(false),
+      cerrarSesion: () => {
+        guardarToken(null);
+        setAutenticado(false);
+      },
       cambiarUsuario: (usuarioId) => {
         const u = semilla.usuarios.find((x) => x.id === usuarioId);
         if (u) setUsuario(u);
       },
       setCompaniaActiva,
-      agregarFactura: (f) => {
-        const id = nuevoId("f");
-        setFacturas((prev) => [{ ...f, id }, ...prev]);
-        anotar("Facturas", f.numero, "Creación", `Monto: ${f.monto}`);
-      },
-      eliminarFactura: (id) => {
-        const f = facturas.find((x) => x.id === id);
-        setFacturas((prev) => prev.filter((x) => x.id !== id));
-        setPagos((prev) => prev.filter((p) => p.facturaId !== id));
-        if (f) anotar("Facturas", f.numero, "Eliminación", undefined, `Monto: ${f.monto}`);
-      },
-      agregarPago: (p) => {
-        setPagos((prev) => [{ ...p, id: nuevoId("p") }, ...prev]);
-        anotar("Pagos", p.referencia ?? "Pago", "Creación", `Monto: ${p.monto}`);
-      },
-      eliminarPago: (id) => {
-        const p = pagos.find((x) => x.id === id);
-        setPagos((prev) => prev.filter((x) => x.id !== id));
-        if (p) anotar("Pagos", p.referencia ?? "Pago", "Eliminación", undefined, `Monto: ${p.monto}`);
-      },
-      agregarErogacion: (e) => {
-        setErogaciones((prev) => [{ ...e, id: nuevoId("e") }, ...prev]);
-        anotar("Erogaciones", e.numeroTransferencia, "Creación", `Monto: ${e.monto}`);
-      },
-      eliminarErogacion: (id) => {
-        const e = erogaciones.find((x) => x.id === id);
-        setErogaciones((prev) => prev.filter((x) => x.id !== id));
-        if (e)
-          anotar("Erogaciones", e.numeroTransferencia, "Eliminación", undefined, `Monto: ${e.monto}`);
-      },
-      agregarContrato: (c) => {
-        setContratos((prev) => [{ ...c, id: nuevoId("c") }, ...prev]);
-        anotar("Contratos", c.numero, "Creación", `Monto: ${c.monto}`);
-      },
-      actualizarContrato: (id, cambios) => {
-        setContratos((prev) => prev.map((c) => (c.id === id ? { ...c, ...cambios } : c)));
-        const c = contratos.find((x) => x.id === id);
-        if (c) anotar("Contratos", c.numero, "Modificación", JSON.stringify(cambios));
-      },
-      eliminarContrato: (id) => {
-        const c = contratos.find((x) => x.id === id);
-        setContratos((prev) => prev.filter((x) => x.id !== id));
-        if (c) anotar("Contratos", c.numero, "Eliminación");
-      },
-      agregarPedido: (p) => {
-        setPedidos((prev) => [{ ...p, id: nuevoId("pd") }, ...prev]);
-        anotar("Pedidos", p.numero, "Creación", `Monto: ${p.monto}`);
-      },
-      actualizarPedido: (id, cambios) => {
-        setPedidos((prev) => prev.map((p) => (p.id === id ? { ...p, ...cambios } : p)));
-        const p = pedidos.find((x) => x.id === id);
-        if (p) anotar("Pedidos", p.numero, "Modificación", JSON.stringify(cambios));
-      },
-      eliminarPedido: (id) => {
-        const p = pedidos.find((x) => x.id === id);
-        setPedidos((prev) => prev.filter((x) => x.id !== id));
-        if (p) anotar("Pedidos", p.numero, "Eliminación");
-      },
-      agregarBanco: (b) => {
-        setBancos((prev) => [...prev, { ...b, id: nuevoId("bk") }]);
-        anotar("Catálogos", b.nombre, "Creación");
-      },
-      actualizarBanco: (id, cambios) => {
-        setBancos((prev) => prev.map((b) => (b.id === id ? { ...b, ...cambios } : b)));
-        const b = bancos.find((x) => x.id === id);
-        if (b) anotar("Catálogos", b.nombre, "Modificación", JSON.stringify(cambios));
-      },
-      registrarTipoCambio: (nuevoValor) => {
-        const anterior = tipoCambio;
-        setTiposCambio((prev) => [
-          ...prev,
-          {
-            id: nuevoId("tc"),
-            valor: nuevoValor,
-            fecha: `${hoy}T${new Date().toISOString().slice(11, 16)}`,
-            usuario: usuario.nombre,
-          },
-        ]);
-        anotar(
-          "Parámetros",
-          "Tipo de cambio",
-          "Modificación",
-          String(nuevoValor),
-          String(anterior),
-        );
-      },
-      importarLote: (datos) => {
-        if (datos.facturas?.length)
-          setFacturas((prev) => [
-            ...datos.facturas!.map((f) => ({ ...f, id: nuevoId("f") })),
+      agregarFactura: (f) =>
+        mutar("/facturas", "POST", f, () => {
+          setFacturas((prev) => [{ ...f, id: nuevoId("f") }, ...prev]);
+          anotar("Facturas", f.numero, "Creación", `Monto: ${f.monto}`);
+        }),
+      eliminarFactura: (id) =>
+        mutar(`/facturas/${id}`, "DELETE", undefined, () => {
+          const f = facturas.find((x) => x.id === id);
+          setFacturas((prev) => prev.filter((x) => x.id !== id));
+          setPagos((prev) => prev.filter((p) => p.facturaId !== id));
+          if (f) anotar("Facturas", f.numero, "Eliminación", undefined, `Monto: ${f.monto}`);
+        }),
+      agregarPago: (p) =>
+        mutar("/pagos", "POST", p, () => {
+          setPagos((prev) => [{ ...p, id: nuevoId("p") }, ...prev]);
+          anotar("Pagos", p.referencia ?? "Pago", "Creación", `Monto: ${p.monto}`);
+        }),
+      eliminarPago: (id) =>
+        mutar(`/pagos/${id}`, "DELETE", undefined, () => {
+          const p = pagos.find((x) => x.id === id);
+          setPagos((prev) => prev.filter((x) => x.id !== id));
+          if (p)
+            anotar("Pagos", p.referencia ?? "Pago", "Eliminación", undefined, `Monto: ${p.monto}`);
+        }),
+      agregarErogacion: (e) =>
+        mutar("/erogaciones", "POST", e, () => {
+          setErogaciones((prev) => [{ ...e, id: nuevoId("e") }, ...prev]);
+          anotar("Erogaciones", e.numeroTransferencia, "Creación", `Monto: ${e.monto}`);
+        }),
+      eliminarErogacion: (id) =>
+        mutar(`/erogaciones/${id}`, "DELETE", undefined, () => {
+          const e = erogaciones.find((x) => x.id === id);
+          setErogaciones((prev) => prev.filter((x) => x.id !== id));
+          if (e)
+            anotar(
+              "Erogaciones",
+              e.numeroTransferencia,
+              "Eliminación",
+              undefined,
+              `Monto: ${e.monto}`,
+            );
+        }),
+      agregarContrato: (c) =>
+        mutar("/contratos", "POST", c, () => {
+          setContratos((prev) => [{ ...c, id: nuevoId("c") }, ...prev]);
+          anotar("Contratos", c.numero, "Creación", `Monto: ${c.monto}`);
+        }),
+      actualizarContrato: (id, cambios) =>
+        mutar(`/contratos/${id}`, "PUT", cambios, () => {
+          setContratos((prev) => prev.map((c) => (c.id === id ? { ...c, ...cambios } : c)));
+          const c = contratos.find((x) => x.id === id);
+          if (c) anotar("Contratos", c.numero, "Modificación", JSON.stringify(cambios));
+        }),
+      eliminarContrato: (id) =>
+        mutar(`/contratos/${id}`, "DELETE", undefined, () => {
+          const c = contratos.find((x) => x.id === id);
+          setContratos((prev) => prev.filter((x) => x.id !== id));
+          if (c) anotar("Contratos", c.numero, "Eliminación");
+        }),
+      agregarPedido: (p) =>
+        mutar("/pedidos", "POST", p, () => {
+          setPedidos((prev) => [{ ...p, id: nuevoId("pd") }, ...prev]);
+          anotar("Pedidos", p.numero, "Creación", `Monto: ${p.monto}`);
+        }),
+      actualizarPedido: (id, cambios) =>
+        mutar(`/pedidos/${id}`, "PUT", cambios, () => {
+          setPedidos((prev) => prev.map((p) => (p.id === id ? { ...p, ...cambios } : p)));
+          const p = pedidos.find((x) => x.id === id);
+          if (p) anotar("Pedidos", p.numero, "Modificación", JSON.stringify(cambios));
+        }),
+      eliminarPedido: (id) =>
+        mutar(`/pedidos/${id}`, "DELETE", undefined, () => {
+          const p = pedidos.find((x) => x.id === id);
+          setPedidos((prev) => prev.filter((x) => x.id !== id));
+          if (p) anotar("Pedidos", p.numero, "Eliminación");
+        }),
+      agregarBanco: (b) =>
+        mutar("/bancos", "POST", b, () => {
+          setBancos((prev) => [...prev, { ...b, id: nuevoId("bk") }]);
+          anotar("Catálogos", b.nombre, "Creación");
+        }),
+      actualizarBanco: (id, cambios) =>
+        mutar(`/bancos/${id}`, "PUT", cambios, () => {
+          setBancos((prev) => prev.map((b) => (b.id === id ? { ...b, ...cambios } : b)));
+          const b = bancos.find((x) => x.id === id);
+          if (b) anotar("Catálogos", b.nombre, "Modificación", JSON.stringify(cambios));
+        }),
+      registrarTipoCambio: (nuevoValor) =>
+        mutar("/tipos-cambio", "POST", { valor: nuevoValor }, () => {
+          const anterior = tipoCambio;
+          setTiposCambio((prev) => [
             ...prev,
+            {
+              id: nuevoId("tc"),
+              valor: nuevoValor,
+              fecha: `${hoy}T${new Date().toISOString().slice(11, 16)}`,
+              usuario: usuario.nombre,
+            },
           ]);
-        if (datos.pagos?.length)
-          setPagos((prev) => [...datos.pagos!.map((p) => ({ ...p, id: nuevoId("p") })), ...prev]);
-        if (datos.erogaciones?.length)
-          setErogaciones((prev) => [
-            ...datos.erogaciones!.map((e) => ({ ...e, id: nuevoId("e") })),
-            ...prev,
-          ]);
-        anotar("Carga inicial", "Importación", "Creación", "Lote incorporado");
-      },
+          anotar(
+            "Parámetros",
+            "Tipo de cambio",
+            "Modificación",
+            String(nuevoValor),
+            String(anterior),
+          );
+        }),
+      importarLote: (datos) =>
+        mutar("/importacion/lote", "POST", datos, () => {
+          if (datos.facturas?.length)
+            setFacturas((prev) => [
+              ...datos.facturas!.map((f) => ({ ...f, id: nuevoId("f") })),
+              ...prev,
+            ]);
+          if (datos.pagos?.length)
+            setPagos((prev) => [...datos.pagos!.map((p) => ({ ...p, id: nuevoId("p") })), ...prev]);
+          if (datos.erogaciones?.length)
+            setErogaciones((prev) => [
+              ...datos.erogaciones!.map((e) => ({ ...e, id: nuevoId("e") })),
+              ...prev,
+            ]);
+          anotar("Carga inicial", "Importación", "Creación", "Lote incorporado");
+        }),
       reiniciar: () => {
+        if (hayApi()) {
+          void recargar();
+          return;
+        }
+        setCompanias(semilla.companias);
         setBancos(semilla.bancos);
         setFacturas(semilla.facturas);
         setPagos(semilla.pagos);
@@ -267,17 +413,24 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     };
   }, [
     anotar,
+    autenticar,
     autenticado,
     bancos,
     bitacora,
+    cargando,
     companiaActiva,
+    companias,
     contratos,
     erogaciones,
+    errorApi,
     facturas,
     facturasCalculadas,
     hoy,
+    modoApi,
+    mutar,
     pagos,
     pedidos,
+    recargar,
     tipoCambio,
     tiposCambio,
     usuario,
