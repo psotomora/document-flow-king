@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { FileDown } from "lucide-react";
+import { Coins, FileDown } from "lucide-react";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -16,7 +17,7 @@ import {
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { Moneda } from "@/data/tipos";
 import { calcularSaldosPorBanco, totalizarSaldos } from "@/lib/calculos";
-import { formatearMoneda } from "@/lib/formato";
+import { formatearMoneda, formatearNumero } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/bancos")({
