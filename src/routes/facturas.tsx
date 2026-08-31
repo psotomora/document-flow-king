@@ -373,10 +373,31 @@ function DialogoFactura({
         <DialogHeader>
           <DialogTitle>Nueva factura por cobrar</DialogTitle>
           <DialogDescription>
-            El vencimiento, el saldo y el estado se calculan automáticamente.
+            Puede generarla desde un pedido pendiente o capturarla manualmente. El vencimiento, el
+            saldo y el estado se calculan automáticamente.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Pedido de origen</Label>
+            <Select value={pedidoId} onValueChange={tomarPedido}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione un pedido" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ninguno">Sin pedido (captura manual)</SelectItem>
+                {pedidosPendientes.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.numero} · {p.cliente} · {formatearMoneda(p.monto, p.moneda)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Al guardar, el pedido seleccionado pasa de Pendiente a Facturado.
+            </p>
+          </div>
+
           <div className="space-y-1.5">
             <Label>Compañía</Label>
             <Select value={companiaId} onValueChange={setCompaniaId}>
