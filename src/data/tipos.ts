@@ -93,6 +93,7 @@ export interface TipoCambio {
   valor: number;
   fecha: string;
   usuario: string;
+  nota?: string | undefined;
 }
 
 export type OperacionBitacora = "Creación" | "Modificación" | "Eliminación";

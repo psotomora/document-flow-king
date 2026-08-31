@@ -86,7 +86,7 @@ interface EstadoApp {
   eliminarPedido: (id: string) => void;
   agregarBanco: (b: Omit<Banco, "id">) => void;
   actualizarBanco: (id: string, cambios: Partial<Banco>) => void;
-  registrarTipoCambio: (valor: number) => void;
+  registrarTipoCambio: (valor: number, nota?: string) => void;
   importarLote: (datos: {
     facturas?: Omit<Factura, "id">[];
     pagos?: Omit<Pago, "id">[];
@@ -359,8 +359,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           const b = bancos.find((x) => x.id === id);
           if (b) anotar("Catálogos", b.nombre, "Modificación", JSON.stringify(cambios));
         }),
-      registrarTipoCambio: (nuevoValor) =>
-        mutar("/tipos-cambio", "POST", { valor: nuevoValor }, () => {
+      registrarTipoCambio: (nuevoValor, nota) =>
+        mutar("/tipos-cambio", "POST", { valor: nuevoValor, nota }, () => {
           const anterior = tipoCambio;
           setTiposCambio((prev) => [
             ...prev,
@@ -369,13 +369,14 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
               valor: nuevoValor,
               fecha: `${hoy}T${new Date().toISOString().slice(11, 16)}`,
               usuario: usuario.nombre,
+              nota,
             },
           ]);
           anotar(
             "Parámetros",
             "Tipo de cambio",
             "Modificación",
-            String(nuevoValor),
+            nota ? `${nuevoValor} (${nota})` : String(nuevoValor),
             String(anterior),
           );
         }),
