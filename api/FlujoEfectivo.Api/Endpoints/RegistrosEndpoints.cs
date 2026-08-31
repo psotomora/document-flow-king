@@ -10,6 +10,12 @@ namespace FlujoEfectivo.Api.Endpoints;
 /// pedidos, cuentas bancarias, tipo de cambio y carga inicial.</summary>
 public static class RegistrosEndpoints
 {
+    private sealed class FilaFactura
+    {
+        public string Numero { get; set; } = "";
+        public string Moneda { get; set; } = "";
+    }
+
     private static IResult SinPermiso() =>
         Results.Json(new { mensaje = "Su perfil no permite modificar información." }, statusCode: 403);
 
