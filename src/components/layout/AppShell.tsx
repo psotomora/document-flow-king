@@ -30,7 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConexionApi } from "@/components/layout/ConexionApi";
 import { VersionApp } from "@/components/layout/VersionApp";
-import logoAplix from "@/assets/aplix-isotipo.png.asset.json";
+
 
 
 
