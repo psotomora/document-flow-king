@@ -148,7 +148,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <ConexionApi />
             <Select value={usuario.id} onValueChange={cambiarUsuario}>
+
               <SelectTrigger className="h-8 w-56">
                 <SelectValue />
               </SelectTrigger>
