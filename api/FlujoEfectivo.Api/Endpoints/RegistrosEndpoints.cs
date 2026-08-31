@@ -315,12 +315,15 @@ public static class RegistrosEndpoints
                 "SELECT TOP 1 Valor FROM flujo.TipoCambio ORDER BY VigenteDesde DESC, TipoCambioId DESC");
             var id = cn.ExecuteScalar<int>(
                 """
-                INSERT INTO flujo.TipoCambio (Valor, VigenteDesde, UsuarioId)
-                OUTPUT INSERTED.TipoCambioId VALUES (@valor, SYSUTCDATETIME(), @usuarioId)
+                INSERT INTO flujo.TipoCambio (Valor, VigenteDesde, UsuarioId, Nota)
+                OUTPUT INSERTED.TipoCambioId VALUES (@valor, SYSUTCDATETIME(), @usuarioId, @nota)
                 """,
-                new { valor = t.Valor, usuarioId = ctx.User.UsuarioId() });
+                new { valor = t.Valor, usuarioId = ctx.User.UsuarioId(), nota = string.IsNullOrWhiteSpace(t.Nota) ? null : t.Nota!.Trim() });
+            var detalle = string.IsNullOrWhiteSpace(t.Nota)
+                ? t.Valor.ToString()
+                : $"{t.Valor} ({t.Nota!.Trim()})";
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "Tipo de cambio",
-                "Modificación", anterior?.ToString(), t.Valor.ToString());
+                "Modificación", anterior?.ToString(), detalle);
             return Results.Ok(new { id = id.ToString() });
         });
 

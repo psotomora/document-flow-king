@@ -37,8 +37,10 @@ export const Route = createFileRoute("/parametros")({
 });
 
 function PaginaParametros() {
-  const { tipoCambio, tiposCambio, esAdministrador, registrarTipoCambio } = useApp();
+  const { tipoCambio, tiposCambio, esAdministrador, registrarTipoCambio, bitacora, modoApi } =
+    useApp();
   const [valor, setValor] = useState(String(tipoCambio));
+  const [nota, setNota] = useState("");
 
   const guardar = () => {
     const numero = Number(valor);
@@ -46,9 +48,12 @@ function PaginaParametros() {
       toast.error("El tipo de cambio debe ser un número mayor que cero.");
       return;
     }
-    registrarTipoCambio(numero);
+    registrarTipoCambio(numero, nota.trim() || undefined);
+    setNota("");
     toast.success(`Tipo de cambio actualizado a ₡${formatearNumero(numero)}`);
   };
+
+  const movimientos = bitacora.filter((b) => b.modulo === "Parámetros").slice(0, 15);
 
   const historial = [...tiposCambio].reverse();
 
@@ -92,6 +97,16 @@ function PaginaParametros() {
               onChange={(e) => setValor(e.target.value)}
             />
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="motivo">Motivo del cambio (opcional)</Label>
+            <Input
+              id="motivo"
+              className="w-72"
+              placeholder="Ej. Tipo de cambio de venta BCCR"
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+            />
+          </div>
           <Button onClick={guardar}>Registrar tipo de cambio</Button>
         </div>
       ) : (
@@ -106,6 +121,7 @@ function PaginaParametros() {
             <TableRow>
               <TableHead>Fecha y hora</TableHead>
               <TableHead>Usuario</TableHead>
+              <TableHead>Motivo</TableHead>
               <TableHead className="text-right">Valor (₡ por US$)</TableHead>
             </TableRow>
           </TableHeader>
@@ -114,6 +130,7 @@ function PaginaParametros() {
               <TableRow key={t.id}>
                 <TableCell className="whitespace-nowrap">{formatearFechaHora(t.fecha)}</TableCell>
                 <TableCell>{t.usuario}</TableCell>
+                <TableCell className="text-muted-foreground">{t.nota ?? "—"}</TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
                   {formatearNumero(t.valor)}
                 </TableCell>
@@ -121,6 +138,46 @@ function PaginaParametros() {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold text-foreground">
+          Bitácora del parámetro {modoApi ? "(SQL Server)" : "(modo demostración)"}
+        </h2>
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha y hora</TableHead>
+                <TableHead>Usuario</TableHead>
+                <TableHead>Operación</TableHead>
+                <TableHead>Valor anterior</TableHead>
+                <TableHead>Valor nuevo</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {movimientos.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    Sin movimientos registrados.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                movimientos.map((b) => (
+                  <TableRow key={b.id}>
+                    <TableCell className="whitespace-nowrap">
+                      {formatearFechaHora(b.fechaHora)}
+                    </TableCell>
+                    <TableCell>{b.usuario}</TableCell>
+                    <TableCell>{b.operacion}</TableCell>
+                    <TableCell className="font-mono tabular-nums">{b.valorAnterior ?? "—"}</TableCell>
+                    <TableCell className="font-mono tabular-nums">{b.valorNuevo ?? "—"}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

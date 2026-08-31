@@ -89,7 +89,7 @@ public static class EstadoEndpoints
                 """
                 SELECT CAST(t.TipoCambioId AS NVARCHAR(20)) AS Id, t.Valor,
                        CONVERT(NVARCHAR(16), t.VigenteDesde, 126) AS Fecha,
-                       ISNULL(u.NombreCompleto, 'Sistema') AS Usuario
+                       ISNULL(u.NombreCompleto, 'Sistema') AS Usuario, t.Nota
                 FROM flujo.TipoCambio t
                 LEFT JOIN flujo.Usuario u ON u.UsuarioId = t.UsuarioId
                 ORDER BY t.VigenteDesde
