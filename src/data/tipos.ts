@@ -74,7 +74,7 @@ export interface Contrato {
   notas?: string | undefined;
 }
 
-export type EstadoPedido = "Pendiente" | "En proceso" | "Facturado" | "Anulado";
+export type EstadoPedido = "Pendiente" | "Facturado" | "Anulado";
 
 export interface Pedido {
   id: string;

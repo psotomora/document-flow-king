@@ -241,7 +241,7 @@ CREATE TABLE flujo.Pedido (
     CONSTRAINT FK_Pedido_Moneda   FOREIGN KEY (Moneda) REFERENCES flujo.Moneda(Codigo),
     CONSTRAINT FK_Pedido_Factura  FOREIGN KEY (FacturaId) REFERENCES flujo.Factura(FacturaId),
     CONSTRAINT UQ_Pedido_Numero   UNIQUE (CompaniaId, Numero),
-    CONSTRAINT CK_Pedido_Estado   CHECK (Estado IN ('Pendiente','En proceso','Facturado','Anulado'))
+    CONSTRAINT CK_Pedido_Estado   CHECK (Estado IN ('Pendiente','Facturado','Anulado'))
 );
 GO
 

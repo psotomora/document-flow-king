@@ -110,7 +110,7 @@ INSERT INTO flujo.Pedido (CompaniaId, Numero, ClienteId, FechaCreacion, PlazoDia
 SELECT c.CompaniaId, v.Numero, cl.ClienteId, v.Fecha, v.PlazoDias, v.Moneda, v.Monto, v.Estado
 FROM (VALUES
     ('TX', N'PD-501', N'Corporación Santa Ana',  '2026-08-12', 30, 'USD',    8600.00, N'Pendiente'),
-    ('TX', N'PD-502', N'Textiles Heredia',       '2026-08-20', 15, 'CRC', 1950000.00, N'En proceso'),
+    ('TX', N'PD-502', N'Textiles Heredia',       '2026-08-20', 15, 'CRC', 1950000.00, N'Pendiente'),
     ('AX', N'PD-601', N'Agroindustrial Zarcero', '2026-08-18', 30, 'USD',    5400.00, N'Pendiente'),
     ('AX', N'PD-602', N'Farmacias Unidas',       '2026-07-30', 30, 'CRC', 2300000.00, N'Facturado'),
     ('AX', N'PD-603', N'Inversiones Escazú',     '2026-08-25', 45, 'USD',   11200.00, N'Pendiente')

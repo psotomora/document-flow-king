@@ -55,7 +55,7 @@ export const Route = createFileRoute("/pedidos")({
   component: PaginaPedidos,
 });
 
-const ESTADOS: EstadoPedido[] = ["Pendiente", "En proceso", "Facturado", "Anulado"];
+const ESTADOS: EstadoPedido[] = ["Pendiente", "Facturado", "Anulado"];
 
 function PaginaPedidos() {
   const {
@@ -75,7 +75,7 @@ function PaginaPedidos() {
   );
 
   const pendientesUSD = filtrados
-    .filter((p) => p.estado === "Pendiente" || p.estado === "En proceso")
+    .filter((p) => p.estado === "Pendiente")
     .reduce((s, p) => s + equivalenteEnDolares(p.monto, p.moneda, tipoCambio), 0);
 
   const exportar = () =>
