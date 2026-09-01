@@ -34,6 +34,45 @@ export function hayApi(): boolean {
   return urlApi().length > 0;
 }
 
+/** Comprueba la API y su acceso a SQL Server antes de guardar la URL. */
+export async function probarConexionApi(url: string): Promise<string> {
+  const base = url.trim().replace(/\/+$/, "");
+  if (!base) throw new ErrorApi("Indique la URL de la API.", 0);
+
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(`${base}/salud`, {
+      headers: { Accept: "application/json" },
+    });
+  } catch {
+    throw new ErrorApi(
+      "No se pudo contactar la API. Confirme el protocolo, puerto y que dotnet run siga activo.",
+      0,
+    );
+  }
+
+  const tipoContenido = respuesta.headers.get("content-type") ?? "";
+  const datos = tipoContenido.includes("application/json")
+    ? ((await respuesta.json()) as { estado?: string; mensaje?: string })
+    : null;
+
+  if (!respuesta.ok) {
+    throw new ErrorApi(
+      datos?.mensaje ??
+        (respuesta.status === 404
+          ? "La URL no corresponde a esta API. Debe terminar en /api."
+          : `La API respondió con error ${respuesta.status}.`),
+      respuesta.status,
+    );
+  }
+
+  if (datos?.estado !== "ok") {
+    throw new ErrorApi("La respuesta recibida no corresponde a la API de Flujo de Efectivo.", 0);
+  }
+
+  return base;
+}
+
 export function obtenerToken(): string | null {
   return esNavegador() ? window.localStorage.getItem(CLAVE_TOKEN) : null;
 }
