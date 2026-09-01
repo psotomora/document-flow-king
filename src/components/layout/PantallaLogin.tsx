@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Loader2, LockKeyhole, ServerCog } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
-import { configurarUrlApi, urlApi } from "@/lib/api";
+import { configurarUrlApi, probarConexionApi, urlApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ export function PantallaLogin() {
   const [enviando, setEnviando] = useState(false);
   const [servidor, setServidor] = useState(urlApi());
   const [editandoServidor, setEditandoServidor] = useState(false);
+  const [probandoServidor, setProbandoServidor] = useState(false);
 
   async function enviar(e: FormEvent) {
     e.preventDefault();
@@ -109,12 +110,26 @@ export function PantallaLogin() {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => {
-                      configurarUrlApi(servidor);
-                      window.location.reload();
+                    disabled={!servidor.trim() || probandoServidor}
+                    onClick={async () => {
+                      setError(null);
+                      setProbandoServidor(true);
+                      try {
+                        const urlValidada = await probarConexionApi(servidor);
+                        configurarUrlApi(urlValidada);
+                        window.location.reload();
+                      } catch (err) {
+                        setError(
+                          err instanceof Error ? err.message : "No fue posible validar el servidor",
+                        );
+                        setProbandoServidor(false);
+                      }
                     }}
                   >
-                    Guardar
+                    {probandoServidor && (
+                      <Loader2 className="size-4 animate-spin" aria-hidden />
+                    )}
+                    {probandoServidor ? "Probando" : "Guardar"}
                   </Button>
                 </div>
               </div>

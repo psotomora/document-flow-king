@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Dapper;
 using FlujoEfectivo.Api.Datos;
 using FlujoEfectivo.Api.Endpoints;
 using FlujoEfectivo.Api.Seguridad;
@@ -75,7 +76,39 @@ api.MapEstado();
 api.MapUsuarios();
 api.MapRegistros();
 
-app.MapGet("/api/salud", () => Results.Ok(new { estado = "ok", hora = DateTime.UtcNow }))
-   .AllowAnonymous();
+app.MapGet("/api/salud", (Db db) =>
+{
+    try
+    {
+        using var cn = db.Abrir();
+        var esquemaCompleto = cn.ExecuteScalar<int>(
+            """
+            SELECT CASE WHEN
+                OBJECT_ID('flujo.Compania', 'U') IS NOT NULL AND
+                OBJECT_ID('flujo.Usuario', 'U') IS NOT NULL AND
+                OBJECT_ID('flujo.TipoCambio', 'U') IS NOT NULL AND
+                COL_LENGTH('flujo.TipoCambio', 'Nota') IS NOT NULL
+            THEN 1 ELSE 0 END
+            """) == 1;
+
+        if (esquemaCompleto)
+            return Results.Ok(new { estado = "ok", hora = DateTime.UtcNow });
+
+        return Results.Json(new
+            {
+                estado = "error",
+                mensaje = "La base de datos no tiene la estructura requerida. Ejecute en orden los scripts 01_esquema.sql, 02_datos_iniciales.sql, 04_seguridad.sql y 05_parametros.sql."
+            }, statusCode: 503);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "No fue posible validar la conexión con SQL Server");
+        return Results.Json(new
+        {
+            estado = "error",
+            mensaje = "La API está activa, pero no puede abrir la base FlujoEfectivo. Revise la cadena de conexión, el nombre de la instancia y los permisos de SQL Server."
+        }, statusCode: 503);
+    }
+}).AllowAnonymous();
 
 app.Run();

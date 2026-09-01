@@ -1,4 +1,4 @@
-import { Database, HardDrive } from "lucide-react";
+import { Database, HardDrive, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { configurarUrlApi, urlApi } from "@/lib/api";
+import { configurarUrlApi, probarConexionApi, urlApi } from "@/lib/api";
 import { useApp } from "@/contexto/AppContexto";
+import { toast } from "sonner";
 
 /**
  * Indicador del origen de datos (modo demo en memoria vs API .NET + SQL Server)
@@ -23,14 +24,23 @@ export function ConexionApi() {
   const { modoApi } = useApp();
   const [abierto, setAbierto] = useState(false);
   const [url, setUrl] = useState("");
+  const [probando, setProbando] = useState(false);
 
   useEffect(() => {
     setUrl(urlApi());
   }, [abierto]);
 
-  const guardar = () => {
-    configurarUrlApi(url);
-    window.location.reload();
+  const guardar = async () => {
+    setProbando(true);
+    try {
+      const urlValidada = await probarConexionApi(url);
+      configurarUrlApi(urlValidada);
+      window.location.reload();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No fue posible validar la conexión");
+    } finally {
+      setProbando(false);
+    }
   };
 
   return (
@@ -84,8 +94,9 @@ export function ConexionApi() {
           >
             Usar datos de prueba
           </Button>
-          <Button onClick={guardar} disabled={!url.trim()}>
-            Conectar
+          <Button onClick={guardar} disabled={!url.trim() || probando}>
+            {probando && <Loader2 className="size-4 animate-spin" aria-hidden />}
+            {probando ? "Comprobando" : "Conectar"}
           </Button>
         </DialogFooter>
       </DialogContent>
