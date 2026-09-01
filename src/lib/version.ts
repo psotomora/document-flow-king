@@ -13,6 +13,15 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.8.0",
+    fecha: "2026-09-01",
+    cambios: [
+      "El pie del menú lateral muestra el usuario, su perfil y la compañía de la sesión activa.",
+      "En modo conectado a SQL Server se muestra el usuario real de la sesión (sin selector de demostración).",
+      "Si la sesión expira o se pierde la conexión, el sistema solicita nuevamente el inicio de sesión.",
+    ],
+  },
+  {
     version: "1.7.0",
     fecha: "2026-09-01",
     cambios: [
