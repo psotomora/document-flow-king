@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.5.0";
-export const APP_FECHA_VERSION = "2026-08-31";
+export const APP_VERSION = "1.6.0";
+export const APP_FECHA_VERSION = "2026-09-01";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.6.0",
+    fecha: "2026-09-01",
+    cambios: [
+      "Al cerrar sesión en el modo conectado a SQL Server se muestra una página de finalización de sesión.",
+      "El token de acceso se descarta y se ofrece volver a iniciar sesión.",
+    ],
+  },
   {
     version: "1.5.0",
     fecha: "2026-08-31",
