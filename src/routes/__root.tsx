@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ProveedorApp, useApp } from "@/contexto/AppContexto";
 import { AppShell } from "@/components/layout/AppShell";
 import { PantallaLogin } from "@/components/layout/PantallaLogin";
+import { PantallaSesionCerrada } from "@/components/layout/PantallaSesionCerrada";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -123,9 +124,11 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function Aplicacion() {
-  const { modoApi, autenticado } = useApp();
+  const { modoApi, autenticado, sesionCerrada } = useApp();
 
-  if (modoApi && !autenticado) return <PantallaLogin />;
+  if (modoApi && !autenticado) {
+    return sesionCerrada ? <PantallaSesionCerrada /> : <PantallaLogin />;
+  }
 
   return (
     <AppShell>
