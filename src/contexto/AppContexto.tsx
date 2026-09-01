@@ -488,6 +488,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     anotar,
     autenticar,
     autenticado,
+    sesionCerrada,
     bancos,
     bitacora,
     cargando,
