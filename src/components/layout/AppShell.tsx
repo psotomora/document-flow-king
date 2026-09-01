@@ -17,7 +17,7 @@ import {
   Upload,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { filtrarPorCompania, useApp, usuariosDemo } from "@/contexto/AppContexto";
+import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import { formatearFecha, formatearNumero } from "@/lib/formato";
 import { cn } from "@/lib/utils";
 import {
