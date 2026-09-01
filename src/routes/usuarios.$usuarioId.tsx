@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { CampoContrasena } from "@/components/comunes/CampoContrasena";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -207,9 +208,8 @@ function PaginaUsuario() {
               <Label htmlFor="contrasena">
                 {esNuevo ? "Contraseña inicial (opcional)" : "Nueva contraseña (dejar vacío para no cambiar)"}
               </Label>
-              <Input
+              <CampoContrasena
                 id="contrasena"
-                type="password"
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
                 autoComplete="new-password"
