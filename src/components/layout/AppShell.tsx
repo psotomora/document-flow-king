@@ -176,19 +176,27 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <ConexionApi />
-            <Select value={usuario.id} onValueChange={cambiarUsuario}>
-
-              <SelectTrigger className="h-8 w-56">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {usuariosDemo.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.nombre} · {u.perfil}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {modoApi ? (
+              <div className="flex flex-col items-end leading-tight">
+                <span className="text-xs font-medium text-foreground">{usuario.nombre}</span>
+                <span className="text-[11px] capitalize text-muted-foreground">
+                  {usuario.perfil}
+                </span>
+              </div>
+            ) : (
+              <Select value={usuario.id} onValueChange={cambiarUsuario}>
+                <SelectTrigger className="h-8 w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {usuarios.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.nombre} · {u.perfil}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             {modoApi ? (
               <Button
                 variant="ghost"
