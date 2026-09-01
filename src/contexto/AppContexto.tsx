@@ -230,6 +230,69 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     [facturas, pagos, hoy],
   );
 
+  // Genera automáticamente los pedidos de contratos activos cuya próxima
+  // facturación ya venció y que todavía no tienen pedido asociado (RF-011).
+  const pedidosGenerados = useRef(new Set<string>());
+  useEffect(() => {
+    if (!autenticado || cargando || contratos.length === 0) return;
+    const pendientes = pedidosPendientesDeContratos(contratos, pedidos, hoy).filter(
+      (g) => !pedidosGenerados.current.has(g.pedido.numero),
+    );
+    if (pendientes.length === 0) return;
+    pendientes.forEach((g) => pedidosGenerados.current.add(g.pedido.numero));
+
+    const ultimaPorContrato = new Map<string, string>();
+    pendientes.forEach((g) => ultimaPorContrato.set(g.contratoId, g.proximaFacturacion));
+
+    if (!hayApi()) {
+      setPedidos((prev) => [
+        ...pendientes.map((g) => ({ ...g.pedido, id: nuevoId("pd") })),
+        ...prev,
+      ]);
+      setContratos((prev) =>
+        prev.map((c) =>
+          ultimaPorContrato.has(c.id)
+            ? { ...c, proximaFacturacion: ultimaPorContrato.get(c.id)!, facturado: false }
+            : c,
+        ),
+      );
+      pendientes.forEach((g) => {
+        anotar(
+          "Pedidos",
+          g.pedido.numero,
+          "Creación",
+          `Generado automáticamente del contrato ${g.numeroContrato}`,
+        );
+      });
+    } else {
+      void (async () => {
+        try {
+          for (const g of pendientes) {
+            await api("/pedidos", { metodo: "POST", cuerpo: g.pedido });
+          }
+          for (const [contratoId, proximaFacturacion] of ultimaPorContrato) {
+            await api(`/contratos/${contratoId}`, {
+              metodo: "PUT",
+              cuerpo: { proximaFacturacion, facturado: false },
+            });
+          }
+          await recargar();
+        } catch (e) {
+          toast.error(
+            e instanceof Error ? e.message : "No se pudieron generar los pedidos de contratos",
+          );
+        }
+      })();
+    }
+
+    toast.info(
+      pendientes.length === 1
+        ? `Se generó 1 pedido a partir de contratos vigentes.`
+        : `Se generaron ${pendientes.length} pedidos a partir de contratos vigentes.`,
+    );
+  }, [anotar, autenticado, cargando, contratos, hoy, pedidos, recargar]);
+
+
   const valor = useMemo<EstadoApp>(() => {
     const puedeEditar = usuario.perfil !== "consulta";
     const esAdministrador = usuario.perfil === "administrador";
