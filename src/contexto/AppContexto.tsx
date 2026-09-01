@@ -308,7 +308,6 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       usuario,
       perfil: usuario.perfil,
       autenticado,
-    sesionCerrada,
       sesionCerrada,
       modoApi,
       cargando,
