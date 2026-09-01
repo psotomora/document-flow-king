@@ -218,7 +218,9 @@ function DialogoPedido({
   abierto: boolean;
   setAbierto: (v: boolean) => void;
 }) {
-  const { companias, agregarPedido, hoy } = useApp();
+  const { companias, contratos, agregarPedido, actualizarContrato, hoy } = useApp();
+  const [origen, setOrigen] = useState<"manual" | "contrato">("manual");
+  const [contratoId, setContratoId] = useState("");
   const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
   const [numero, setNumero] = useState("");
   const [cliente, setCliente] = useState("");
@@ -226,6 +228,21 @@ function DialogoPedido({
   const [plazoDias, setPlazo] = useState("30");
   const [moneda, setMoneda] = useState<Moneda>("USD");
   const [monto, setMonto] = useState("");
+
+  const contratosActivos = contratos.filter((c) => c.estado === "Activo");
+
+  const tomarContrato = (id: string) => {
+    setContratoId(id);
+    const c = contratos.find((x) => x.id === id);
+    if (!c) return;
+    setCompaniaId(c.companiaId);
+    setNumero(numeroPedidoDeContrato(c.numero, c.proximaFacturacion));
+    setCliente(c.cliente);
+    setFecha(c.proximaFacturacion.slice(0, 10));
+    setPlazo(String(c.plazoDias));
+    setMoneda(c.moneda);
+    setMonto(String(c.monto));
+  };
 
   const guardar = () => {
     if (!numero || !cliente || !(Number(monto) > 0)) {
@@ -242,11 +259,24 @@ function DialogoPedido({
       monto: Number(monto),
       estado: "Pendiente",
     });
+    if (origen === "contrato" && contratoId) {
+      const c = contratos.find((x) => x.id === contratoId);
+      if (c) {
+        actualizarContrato(c.id, {
+          proximaFacturacion: sumarMeses(
+            fechaCreacion,
+            MESES_POR_PERIODICIDAD[c.periodicidad] ?? 1,
+          ),
+          facturado: false,
+        });
+      }
+    }
     toast.success(`Pedido ${numero} registrado`);
     setAbierto(false);
     setNumero("");
     setCliente("");
     setMonto("");
+    setContratoId("");
   };
 
   return (
@@ -260,10 +290,47 @@ function DialogoPedido({
         <DialogHeader>
           <DialogTitle>Nuevo pedido</DialogTitle>
           <DialogDescription>
-            Los pedidos pendientes y en proceso se suman al saldo proyectado.
+            Regístrelo manualmente o genérelo a partir de un contrato activo. Los pedidos
+            pendientes se suman al saldo proyectado.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Origen del pedido</Label>
+            <Select
+              value={origen}
+              onValueChange={(v) => {
+                setOrigen(v as "manual" | "contrato");
+                setContratoId("");
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="contrato">Desde contrato</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {origen === "contrato" ? (
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Contrato</Label>
+              <Select value={contratoId} onValueChange={tomarContrato}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione un contrato activo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {contratosActivos.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.numero} — {c.cliente} ({c.periodicidad})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+
           <div className="space-y-1.5">
             <Label>Compañía</Label>
             <Select value={companiaId} onValueChange={setCompaniaId}>
