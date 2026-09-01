@@ -162,6 +162,18 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setBitacora(estado.bitacora);
   }, []);
 
+  /** Si la sesión ya no es válida en el servidor, se vuelve a pedir el inicio de sesión. */
+  const sesionExpirada = useCallback((e: unknown): boolean => {
+    const expiro =
+      (e instanceof ErrorApi && e.estado === 401) ||
+      (e instanceof Error && e.message.includes("Sesión"));
+    if (!expiro) return false;
+    guardarToken(null);
+    setAutenticado(false);
+    setSesionCerrada(false);
+    return true;
+  }, []);
+
   const recargar = useCallback(async () => {
     if (!hayApi()) return;
     setCargando(true);
@@ -173,11 +185,11 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     } catch (e) {
       const mensaje = e instanceof Error ? e.message : "Error desconocido";
       setErrorApi(mensaje);
-      if (mensaje.includes("Sesión")) setAutenticado(false);
+      sesionExpirada(e);
     } finally {
       setCargando(false);
     }
-  }, [aplicarEstado]);
+  }, [aplicarEstado, sesionExpirada]);
 
   // Arranque: detecta si hay API configurada y restaura la sesión guardada.
   useEffect(() => {
@@ -195,6 +207,20 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     }
     void recargar();
   }, [recargar]);
+
+  // Revalida la sesión al volver a la pestaña: si el token venció, se pide el login otra vez.
+  useEffect(() => {
+    if (!modoApi || !autenticado) return;
+    const alVolver = () => {
+      if (document.visibilityState === "visible") void recargar();
+    };
+    window.addEventListener("focus", alVolver);
+    document.addEventListener("visibilitychange", alVolver);
+    return () => {
+      window.removeEventListener("focus", alVolver);
+      document.removeEventListener("visibilitychange", alVolver);
+    };
+  }, [modoApi, autenticado, recargar]);
 
   const autenticar = useCallback(
     async (nombreUsuario: string, contrasena: string) => {
@@ -224,11 +250,15 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           await api(ruta, { metodo, cuerpo });
           await recargar();
         } catch (e) {
+          if (sesionExpirada(e)) {
+            toast.error("Su sesión expiró. Inicie sesión nuevamente.");
+            return;
+          }
           toast.error(e instanceof Error ? e.message : "No se pudo guardar el cambio");
         }
       })();
     },
-    [recargar],
+    [recargar, sesionExpirada],
   );
 
   const anotar = useCallback(
