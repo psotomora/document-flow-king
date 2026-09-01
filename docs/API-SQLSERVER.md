@@ -15,6 +15,7 @@ Ejecute los scripts en este orden desde SQL Server Management Studio:
 2. `database/02_datos_iniciales.sql` — monedas, perfiles, compañías y bancos.
 3. `database/03_datos_demo.sql` — *opcional*, datos de prueba.
 4. `database/04_seguridad.sql` — usuarios de acceso.
+5. `database/05_parametros.sql` — actualización persistente del tipo de cambio.
 
 Usuarios creados (cambie las contraseñas después del primer ingreso):
 
@@ -53,6 +54,9 @@ En IIS:
    del grupo de aplicaciones con una cuenta con permisos en la base.
 
 Verifique con `https://suservidor/api/salud` → debe responder `{"estado":"ok"}`.
+Esta comprobación también valida que SQL Server sea accesible y que la estructura
+de la base esté actualizada. Si devuelve un error 503, el mensaje indica si debe
+revisar la cadena de conexión o ejecutar los scripts pendientes.
 
 ## 4. Conectar el sitio web
 
