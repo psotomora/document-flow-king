@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
         <div className="flex flex-col items-center border-b border-sidebar-border px-5 py-4">
           <img
-            src={logoAplix}
+            src={logoAplixAsset.url}
             alt="Aplix"
             className="mb-2 h-10 w-auto object-contain"
           />
