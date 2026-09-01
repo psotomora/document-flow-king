@@ -91,9 +91,10 @@ app.MapGet("/api/salud", (Db db) =>
             THEN 1 ELSE 0 END
             """) == 1;
 
-        return esquemaCompleto
-            ? Results.Ok(new { estado = "ok", hora = DateTime.UtcNow })
-            : Results.Json(new
+        if (esquemaCompleto)
+            return Results.Ok(new { estado = "ok", hora = DateTime.UtcNow });
+
+        return Results.Json(new
             {
                 estado = "error",
                 mensaje = "La base de datos no tiene la estructura requerida. Ejecute en orden los scripts 01_esquema.sql, 02_datos_iniciales.sql, 04_seguridad.sql y 05_parametros.sql."
