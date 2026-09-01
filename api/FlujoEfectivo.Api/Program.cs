@@ -72,6 +72,7 @@ app.Use(async (ctx, next) =>
 var api = app.MapGroup("/api").RequireAuthorization();
 api.MapAuth();
 api.MapEstado();
+api.MapUsuarios();
 api.MapRegistros();
 
 app.MapGet("/api/salud", () => Results.Ok(new { estado = "ok", hora = DateTime.UtcNow }))

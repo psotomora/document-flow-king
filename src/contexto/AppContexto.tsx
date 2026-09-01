@@ -35,6 +35,7 @@ const nuevoId = (prefijo: string) => `${prefijo}-${Date.now().toString(36)}-${co
 /** Respuesta de GET /estado en la API .NET. */
 interface EstadoServidor {
   usuario: Usuario;
+  usuarios?: Usuario[];
   companias: Compania[];
   bancos: Banco[];
   facturas: Factura[];
@@ -49,6 +50,7 @@ interface EstadoServidor {
 interface EstadoApp {
   hoy: string;
   usuario: Usuario;
+  usuarios: Usuario[];
   perfil: Perfil;
   autenticado: boolean;
   sesionCerrada: boolean;
@@ -75,6 +77,26 @@ interface EstadoApp {
   cerrarSesion: () => void;
   volverAlLogin: () => void;
   cambiarUsuario: (usuarioId: string) => void;
+  crearUsuario: (datos: {
+    nombre: string;
+    nombreUsuario: string;
+    correo?: string;
+    perfil: Perfil;
+    activo: boolean;
+    contrasena?: string;
+  }) => Promise<void>;
+  actualizarUsuario: (
+    id: string,
+    cambios: {
+      nombre?: string;
+      nombreUsuario?: string;
+      correo?: string;
+      perfil?: Perfil;
+      activo?: boolean;
+      contrasena?: string;
+    },
+  ) => Promise<void>;
+  eliminarUsuario: (id: string) => Promise<void>;
   setCompaniaActiva: (id: string | "todas") => void;
   agregarFactura: (f: Omit<Factura, "id">) => void;
   eliminarFactura: (id: string) => void;
@@ -108,6 +130,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [autenticado, setAutenticado] = useState(true);
   const [sesionCerrada, setSesionCerrada] = useState(false);
   const [usuario, setUsuario] = useState<Usuario>(semilla.usuarios[0]!);
+  const [usuarios, setUsuarios] = useState<Usuario[]>(semilla.usuarios);
   const [companiaActiva, setCompaniaActiva] = useState<string | "todas">("todas");
   const [companias, setCompanias] = useState<Compania[]>(semilla.companias);
   const [bancos, setBancos] = useState<Banco[]>(semilla.bancos);
@@ -125,6 +148,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
   const aplicarEstado = useCallback((estado: EstadoServidor) => {
     setUsuario(estado.usuario);
+    if (estado.usuarios) setUsuarios(estado.usuarios);
     setCompanias(estado.companias);
     setBancos(estado.bancos);
     setFacturas(estado.facturas);
@@ -306,6 +330,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     return {
       hoy,
       usuario,
+      usuarios,
       perfil: usuario.perfil,
       autenticado,
       sesionCerrada,
@@ -340,8 +365,78 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       },
       volverAlLogin: () => setSesionCerrada(false),
       cambiarUsuario: (usuarioId) => {
-        const u = semilla.usuarios.find((x) => x.id === usuarioId);
+        const u = usuarios.find((x) => x.id === usuarioId);
         if (u) setUsuario(u);
+      },
+      crearUsuario: async (datos) => {
+        if (hayApi()) {
+          await api("/usuarios", { metodo: "POST", cuerpo: datos });
+          await recargar();
+          return;
+        }
+        if (usuarios.some((u) => u.nombreUsuario === datos.nombreUsuario))
+          throw new Error("Ya existe un usuario con ese nombre de inicio de sesión.");
+        const nuevo: Usuario = {
+          id: nuevoId("us"),
+          nombre: datos.nombre,
+          perfil: datos.perfil,
+          nombreUsuario: datos.nombreUsuario,
+          correo: datos.correo,
+          activo: datos.activo,
+        };
+        setUsuarios((prev) => [...prev, nuevo]);
+        anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
+      },
+      actualizarUsuario: async (id, cambios) => {
+        if (hayApi()) {
+          await api(`/usuarios/${id}`, { metodo: "PUT", cuerpo: cambios });
+          await recargar();
+          return;
+        }
+        const anterior = usuarios.find((u) => u.id === id);
+        setUsuarios((prev) =>
+          prev.map((u) =>
+            u.id === id
+              ? {
+                  ...u,
+                  ...(cambios.nombre !== undefined ? { nombre: cambios.nombre } : {}),
+                  ...(cambios.nombreUsuario !== undefined
+                    ? { nombreUsuario: cambios.nombreUsuario }
+                    : {}),
+                  ...(cambios.correo !== undefined ? { correo: cambios.correo } : {}),
+                  ...(cambios.perfil !== undefined ? { perfil: cambios.perfil } : {}),
+                  ...(cambios.activo !== undefined ? { activo: cambios.activo } : {}),
+                }
+              : u,
+          ),
+        );
+        if (anterior?.id === usuario.id && cambios.perfil)
+          setUsuario((u) => ({ ...u, perfil: cambios.perfil! }));
+        anotar(
+          "Seguridad",
+          anterior?.nombreUsuario ?? anterior?.nombre ?? id,
+          "Modificación",
+          JSON.stringify({ ...cambios, contrasena: undefined }),
+        );
+      },
+      eliminarUsuario: async (id) => {
+        if (hayApi()) {
+          await api(`/usuarios/${id}`, { metodo: "DELETE" });
+          await recargar();
+          return;
+        }
+        const u = usuarios.find((x) => x.id === id);
+        if (!u) return;
+        if (u.id === usuario.id) throw new Error("No puede eliminar el usuario de la sesión activa.");
+        const referencias =
+          tiposCambio.filter((t) => t.usuario === u.nombre).length +
+          bitacora.filter((b) => b.usuario === u.nombre).length;
+        if (referencias > 0)
+          throw new Error(
+            "No se puede eliminar: el usuario tiene movimientos registrados. Inactívelo en su lugar.",
+          );
+        setUsuarios((prev) => prev.filter((x) => x.id !== id));
+        anotar("Seguridad", u.nombreUsuario ?? u.nombre, "Eliminación");
       },
       setCompaniaActiva,
       agregarFactura: (f) =>
@@ -482,6 +577,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setPedidos(semilla.pedidos);
         setTiposCambio(semilla.tiposCambio);
         setBitacora(semilla.bitacoraInicial);
+        setUsuarios(semilla.usuarios);
       },
     };
   }, [
@@ -508,6 +604,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     tipoCambio,
     tiposCambio,
     usuario,
+    usuarios,
   ]);
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

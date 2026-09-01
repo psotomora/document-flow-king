@@ -5,6 +5,14 @@ namespace FlujoEfectivo.Api.Modelos;
 
 public record UsuarioDto(string Id, string Nombre, string Perfil);
 
+public record UsuarioAdminDto(
+    string Id,
+    string Nombre,
+    string NombreUsuario,
+    string? Correo,
+    string Perfil,
+    bool Activo);
+
 public record CompaniaDto(string Id, string Codigo, string Nombre);
 
 public record BancoDto(
@@ -87,6 +95,7 @@ public record BitacoraDto(
 
 public record EstadoDto(
     UsuarioDto Usuario,
+    IEnumerable<UsuarioAdminDto> Usuarios,
     IEnumerable<CompaniaDto> Companias,
     IEnumerable<BancoDto> Bancos,
     IEnumerable<FacturaDto> Facturas,
@@ -100,6 +109,22 @@ public record EstadoDto(
 /* ------------------------- Entradas ------------------------- */
 
 public record LoginRequest(string Usuario, string Contrasena);
+
+public record NuevoUsuario(
+    string Nombre,
+    string NombreUsuario,
+    string? Correo,
+    string Perfil,
+    bool Activo,
+    string? Contrasena);
+
+public record CambioUsuario(
+    string? Nombre,
+    string? NombreUsuario,
+    string? Correo,
+    string? Perfil,
+    bool? Activo,
+    string? Contrasena);
 
 public record LoginResponse(string Token, UsuarioDto Usuario, DateTime Expira);
 

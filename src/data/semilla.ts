@@ -59,9 +59,9 @@ export const bancos: Banco[] = [
 ];
 
 export const usuarios: Usuario[] = [
-  { id: "u1", nombre: "María Jiménez", perfil: "administrador" },
-  { id: "u2", nombre: "Carlos Rojas", perfil: "registro" },
-  { id: "u3", nombre: "Ana Vargas", perfil: "consulta" },
+  { id: "u1", nombre: "María Jiménez", perfil: "administrador", nombreUsuario: "mjimenez", correo: "mjimenez@aplix.cr", activo: true },
+  { id: "u2", nombre: "Carlos Rojas", perfil: "registro", nombreUsuario: "crojas", correo: "crojas@aplix.cr", activo: true },
+  { id: "u3", nombre: "Ana Vargas", perfil: "consulta", nombreUsuario: "avargas", correo: "avargas@aplix.cr", activo: true },
 ];
 
 export const tiposCambio: TipoCambio[] = [

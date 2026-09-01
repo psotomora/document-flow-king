@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, RotateCcw, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Check, Pencil, Plus, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useApp, usuariosDemo } from "@/contexto/AppContexto";
+import { Badge } from "@/components/ui/badge";
+import { useApp } from "@/contexto/AppContexto";
 import type { Perfil } from "@/data/tipos";
 import { cn } from "@/lib/utils";
 
@@ -45,57 +47,94 @@ const PERMISOS: { accion: string; permitido: Record<Perfil, boolean> }[] = [
 ];
 
 function PaginaAcceso() {
-  const { usuario, cambiarUsuario, reiniciar } = useApp();
+  const { usuario, usuarios, cambiarUsuario, reiniciar, esAdministrador, modoApi } = useApp();
 
   return (
     <div className="space-y-6">
       <EncabezadoPagina
         titulo="Usuarios y perfiles"
         requerimiento="RF-015"
-        descripcion="Maqueta sin autenticación real: cambie de usuario para ver cómo se comporta la interfaz con cada perfil."
+        descripcion="Mantenimiento de usuarios: creación, edición, activación y eliminación, con sus perfiles de permisos."
         acciones={
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-            onClick={() => {
-              reiniciar();
-              toast.success("Datos de demostración restablecidos");
-            }}
-          >
-            <RotateCcw className="size-4" /> Reiniciar datos de demostración
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {esAdministrador ? (
+              <Button size="sm" className="gap-1.5" asChild>
+                <Link to="/usuarios/$usuarioId" params={{ usuarioId: "nuevo" }}>
+                  <Plus className="size-4" /> Nuevo usuario
+                </Link>
+              </Button>
+            ) : null}
+            {!modoApi ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  reiniciar();
+                  toast.success("Datos de demostración restablecidos");
+                }}
+              >
+                <RotateCcw className="size-4" /> Reiniciar datos de demostración
+              </Button>
+            ) : null}
+          </div>
         }
       />
 
-      <div className="grid gap-3 md:grid-cols-3">
-        {usuariosDemo.map((u) => {
-          const activo = u.id === usuario.id;
-          return (
-            <button
-              key={u.id}
-              type="button"
-              onClick={() => {
-                cambiarUsuario(u.id);
-                toast.success(`Sesión simulada como ${u.nombre}`);
-              }}
-              className={cn(
-                "rounded-lg border p-4 text-left transition-colors",
-                activo
-                  ? "border-primary bg-primary/10"
-                  : "border-border bg-card hover:border-primary/40",
-              )}
-            >
-              <p className="font-medium">{u.nombre}</p>
-              <p className="text-sm text-muted-foreground capitalize">Perfil: {u.perfil}</p>
-              {activo ? (
-                <p className="mt-2 text-xs font-medium text-primary">Sesión activa</p>
-              ) : (
-                <p className="mt-2 text-xs text-muted-foreground">Cambiar a este usuario</p>
-              )}
-            </button>
-          );
-        })}
+      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Usuario</TableHead>
+              <TableHead>Correo</TableHead>
+              <TableHead>Perfil</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {usuarios.map((u) => (
+              <TableRow key={u.id} className={cn(u.id === usuario.id && "bg-primary/5")}>
+                <TableCell className="font-medium">
+                  {u.nombre}
+                  {u.id === usuario.id ? (
+                    <span className="ml-2 text-xs text-primary">(sesión activa)</span>
+                  ) : null}
+                </TableCell>
+                <TableCell className="font-mono text-xs">{u.nombreUsuario ?? "—"}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{u.correo ?? "—"}</TableCell>
+                <TableCell className="capitalize">{u.perfil}</TableCell>
+                <TableCell>
+                  <Badge variant={u.activo === false ? "outline" : "secondary"}>
+                    {u.activo === false ? "Inactivo" : "Activo"}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    {!modoApi && u.id !== usuario.id ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          cambiarUsuario(u.id);
+                          toast.success(`Sesión simulada como ${u.nombre}`);
+                        }}
+                      >
+                        Usar perfil
+                      </Button>
+                    ) : null}
+                    <Button variant="outline" size="sm" className="gap-1.5" asChild>
+                      <Link to="/usuarios/$usuarioId" params={{ usuarioId: u.id }}>
+                        <Pencil className="size-4" /> Editar
+                      </Link>
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border bg-card">
