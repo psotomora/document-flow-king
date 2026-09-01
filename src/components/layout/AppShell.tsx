@@ -131,7 +131,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="space-y-1 border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/60">
-          <p>Maqueta de demostración</p>
+          <p className="text-xs font-medium text-sidebar-foreground/90">{usuario.nombre}</p>
+          <p className="capitalize">Perfil: {usuario.perfil}</p>
+          <p className="truncate">
+            Compañía:{" "}
+            {companiaActiva === "todas"
+              ? "Todas las compañías"
+              : (companias.find((c) => c.id === companiaActiva)?.nombre ?? "—")}
+          </p>
           <p>Fecha de corte: {formatearFecha(hoy)}</p>
           <VersionApp />
         </div>
