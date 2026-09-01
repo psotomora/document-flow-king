@@ -86,7 +86,28 @@ export async function api<T>(
   }
 
   const texto = await respuesta.text();
-  const datos = texto ? (JSON.parse(texto) as unknown) : null;
+
+  // La respuesta puede no ser JSON (por ejemplo una página HTML de error de IIS
+  // o del servidor de desarrollo cuando la URL de la API apunta al sitio web).
+  let datos: unknown = null;
+  let esJson = true;
+  if (texto) {
+    try {
+      datos = JSON.parse(texto) as unknown;
+    } catch {
+      esJson = false;
+      datos = null;
+    }
+  }
+
+  if (!esJson) {
+    throw new ErrorApi(
+      respuesta.ok
+        ? "La URL configurada no responde con datos de la API (se recibió una página HTML). Verifique que apunte al servicio .NET, por ejemplo http://localhost:5000/api"
+        : `El servidor respondió con un error ${respuesta.status} en formato HTML. Revise que la API .NET esté ejecutándose y que la URL termine en /api.`,
+      respuesta.status || 0,
+    );
+  }
 
   if (!respuesta.ok) {
     const generico =
