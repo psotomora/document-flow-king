@@ -106,6 +106,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [cargando, setCargando] = useState(false);
   const [errorApi, setErrorApi] = useState<string | null>(null);
   const [autenticado, setAutenticado] = useState(true);
+  const [sesionCerrada, setSesionCerrada] = useState(false);
   const [usuario, setUsuario] = useState<Usuario>(semilla.usuarios[0]!);
   const [companiaActiva, setCompaniaActiva] = useState<string | "todas">("todas");
   const [companias, setCompanias] = useState<Compania[]>(semilla.companias);
@@ -306,6 +307,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       usuario,
       perfil: usuario.perfil,
       autenticado,
+    sesionCerrada,
+      sesionCerrada,
       modoApi,
       cargando,
       errorApi,
@@ -333,7 +336,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       cerrarSesion: () => {
         guardarToken(null);
         setAutenticado(false);
+        setSesionCerrada(true);
       },
+      volverAlLogin: () => setSesionCerrada(false),
       cambiarUsuario: (usuarioId) => {
         const u = semilla.usuarios.find((x) => x.id === usuarioId);
         if (u) setUsuario(u);
