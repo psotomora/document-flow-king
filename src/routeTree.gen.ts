@@ -23,6 +23,7 @@ import { Route as PagosRouteImport } from './routes/pagos'
 import { Route as ParametrosRouteImport } from './routes/parametros'
 import { Route as PedidosRouteImport } from './routes/pedidos'
 import { Route as ProyeccionRouteImport } from './routes/proyeccion'
+import { Route as UsuariosUsuarioIdRouteImport } from './routes/usuarios.$usuarioId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +95,11 @@ const ProyeccionRoute = ProyeccionRouteImport.update({
   path: '/proyeccion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsuariosUsuarioIdRoute = UsuariosUsuarioIdRouteImport.update({
+  id: '/usuarios/$usuarioId',
+  path: '/usuarios/$usuarioId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
+  '/usuarios/$usuarioId': typeof UsuariosUsuarioIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
+  '/usuarios/$usuarioId': typeof UsuariosUsuarioIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
   '/proyeccion': typeof ProyeccionRoute
+  '/usuarios/$usuarioId': typeof UsuariosUsuarioIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/parametros'
     | '/pedidos'
     | '/proyeccion'
+    | '/usuarios/$usuarioId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/parametros'
     | '/pedidos'
     | '/proyeccion'
+    | '/usuarios/$usuarioId'
   id:
     | '__root__'
     | '/'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/parametros'
     | '/pedidos'
     | '/proyeccion'
+    | '/usuarios/$usuarioId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   ParametrosRoute: typeof ParametrosRoute
   PedidosRoute: typeof PedidosRoute
   ProyeccionRoute: typeof ProyeccionRoute
+  UsuariosUsuarioIdRoute: typeof UsuariosUsuarioIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProyeccionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/usuarios/$usuarioId': {
+      id: '/usuarios/$usuarioId'
+      path: '/usuarios/$usuarioId'
+      fullPath: '/usuarios/$usuarioId'
+      preLoaderRoute: typeof UsuariosUsuarioIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -330,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParametrosRoute: ParametrosRoute,
   PedidosRoute: PedidosRoute,
   ProyeccionRoute: ProyeccionRoute,
+  UsuariosUsuarioIdRoute: UsuariosUsuarioIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

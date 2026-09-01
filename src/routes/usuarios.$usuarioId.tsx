@@ -111,7 +111,7 @@ function PaginaUsuario() {
         await crearUsuario({
           nombre: nombre.trim(),
           nombreUsuario: nombreUsuario.trim(),
-          correo: correo.trim() || undefined,
+          ...(correo.trim() ? { correo: correo.trim() } : {}),
           perfil,
           activo,
           ...(contrasena ? { contrasena } : {}),
