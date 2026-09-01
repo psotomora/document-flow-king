@@ -113,4 +113,8 @@ export interface Usuario {
   id: string;
   nombre: string;
   perfil: Perfil;
+  /** Nombre de inicio de sesión (modo conectado a SQL Server). */
+  nombreUsuario?: string;
+  correo?: string | undefined;
+  activo?: boolean;
 }
