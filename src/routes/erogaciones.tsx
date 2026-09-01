@@ -56,7 +56,7 @@ export const Route = createFileRoute("/erogaciones")({
 });
 
 function PaginaErogaciones() {
-  const { erogaciones, bancos, companias, companiaActiva, puedeEditar, eliminarErogacion, usuario } =
+  const { erogaciones, bancos, companias, companiaActiva, puedeEditar, esAdministrador, eliminarErogacion, usuario } =
     useApp();
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
   const [abierto, setAbierto] = useState(false);
@@ -166,7 +166,7 @@ function PaginaErogaciones() {
                   {e.notas ?? "—"}
                 </TableCell>
                 <TableCell>
-                  {puedeEditar ? (
+                  {esAdministrador ? (
                     <Button
                       variant="ghost"
                       size="icon"

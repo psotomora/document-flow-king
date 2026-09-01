@@ -62,6 +62,7 @@ function PaginaPagos() {
     bancos,
     companiaActiva,
     puedeEditar,
+    esAdministrador,
     eliminarPago,
     usuario,
   } = useApp();
@@ -177,7 +178,7 @@ function PaginaPagos() {
                 <TableCell>{pago.metodo}</TableCell>
                 <TableCell className="text-muted-foreground">{pago.referencia ?? "—"}</TableCell>
                 <TableCell>
-                  {puedeEditar ? (
+                  {esAdministrador ? (
                     <Button
                       variant="ghost"
                       size="icon"
