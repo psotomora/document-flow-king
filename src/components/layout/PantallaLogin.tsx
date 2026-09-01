@@ -14,6 +14,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+const LOGO_APLIX_URL =
+  "https://document-flow-king.lovable.app/__l5e/assets-v1/e71ea6c3-b2e8-40c3-a8f5-c4f66d7f945a/aplix-isotipo.png";
+
 /** Pantalla de autenticación contra la API .NET (tabla flujo.Usuario + JWT). */
 export function PantallaLogin() {
   const { autenticar } = useApp();
@@ -39,7 +42,12 @@ export function PantallaLogin() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-10">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-muted/40 px-4 py-10">
+      <img
+        src={LOGO_APLIX_URL}
+        alt="Aplix"
+        className="mb-4 h-16 w-auto object-contain"
+      />
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="mb-2 flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
