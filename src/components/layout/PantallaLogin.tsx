@@ -14,6 +14,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+const LOGO_APLIX_URL =
+  "https://document-flow-king.lovable.app/__l5e/assets-v1/e71ea6c3-b2e8-40c3-a8f5-c4f66d7f945a/aplix-isotipo.png";
+
 /** Pantalla de autenticación contra la API .NET (tabla flujo.Usuario + JWT). */
 export function PantallaLogin() {
   const { autenticar } = useApp();
