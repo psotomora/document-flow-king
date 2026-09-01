@@ -180,6 +180,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       guardarToken(resp.token);
       setUsuario(resp.usuario);
       setAutenticado(true);
+      setSesionCerrada(false);
       await recargar();
     },
     [recargar],
