@@ -89,12 +89,17 @@ export async function api<T>(
   const datos = texto ? (JSON.parse(texto) as unknown) : null;
 
   if (!respuesta.ok) {
+    const generico =
+      respuesta.status === 404
+        ? "El servidor de la API no tiene disponible esta operación (404). Actualice y recompile el proyecto de la API (dotnet run) para incluir los endpoints más recientes."
+        : `Error ${respuesta.status}`;
     const mensaje =
       (datos as { mensaje?: string; title?: string } | null)?.mensaje ??
       (datos as { title?: string } | null)?.title ??
-      `Error ${respuesta.status}`;
+      generico;
     throw new ErrorApi(mensaje, respuesta.status);
   }
+
 
   return datos as T;
 }
