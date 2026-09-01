@@ -42,7 +42,12 @@ export function PantallaLogin() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-10">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-muted/40 px-4 py-10">
+      <img
+        src={LOGO_APLIX_URL}
+        alt="Aplix"
+        className="mb-4 h-16 w-auto object-contain"
+      />
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="mb-2 flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
