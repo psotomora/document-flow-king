@@ -35,6 +35,12 @@ import type { EstadoPedido, Moneda } from "@/data/tipos";
 import { equivalenteEnDolares } from "@/lib/calculos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
+import {
+  MESES_POR_PERIODICIDAD,
+  numeroPedidoDeContrato,
+  sumarMeses,
+} from "@/lib/contratos";
+
 
 export const Route = createFileRoute("/pedidos")({
   head: () => ({
