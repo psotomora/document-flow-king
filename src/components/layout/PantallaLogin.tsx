@@ -3,6 +3,7 @@ import { Loader2, LockKeyhole, ServerCog } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
 import { configurarUrlApi, urlApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { CampoContrasena } from "@/components/comunes/CampoContrasena";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -63,9 +64,8 @@ export function PantallaLogin() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="contrasena">Contraseña</Label>
-              <Input
+              <CampoContrasena
                 id="contrasena"
-                type="password"
                 autoComplete="current-password"
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
