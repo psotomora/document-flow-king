@@ -25,7 +25,7 @@ import type {
   Usuario,
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
-import { api, guardarToken, hayApi, obtenerToken } from "@/lib/api";
+import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
 import { pedidosPendientesDeContratos } from "@/lib/contratos";
 
 
@@ -147,8 +147,14 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const tipoCambio = tiposCambio[tiposCambio.length - 1]?.valor ?? 0;
 
   const aplicarEstado = useCallback((estado: EstadoServidor) => {
-    setUsuario(estado.usuario);
-    if (estado.usuarios) setUsuarios(estado.usuarios);
+    // El usuario del token trae datos mínimos; si viene la lista completa, se usa ese registro.
+    const completo = estado.usuarios?.find((u) => u.id === estado.usuario.id);
+    setUsuario(completo ? { ...estado.usuario, ...completo } : estado.usuario);
+    setUsuarios(
+      estado.usuarios && estado.usuarios.length > 0
+        ? estado.usuarios
+        : [completo ?? estado.usuario],
+    );
     setCompanias(estado.companias);
     setBancos(estado.bancos);
     setFacturas(estado.facturas);
@@ -158,6 +164,18 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setPedidos(estado.pedidos);
     setTiposCambio(estado.tiposCambio);
     setBitacora(estado.bitacora);
+  }, []);
+
+  /** Si la sesión ya no es válida en el servidor, se vuelve a pedir el inicio de sesión. */
+  const sesionExpirada = useCallback((e: unknown): boolean => {
+    const expiro =
+      (e instanceof ErrorApi && e.estado === 401) ||
+      (e instanceof Error && e.message.includes("Sesión"));
+    if (!expiro) return false;
+    guardarToken(null);
+    setAutenticado(false);
+    setSesionCerrada(false);
+    return true;
   }, []);
 
   const recargar = useCallback(async () => {
@@ -171,11 +189,11 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     } catch (e) {
       const mensaje = e instanceof Error ? e.message : "Error desconocido";
       setErrorApi(mensaje);
-      if (mensaje.includes("Sesión")) setAutenticado(false);
+      sesionExpirada(e);
     } finally {
       setCargando(false);
     }
-  }, [aplicarEstado]);
+  }, [aplicarEstado, sesionExpirada]);
 
   // Arranque: detecta si hay API configurada y restaura la sesión guardada.
   useEffect(() => {
@@ -193,6 +211,20 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     }
     void recargar();
   }, [recargar]);
+
+  // Revalida la sesión al volver a la pestaña: si el token venció, se pide el login otra vez.
+  useEffect(() => {
+    if (!modoApi || !autenticado) return;
+    const alVolver = () => {
+      if (document.visibilityState === "visible") void recargar();
+    };
+    window.addEventListener("focus", alVolver);
+    document.addEventListener("visibilitychange", alVolver);
+    return () => {
+      window.removeEventListener("focus", alVolver);
+      document.removeEventListener("visibilitychange", alVolver);
+    };
+  }, [modoApi, autenticado, recargar]);
 
   const autenticar = useCallback(
     async (nombreUsuario: string, contrasena: string) => {
@@ -222,11 +254,15 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           await api(ruta, { metodo, cuerpo });
           await recargar();
         } catch (e) {
+          if (sesionExpirada(e)) {
+            toast.error("Su sesión expiró. Inicie sesión nuevamente.");
+            return;
+          }
           toast.error(e instanceof Error ? e.message : "No se pudo guardar el cambio");
         }
       })();
     },
-    [recargar],
+    [recargar, sesionExpirada],
   );
 
   const anotar = useCallback(

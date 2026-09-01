@@ -17,7 +17,7 @@ import {
   Upload,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { filtrarPorCompania, useApp, usuariosDemo } from "@/contexto/AppContexto";
+import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import { formatearFecha, formatearNumero } from "@/lib/formato";
 import { cn } from "@/lib/utils";
 import {
@@ -73,6 +73,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     companiaActiva,
     setCompaniaActiva,
     usuario,
+    usuarios,
     cambiarUsuario,
     hoy,
     tipoCambio,
@@ -131,7 +132,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="space-y-1 border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/60">
-          <p>Maqueta de demostración</p>
+          <p className="text-xs font-medium text-sidebar-foreground/90">{usuario.nombre}</p>
+          <p className="capitalize">Perfil: {usuario.perfil}</p>
+          <p className="truncate">
+            Compañía:{" "}
+            {companiaActiva === "todas"
+              ? "Todas las compañías"
+              : (companias.find((c) => c.id === companiaActiva)?.nombre ?? "—")}
+          </p>
           <p>Fecha de corte: {formatearFecha(hoy)}</p>
           <VersionApp />
         </div>
@@ -169,19 +177,27 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <ConexionApi />
-            <Select value={usuario.id} onValueChange={cambiarUsuario}>
-
-              <SelectTrigger className="h-8 w-56">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {usuariosDemo.map((u) => (
-                  <SelectItem key={u.id} value={u.id}>
-                    {u.nombre} · {u.perfil}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {modoApi ? (
+              <div className="flex flex-col items-end leading-tight">
+                <span className="text-xs font-medium text-foreground">{usuario.nombre}</span>
+                <span className="text-[11px] capitalize text-muted-foreground">
+                  {usuario.perfil}
+                </span>
+              </div>
+            ) : (
+              <Select value={usuario.id} onValueChange={cambiarUsuario}>
+                <SelectTrigger className="h-8 w-56">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {usuarios.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.nombre} · {u.perfil}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             {modoApi ? (
               <Button
                 variant="ghost"
