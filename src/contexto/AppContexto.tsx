@@ -150,7 +150,11 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     // El usuario del token trae datos mínimos; si viene la lista completa, se usa ese registro.
     const completo = estado.usuarios?.find((u) => u.id === estado.usuario.id);
     setUsuario(completo ? { ...estado.usuario, ...completo } : estado.usuario);
-    if (estado.usuarios) setUsuarios(estado.usuarios);
+    setUsuarios(
+      estado.usuarios && estado.usuarios.length > 0
+        ? estado.usuarios
+        : [completo ?? estado.usuario],
+    );
     setCompanias(estado.companias);
     setBancos(estado.bancos);
     setFacturas(estado.facturas);
