@@ -103,10 +103,22 @@ public static class EstadoEndpoints
                 FROM flujo.Bitacora ORDER BY FechaHora DESC, BitacoraId DESC
                 """);
 
+            var esAdmin = string.Equals(ctx.User.Perfil(), "administrador", StringComparison.OrdinalIgnoreCase);
+            var usuarios = esAdmin
+                ? cn.Query<UsuarioAdminDto>(
+                    """
+                    SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,
+                           u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo
+                    FROM flujo.Usuario u
+                    INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
+                    ORDER BY u.NombreCompleto
+                    """)
+                : [];
+
             var usuario = new UsuarioDto(
                 ctx.User.UsuarioId().ToString(), ctx.User.NombreUsuario(), ctx.User.Perfil());
 
-            return Results.Ok(new EstadoDto(usuario, companias, bancos, facturas, pagos,
+            return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
                 erogaciones, contratos, pedidos, tiposCambio, bitacora));
         }).RequireAuthorization();
     }
