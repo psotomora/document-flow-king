@@ -204,7 +204,23 @@ function PaginaPedidos() {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell>
+                  {esAdministrador ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Eliminar pedido ${p.numero}`}
+                      onClick={() => {
+                        eliminarPedido(p.id);
+                        toast.success(`Pedido ${p.numero} eliminado`);
+                      }}
+                    >
+                      <Trash2 className="size-4 text-muted-foreground" />
+                    </Button>
+                  ) : null}
+                </TableCell>
               </TableRow>
+
             ))}
             {filtrados.length === 0 ? (
               <TableRow>
