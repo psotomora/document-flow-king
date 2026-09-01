@@ -73,6 +73,7 @@ interface EstadoApp {
   autenticar: (usuario: string, contrasena: string) => Promise<void>;
   recargar: () => Promise<void>;
   cerrarSesion: () => void;
+  volverAlLogin: () => void;
   cambiarUsuario: (usuarioId: string) => void;
   setCompaniaActiva: (id: string | "todas") => void;
   agregarFactura: (f: Omit<Factura, "id">) => void;
