@@ -147,7 +147,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const tipoCambio = tiposCambio[tiposCambio.length - 1]?.valor ?? 0;
 
   const aplicarEstado = useCallback((estado: EstadoServidor) => {
-    setUsuario(estado.usuario);
+    // El usuario del token trae datos mínimos; si viene la lista completa, se usa ese registro.
+    const completo = estado.usuarios?.find((u) => u.id === estado.usuario.id);
+    setUsuario(completo ? { ...estado.usuario, ...completo } : estado.usuario);
     if (estado.usuarios) setUsuarios(estado.usuarios);
     setCompanias(estado.companias);
     setBancos(estado.bancos);
