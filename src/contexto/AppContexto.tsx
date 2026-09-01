@@ -51,6 +51,7 @@ interface EstadoApp {
   usuario: Usuario;
   perfil: Perfil;
   autenticado: boolean;
+  sesionCerrada: boolean;
   modoApi: boolean;
   cargando: boolean;
   errorApi: string | null;
