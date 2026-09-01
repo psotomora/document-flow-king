@@ -70,6 +70,22 @@ app.Use(async (ctx, next) =>
     }
 });
 
+// Auto-reparación de esquema: agrega columnas nuevas si la base viene de una versión previa.
+try
+{
+    using var cnMig = app.Services.GetRequiredService<Db>().Abrir();
+    cnMig.Execute(
+        """
+        IF OBJECT_ID('flujo.TipoCambio', 'U') IS NOT NULL
+           AND COL_LENGTH('flujo.TipoCambio', 'Nota') IS NULL
+            ALTER TABLE flujo.TipoCambio ADD Nota NVARCHAR(200) NULL;
+        """);
+}
+catch (Exception ex)
+{
+    app.Logger.LogWarning(ex, "No fue posible verificar/actualizar el esquema al iniciar");
+}
+
 var api = app.MapGroup("/api").RequireAuthorization();
 api.MapAuth();
 api.MapEstado();
