@@ -67,8 +67,17 @@ const navegacion = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { companias, companiaActiva, setCompaniaActiva, usuario, cambiarUsuario, hoy, tipoCambio } =
-    useApp();
+  const {
+    companias,
+    companiaActiva,
+    setCompaniaActiva,
+    usuario,
+    cambiarUsuario,
+    hoy,
+    tipoCambio,
+    modoApi,
+    cerrarSesion,
+  } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
@@ -167,12 +176,24 @@ export function AppShell({ children }: { children: ReactNode }) {
                 ))}
               </SelectContent>
             </Select>
-            <Button asChild variant="ghost" size="sm" className="gap-1.5">
-              <Link to="/acceso">
+            {modoApi ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5"
+                onClick={cerrarSesion}
+              >
                 <LogOut className="size-4" />
-                <span className="hidden sm:inline">Sesión</span>
-              </Link>
-            </Button>
+                <span className="hidden sm:inline">Cerrar sesión</span>
+              </Button>
+            ) : (
+              <Button asChild variant="ghost" size="sm" className="gap-1.5">
+                <Link to="/acceso">
+                  <LogOut className="size-4" />
+                  <span className="hidden sm:inline">Sesión</span>
+                </Link>
+              </Button>
+            )}
           </div>
         </header>
 
