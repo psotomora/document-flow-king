@@ -26,6 +26,8 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, guardarToken, hayApi, obtenerToken } from "@/lib/api";
+import { pedidosPendientesDeContratos } from "@/lib/contratos";
+
 
 let contador = 0;
 const nuevoId = (prefijo: string) => `${prefijo}-${Date.now().toString(36)}-${contador++}`;
