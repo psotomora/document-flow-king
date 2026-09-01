@@ -73,6 +73,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     companiaActiva,
     setCompaniaActiva,
     usuario,
+    usuarios,
     cambiarUsuario,
     hoy,
     tipoCambio,
