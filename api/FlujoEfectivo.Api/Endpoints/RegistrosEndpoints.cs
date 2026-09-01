@@ -19,6 +19,10 @@ public static class RegistrosEndpoints
     private static IResult SinPermiso() =>
         Results.Json(new { mensaje = "Su perfil no permite modificar información." }, statusCode: 403);
 
+    /// <summary>Eliminar información transaccional es privilegio exclusivo del perfil administrador.</summary>
+    private static IResult SoloAdministrador() =>
+        Results.Json(new { mensaje = "Solo los perfiles administradores pueden eliminar registros transaccionales." }, statusCode: 403);
+
     private static int Id(string valor) =>
         int.TryParse(valor, out var n) ? n : throw new ArgumentException($"Identificador inválido: {valor}");
 
@@ -54,7 +58,7 @@ public static class RegistrosEndpoints
 
         g.MapDelete("/facturas/{id}", (string id, HttpContext ctx, Db db) =>
         {
-            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            if (!ctx.User.EsAdministrador()) return SoloAdministrador();
             using var cn = db.Abrir();
             using var tx = cn.BeginTransaction();
             var numero = cn.QueryFirstOrDefault<string>(
@@ -105,7 +109,7 @@ public static class RegistrosEndpoints
 
         g.MapDelete("/pagos/{id}", (string id, HttpContext ctx, Db db) =>
         {
-            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            if (!ctx.User.EsAdministrador()) return SoloAdministrador();
             using var cn = db.Abrir();
             var referencia = cn.QueryFirstOrDefault<string?>(
                 "SELECT Referencia FROM flujo.Pago WHERE PagoId=@id", new { id = Id(id) });
@@ -146,7 +150,7 @@ public static class RegistrosEndpoints
 
         g.MapDelete("/erogaciones/{id}", (string id, HttpContext ctx, Db db) =>
         {
-            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            if (!ctx.User.EsAdministrador()) return SoloAdministrador();
             using var cn = db.Abrir();
             var numero = cn.QueryFirstOrDefault<string>(
                 "SELECT NumeroTransferencia FROM flujo.Erogacion WHERE ErogacionId=@id", new { id = Id(id) });
@@ -210,7 +214,7 @@ public static class RegistrosEndpoints
 
         g.MapDelete("/contratos/{id}", (string id, HttpContext ctx, Db db) =>
         {
-            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            if (!ctx.User.EsAdministrador()) return SoloAdministrador();
             using var cn = db.Abrir();
             var filas = cn.Execute("DELETE FROM flujo.Contrato WHERE ContratoId=@id", new { id = Id(id) });
             if (filas == 0) return Results.NotFound(new { mensaje = "Contrato inexistente." });
@@ -261,7 +265,7 @@ public static class RegistrosEndpoints
 
         g.MapDelete("/pedidos/{id}", (string id, HttpContext ctx, Db db) =>
         {
-            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            if (!ctx.User.EsAdministrador()) return SoloAdministrador();
             using var cn = db.Abrir();
             var filas = cn.Execute("DELETE FROM flujo.Pedido WHERE PedidoId=@id", new { id = Id(id) });
             if (filas == 0) return Results.NotFound(new { mensaje = "Pedido inexistente." });

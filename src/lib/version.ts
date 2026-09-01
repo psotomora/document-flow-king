@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.8.0";
+export const APP_VERSION = "1.9.0";
 export const APP_FECHA_VERSION = "2026-09-01";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.9.0",
+    fecha: "2026-09-01",
+    cambios: [
+      "Eliminar facturas, pagos, erogaciones, contratos y pedidos es privilegio exclusivo del perfil administrador.",
+      "La API rechaza cualquier eliminación transaccional realizada por perfiles de registro o consulta.",
+      "Se agregó la acción de eliminar en Contratos y Pedidos para administradores.",
+    ],
+  },
   {
     version: "1.8.0",
     fecha: "2026-09-01",

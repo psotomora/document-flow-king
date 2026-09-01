@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { FileDown, Plus } from "lucide-react";
+import { FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,9 @@ function PaginaContratos() {
     companias,
     companiaActiva,
     puedeEditar,
+    esAdministrador,
     actualizarContrato,
+    eliminarContrato,
     usuario,
   } = useApp();
   const [estado, setEstado] = useState<EstadoContrato | "todos">("todos");
@@ -144,6 +146,7 @@ function PaginaContratos() {
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Facturado</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -188,11 +191,26 @@ function PaginaContratos() {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell>
+                  {esAdministrador ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Eliminar contrato ${c.numero}`}
+                      onClick={() => {
+                        eliminarContrato(c.id);
+                        toast.success(`Contrato ${c.numero} eliminado`);
+                      }}
+                    >
+                      <Trash2 className="size-4 text-muted-foreground" />
+                    </Button>
+                  ) : null}
+                </TableCell>
               </TableRow>
             ))}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                   No hay contratos para los filtros aplicados.
                 </TableCell>
               </TableRow>

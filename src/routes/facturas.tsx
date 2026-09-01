@@ -62,6 +62,7 @@ function PaginaFacturas() {
     companias,
     companiaActiva,
     puedeEditar,
+    esAdministrador,
     agregarFactura,
     eliminarFactura,
     usuario,
@@ -228,7 +229,7 @@ function PaginaFacturas() {
                   <EstadoBadge estado={f.estado} />
                 </TableCell>
                 <TableCell>
-                  {puedeEditar ? (
+                  {esAdministrador ? (
                     <Button
                       variant="ghost"
                       size="icon"

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { FileDown, Plus } from "lucide-react";
+import { FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,9 @@ function PaginaPedidos() {
     companias,
     companiaActiva,
     puedeEditar,
+    esAdministrador,
     actualizarPedido,
+    eliminarPedido,
     tipoCambio,
     usuario,
   } = useApp();
@@ -157,6 +159,7 @@ function PaginaPedidos() {
               <TableHead className="text-right">Monto</TableHead>
               <TableHead className="text-right">Equivalente USD</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -201,11 +204,27 @@ function PaginaPedidos() {
                     </SelectContent>
                   </Select>
                 </TableCell>
+                <TableCell>
+                  {esAdministrador ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Eliminar pedido ${p.numero}`}
+                      onClick={() => {
+                        eliminarPedido(p.id);
+                        toast.success(`Pedido ${p.numero} eliminado`);
+                      }}
+                    >
+                      <Trash2 className="size-4 text-muted-foreground" />
+                    </Button>
+                  ) : null}
+                </TableCell>
               </TableRow>
+
             ))}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                   No hay pedidos para los filtros aplicados.
                 </TableCell>
               </TableRow>
