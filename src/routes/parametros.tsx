@@ -74,10 +74,35 @@ function PaginaParametros() {
   return (
     <div className="space-y-6">
       <EncabezadoPagina
-        titulo="Tipo de cambio"
+        titulo="Parámetros"
         requerimiento="RF-007"
-        descripcion="El tipo de cambio se ingresa manualmente. El sistema conserva el historial de valores con fecha y responsable, y usa el último valor para las conversiones."
+        descripcion="Parámetros generales del sistema. El tipo de cambio se ingresa manualmente; el sistema conserva el historial de valores con fecha y responsable, y usa el último valor para las conversiones."
       />
+
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="mb-3 text-sm font-semibold text-foreground">Integración</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="pedidos-externos">Usar datos de pedidos de fuente externa</Label>
+            <p className="text-xs text-muted-foreground">
+              Opción reservada para una integración futura. Por ahora no modifica el
+              comportamiento del sistema.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{pedidosExternos ? "Sí" : "No"}</span>
+            <Switch
+              id="pedidos-externos"
+              checked={pedidosExternos}
+              onCheckedChange={cambiarPedidosExternos}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
+      </div>
+
+      <h2 className="text-sm font-semibold text-foreground">Tipo de cambio</h2>
+
 
       <div className="grid gap-3 md:grid-cols-3">
         <TarjetaIndicador
