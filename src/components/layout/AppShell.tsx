@@ -56,7 +56,7 @@ const navegacion = [
     grupo: "Administración",
     items: [
       { to: "/catalogos", etiqueta: "Catálogos", icono: Building2 },
-      { to: "/parametros", etiqueta: "Tipo de cambio", icono: Settings2 },
+      { to: "/parametros", etiqueta: "Parámetros", icono: Settings2 },
       { to: "/bitacora", etiqueta: "Bitácora", icono: BookLock },
       { to: "/importar", etiqueta: "Carga inicial", icono: Upload },
       { to: "/acceso", etiqueta: "Usuarios y perfiles", icono: FileSpreadsheet },

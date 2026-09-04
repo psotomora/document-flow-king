@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+
+const CLAVE_PEDIDOS_EXTERNOS = "aplix.param.pedidosFuenteExterna";
 import {
   Table,
   TableBody,
@@ -20,16 +23,16 @@ import { formatearFechaHora, formatearNumero } from "@/lib/formato";
 export const Route = createFileRoute("/parametros")({
   head: () => ({
     meta: [
-      { title: "Tipo de cambio | Aplix Cash Flow Insights" },
+      { title: "Parámetros | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
-          "Registro manual del tipo de cambio de colones a dólares con historial de valores y responsable del cambio.",
+          "Parámetros generales del sistema: tipo de cambio con historial y responsable, y opciones de integración.",
       },
-      { property: "og:title", content: "Tipo de cambio | Aplix Cash Flow Insights" },
+      { property: "og:title", content: "Parámetros | Aplix Cash Flow Insights" },
       {
         property: "og:description",
-        content: "Parámetro usado para consolidar saldos en dólares.",
+        content: "Parámetros generales del sistema de flujo de efectivo.",
       },
     ],
   }),
@@ -41,6 +44,17 @@ function PaginaParametros() {
     useApp();
   const [valor, setValor] = useState(String(tipoCambio));
   const [nota, setNota] = useState("");
+  const [pedidosExternos, setPedidosExternos] = useState(false);
+
+  useEffect(() => {
+    setPedidosExternos(window.localStorage.getItem(CLAVE_PEDIDOS_EXTERNOS) === "1");
+  }, []);
+
+  const cambiarPedidosExternos = (activo: boolean) => {
+    setPedidosExternos(activo);
+    window.localStorage.setItem(CLAVE_PEDIDOS_EXTERNOS, activo ? "1" : "0");
+  };
+
 
   const guardar = () => {
     const numero = Number(valor);
@@ -60,10 +74,35 @@ function PaginaParametros() {
   return (
     <div className="space-y-6">
       <EncabezadoPagina
-        titulo="Tipo de cambio"
+        titulo="Parámetros"
         requerimiento="RF-007"
-        descripcion="El tipo de cambio se ingresa manualmente. El sistema conserva el historial de valores con fecha y responsable, y usa el último valor para las conversiones."
+        descripcion="Parámetros generales del sistema. El tipo de cambio se ingresa manualmente; el sistema conserva el historial de valores con fecha y responsable, y usa el último valor para las conversiones."
       />
+
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="mb-3 text-sm font-semibold text-foreground">Integración</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="pedidos-externos">Usar datos de pedidos de fuente externa</Label>
+            <p className="text-xs text-muted-foreground">
+              Opción reservada para una integración futura. Por ahora no modifica el
+              comportamiento del sistema.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{pedidosExternos ? "Sí" : "No"}</span>
+            <Switch
+              id="pedidos-externos"
+              checked={pedidosExternos}
+              onCheckedChange={cambiarPedidosExternos}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
+      </div>
+
+      <h2 className="text-sm font-semibold text-foreground">Tipo de cambio</h2>
+
 
       <div className="grid gap-3 md:grid-cols-3">
         <TarjetaIndicador
