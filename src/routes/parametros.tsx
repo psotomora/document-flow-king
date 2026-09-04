@@ -23,16 +23,16 @@ import { formatearFechaHora, formatearNumero } from "@/lib/formato";
 export const Route = createFileRoute("/parametros")({
   head: () => ({
     meta: [
-      { title: "Tipo de cambio | Aplix Cash Flow Insights" },
+      { title: "Parámetros | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
-          "Registro manual del tipo de cambio de colones a dólares con historial de valores y responsable del cambio.",
+          "Parámetros generales del sistema: tipo de cambio con historial y responsable, y opciones de integración.",
       },
-      { property: "og:title", content: "Tipo de cambio | Aplix Cash Flow Insights" },
+      { property: "og:title", content: "Parámetros | Aplix Cash Flow Insights" },
       {
         property: "og:description",
-        content: "Parámetro usado para consolidar saldos en dólares.",
+        content: "Parámetros generales del sistema de flujo de efectivo.",
       },
     ],
   }),
@@ -44,6 +44,17 @@ function PaginaParametros() {
     useApp();
   const [valor, setValor] = useState(String(tipoCambio));
   const [nota, setNota] = useState("");
+  const [pedidosExternos, setPedidosExternos] = useState(false);
+
+  useEffect(() => {
+    setPedidosExternos(window.localStorage.getItem(CLAVE_PEDIDOS_EXTERNOS) === "1");
+  }, []);
+
+  const cambiarPedidosExternos = (activo: boolean) => {
+    setPedidosExternos(activo);
+    window.localStorage.setItem(CLAVE_PEDIDOS_EXTERNOS, activo ? "1" : "0");
+  };
+
 
   const guardar = () => {
     const numero = Number(valor);
