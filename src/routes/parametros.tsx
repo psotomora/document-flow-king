@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+
+const CLAVE_PEDIDOS_EXTERNOS = "aplix.param.pedidosFuenteExterna";
 import {
   Table,
   TableBody,
