@@ -59,6 +59,8 @@ public static class RegistrosEndpoints
         g.MapDelete("/facturas/{id}", (string id, HttpContext ctx, Db db) =>
         {
             if (!ctx.User.EsAdministrador()) return SoloAdministrador();
+            if (id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
+                return Results.BadRequest(new { mensaje = "Las facturas de SoftlandERP no se eliminan desde esta aplicación." });
             using var cn = db.Abrir();
             using var tx = cn.BeginTransaction();
             var numero = cn.QueryFirstOrDefault<string>(
@@ -389,6 +391,23 @@ public static class RegistrosEndpoints
             try
             {
                 return Results.Ok(Softland.Lineas(cfg, config["Jwt:Llave"] ?? "", id[Softland.PrefijoId.Length..]));
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { mensaje = "SoftlandERP: " + ex.Message }, statusCode: 502);
+            }
+        });
+
+        g.MapGet("/facturas/{id}/lineas", (string id, Db db, IConfiguration config) =>
+        {
+            if (!id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
+                return Results.Ok(Array.Empty<LineaFacturaDto>());
+            using var cn = db.Abrir();
+            var cfg = Softland.Leer(cn);
+            if (cfg is null) return Results.BadRequest(new { mensaje = "No hay credenciales de SoftlandERP registradas." });
+            try
+            {
+                return Results.Ok(Softland.LineasFactura(cfg, config["Jwt:Llave"] ?? "", id[Softland.PrefijoId.Length..]));
             }
             catch (Exception ex)
             {

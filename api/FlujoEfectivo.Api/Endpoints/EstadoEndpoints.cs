@@ -26,19 +26,6 @@ public static class EstadoEndpoints
                 FROM flujo.CuentaBancaria ORDER BY CompaniaId, Nombre
                 """);
 
-            var facturas = cn.Query<FacturaDto>(
-                """
-                SELECT CAST(f.FacturaId AS NVARCHAR(20)) AS Id,
-                       CAST(f.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
-                       f.Numero, c.Nombre AS Cliente,
-                       CONVERT(CHAR(10), f.FechaEmision, 23) AS FechaEmision,
-                       f.PlazoDias, f.Moneda, f.Monto, f.Notas
-                FROM flujo.Factura f
-                INNER JOIN flujo.Cliente c ON c.ClienteId = f.ClienteId
-                WHERE f.Anulada = 0
-                ORDER BY f.FechaEmision DESC, f.FacturaId DESC
-                """);
-
             var pagos = cn.Query<PagoDto>(
                 """
                 SELECT CAST(PagoId AS NVARCHAR(20)) AS Id,
@@ -118,6 +105,50 @@ public static class EstadoEndpoints
                 INNER JOIN flujo.Cliente c ON c.ClienteId = d.ClienteId
                 ORDER BY d.FechaCreacion DESC, d.PedidoId DESC
                 """);
+
+            IEnumerable<FacturaDto> facturas;
+            var facturasSoftland = parametros.GetValueOrDefault("facturasFuenteExterna") == "1"
+                && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
+                    Softland.Fuente, StringComparison.OrdinalIgnoreCase);
+            if (facturasSoftland)
+            {
+                var cfg = Softland.Leer(cn);
+                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                {
+                    facturas = [];
+                    avisoFuente ??= "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
+                }
+                else
+                {
+                    try
+                    {
+                        var companiaId = cfg.CompaniaId?.ToString()
+                            ?? companias.FirstOrDefault()?.Id ?? "0";
+                        facturas = Softland.Facturas(cfg, secreto, companiaId).ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        facturas = [];
+                        avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
+                            + "No fue posible leer las facturas de SoftlandERP: " + ex.Message;
+                    }
+                }
+            }
+            else
+            facturas = cn.Query<FacturaDto>(
+                """
+                SELECT CAST(f.FacturaId AS NVARCHAR(20)) AS Id,
+                       CAST(f.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
+                       f.Numero, c.Nombre AS Cliente,
+                       CONVERT(CHAR(10), f.FechaEmision, 23) AS FechaEmision,
+                       f.PlazoDias, f.Moneda, f.Monto, f.Notas,
+                       CAST(NULL AS NVARCHAR(30)) AS Origen, CAST(NULL AS INT) AS Lineas
+                FROM flujo.Factura f
+                INNER JOIN flujo.Cliente c ON c.ClienteId = f.ClienteId
+                WHERE f.Anulada = 0
+                ORDER BY f.FechaEmision DESC, f.FacturaId DESC
+                """);
+
 
             var tiposCambio = cn.Query<TipoCambioDto>(
                 """
