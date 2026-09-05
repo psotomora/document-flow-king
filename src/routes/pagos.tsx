@@ -218,12 +218,17 @@ function DialogoPago({
   const { facturasCalculadas, bancos, agregarPago, tipoCambio, hoy } = useApp();
   const pendientes = facturasCalculadas.filter((f) => f.saldoPendiente > 0.009);
 
+  /** Solo cuentas activas de la compañía de la factura: así el pago se refleja en su saldo por banco. */
+  const bancosPara = (companiaId?: string) =>
+    bancos.filter((b) => b.activo && (!companiaId || b.companiaId === companiaId));
+
   const inicial = pendientes[0];
   const [facturaId, setFacturaId] = useState(inicial?.id ?? "");
   const [fecha, setFecha] = useState(hoy);
-  const [bancoId, setBancoId] = useState(bancos[0]?.id ?? "");
+  const [bancoId, setBancoId] = useState(bancosPara(inicial?.companiaId)[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? "USD");
   const [monto, setMonto] = useState<number>(inicial ? sugerirMonto(inicial.saldoPendiente) : 0);
+  const [guardando, setGuardando] = useState(false);
 
   /** Al elegir una factura se sugiere su saldo pendiente y su moneda; el usuario puede cambiarlos. */
   const elegirFactura = (id: string) => {
@@ -232,6 +237,8 @@ function DialogoPago({
     if (f) {
       setMoneda(f.moneda);
       setMonto(sugerirMonto(f.saldoPendiente));
+      const opciones = bancosPara(f.companiaId);
+      if (!opciones.some((b) => b.id === bancoId)) setBancoId(opciones[0]?.id ?? "");
     }
   };
   const [tc, setTc] = useState(String(tipoCambio));
@@ -257,9 +264,13 @@ function DialogoPago({
         )
       : 0;
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!factura) {
       toast.error("Seleccione la factura a la que se aplica el pago.");
+      return;
+    }
+    if (!bancoId) {
+      toast.error("Seleccione el banco receptor del pago.");
       return;
     }
     if (!(monto > 0)) {
@@ -274,7 +285,9 @@ function DialogoPago({
       toast.error("El pago no puede exceder el saldo pendiente de la factura.");
       return;
     }
-    agregarPago({
+    setGuardando(true);
+    // Se espera la confirmación del servidor: si falla, el diálogo permanece abierto con los datos.
+    const ok = await agregarPago({
       facturaId,
       fecha,
       bancoId,
@@ -284,6 +297,8 @@ function DialogoPago({
       metodo,
       referencia,
     });
+    setGuardando(false);
+    if (!ok) return;
     toast.success("Pago registrado y aplicado a la factura");
     setAbierto(false);
     setMonto(0);
@@ -337,7 +352,7 @@ function DialogoPago({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {bancos.map((b) => (
+                {bancosPara(factura?.companiaId).map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     {b.nombre}
                   </SelectItem>
@@ -396,7 +411,9 @@ function DialogoPago({
           <Button variant="outline" onClick={() => setAbierto(false)}>
             Cancelar
           </Button>
-          <Button onClick={guardar}>Guardar pago</Button>
+          <Button onClick={guardar} disabled={guardando}>
+            {guardando ? "Guardando…" : "Guardar pago"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
