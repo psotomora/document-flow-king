@@ -29,7 +29,7 @@ public static class EstadoEndpoints
             var pagos = cn.Query<PagoDto>(
                 """
                 SELECT CAST(PagoId AS NVARCHAR(20)) AS Id,
-                       CAST(FacturaId AS NVARCHAR(20)) AS FacturaId,
+                       COALESCE(CAST(FacturaId AS NVARCHAR(20)), FacturaExterna) AS FacturaId,
                        CONVERT(CHAR(10), Fecha, 23) AS Fecha,
                        CAST(CuentaBancariaId AS NVARCHAR(20)) AS BancoId,
                        Monto, Moneda, TipoCambioOperacion, Metodo, Referencia
