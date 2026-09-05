@@ -264,9 +264,13 @@ function DialogoPago({
         )
       : 0;
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!factura) {
       toast.error("Seleccione la factura a la que se aplica el pago.");
+      return;
+    }
+    if (!bancoId) {
+      toast.error("Seleccione el banco receptor del pago.");
       return;
     }
     if (!(monto > 0)) {
@@ -281,7 +285,9 @@ function DialogoPago({
       toast.error("El pago no puede exceder el saldo pendiente de la factura.");
       return;
     }
-    agregarPago({
+    setGuardando(true);
+    // Se espera la confirmación del servidor: si falla, el diálogo permanece abierto con los datos.
+    const ok = await agregarPago({
       facturaId,
       fecha,
       bancoId,
@@ -291,6 +297,8 @@ function DialogoPago({
       metodo,
       referencia,
     });
+    setGuardando(false);
+    if (!ok) return;
     toast.success("Pago registrado y aplicado a la factura");
     setAbierto(false);
     setMonto(0);
