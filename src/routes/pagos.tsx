@@ -248,7 +248,7 @@ function DialogoPago({
             facturaId,
             fecha,
             bancoId,
-            monto: Number(monto),
+            monto,
             moneda,
             tipoCambioOperacion: Number(tc),
             metodo,
