@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.12.0";
+export const APP_VERSION = "1.13.0";
 export const APP_FECHA_VERSION = "2026-09-05";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.13.0",
+    fecha: "2026-09-05",
+    cambios: [
+      "Nuevo parámetro \"Usar datos de facturas de fuente externa\": con SoftlandERP, las facturas se leen de FACTURA y FACTURA_LINEA (vigentes, no anuladas) con la misma conexión de pedidos.",
+      "Detalle de líneas de cada factura de SoftlandERP desde la pantalla de Facturas.",
+      "Corregido el error al consultar las líneas de un pedido de SoftlandERP.",
+    ],
+  },
   {
     version: "1.12.0",
     fecha: "2026-09-05",
