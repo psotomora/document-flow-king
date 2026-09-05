@@ -364,12 +364,7 @@ function DialogoPago({
                 Sugerido: saldo pendiente {formatearMoneda(factura.saldoPendiente, factura.moneda)}
               </p>
             ) : null}
-            <Input
-              id="p-monto"
-              type="number"
-              value={monto}
-              onChange={(e) => setMonto(e.target.value)}
-            />
+            <InputNumero id="p-monto" value={monto} onChange={setMonto} />
           </div>
           {requiereTc ? (
             <div className="space-y-1.5 sm:col-span-2">
