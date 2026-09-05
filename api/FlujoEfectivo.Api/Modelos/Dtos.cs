@@ -181,9 +181,7 @@ public record CambioContrato(
     decimal? Monto,
     bool? Facturado,
     string? Estado,
-    string? Notas,
-    string? Origen = null,
-    int? Lineas = null);
+    string? Notas);
 
 public record LineaPedidoDto(
     int Linea,
