@@ -85,7 +85,7 @@ function PaginaPedidos() {
   const [abierto, setAbierto] = useState(false);
 
   const filtrados = filtrarPorCompania(pedidos, companiaActiva).filter(
-    (p) => estado === "todos" || p.estado === estado,
+    (p) => (fuenteExterna ? p.estado === "Pendiente" : estado === "todos" || p.estado === estado),
   );
 
   const pendientesUSD = filtrados
