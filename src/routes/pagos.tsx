@@ -218,12 +218,17 @@ function DialogoPago({
   const { facturasCalculadas, bancos, agregarPago, tipoCambio, hoy } = useApp();
   const pendientes = facturasCalculadas.filter((f) => f.saldoPendiente > 0.009);
 
+  /** Solo cuentas activas de la compañía de la factura: así el pago se refleja en su saldo por banco. */
+  const bancosPara = (companiaId?: string) =>
+    bancos.filter((b) => b.activo && (!companiaId || b.companiaId === companiaId));
+
   const inicial = pendientes[0];
   const [facturaId, setFacturaId] = useState(inicial?.id ?? "");
   const [fecha, setFecha] = useState(hoy);
-  const [bancoId, setBancoId] = useState(bancos[0]?.id ?? "");
+  const [bancoId, setBancoId] = useState(bancosPara(inicial?.companiaId)[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? "USD");
   const [monto, setMonto] = useState<number>(inicial ? sugerirMonto(inicial.saldoPendiente) : 0);
+  const [guardando, setGuardando] = useState(false);
 
   /** Al elegir una factura se sugiere su saldo pendiente y su moneda; el usuario puede cambiarlos. */
   const elegirFactura = (id: string) => {
@@ -232,6 +237,8 @@ function DialogoPago({
     if (f) {
       setMoneda(f.moneda);
       setMonto(sugerirMonto(f.saldoPendiente));
+      const opciones = bancosPara(f.companiaId);
+      if (!opciones.some((b) => b.id === bancoId)) setBancoId(opciones[0]?.id ?? "");
     }
   };
   const [tc, setTc] = useState(String(tipoCambio));
