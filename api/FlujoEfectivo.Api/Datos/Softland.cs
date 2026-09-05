@@ -206,7 +206,7 @@ public static partial class Softland
 
         static string Texto(object? v) => v is null || v is DBNull ? "" : Convert.ToString(v)?.Trim() ?? "";
         static decimal Numero(object? v) => v is null || v is DBNull ? 0m : Convert.ToDecimal(v);
-        static short Entero(object? v) => v is null || v is DBNull ? (short)0 : Convert.ToInt16(v);
+        static int Entero(object? v) => v is null || v is DBNull ? 0 : Convert.ToInt32(v);
 
         var lista = new List<LineaPedidoDto>();
         foreach (var f in filas)
