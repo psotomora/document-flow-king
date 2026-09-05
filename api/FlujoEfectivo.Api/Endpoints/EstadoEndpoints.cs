@@ -141,8 +141,7 @@ public static class EstadoEndpoints
                        CAST(f.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
                        f.Numero, c.Nombre AS Cliente,
                        CONVERT(CHAR(10), f.FechaEmision, 23) AS FechaEmision,
-                       f.PlazoDias, f.Moneda, f.Monto, f.Notas,
-                       CAST(NULL AS NVARCHAR(30)) AS Origen, CAST(NULL AS INT) AS Lineas
+                       f.PlazoDias, f.Moneda, f.Monto, f.Notas
                 FROM flujo.Factura f
                 INNER JOIN flujo.Cliente c ON c.ClienteId = f.ClienteId
                 WHERE f.Anulada = 0
