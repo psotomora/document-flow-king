@@ -262,7 +262,7 @@ function DialogoPago({
       toast.error("Seleccione la factura a la que se aplica el pago.");
       return;
     }
-    if (!(Number(monto) > 0)) {
+    if (!(monto > 0)) {
       toast.error("El monto del pago debe ser mayor que cero.");
       return;
     }
