@@ -150,19 +150,25 @@ function PaginaPedidos() {
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
           <Label>Estado</Label>
-          <Select value={estado} onValueChange={(v) => setEstado(v as EstadoPedido | "todos")}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              {ESTADOS.map((e) => (
-                <SelectItem key={e} value={e}>
-                  {e}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {fuenteExterna ? (
+            <p className="h-10 flex items-center text-sm font-medium text-foreground">
+              Pedidos en estado pendiente
+            </p>
+          ) : (
+            <Select value={estado} onValueChange={(v) => setEstado(v as EstadoPedido | "todos")}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                {ESTADOS.map((e) => (
+                  <SelectItem key={e} value={e}>
+                    {e}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <div className="ml-auto text-right">
           <p className="text-xs text-muted-foreground">
