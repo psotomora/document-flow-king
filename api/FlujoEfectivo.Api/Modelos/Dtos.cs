@@ -79,7 +79,10 @@ public record PedidoDto(
     int PlazoDias,
     string Moneda,
     decimal Monto,
-    string Estado);
+    string Estado,
+    string? Notas = null,
+    string? Origen = null,
+    int? Lineas = null);
 
 public record TipoCambioDto(string Id, decimal Valor, string Fecha, string Usuario, string? Nota);
 
@@ -105,7 +108,8 @@ public record EstadoDto(
     IEnumerable<PedidoDto> Pedidos,
     IEnumerable<TipoCambioDto> TiposCambio,
     IEnumerable<BitacoraDto> Bitacora,
-    Dictionary<string, string> Parametros);
+    Dictionary<string, string> Parametros,
+    string? AvisoFuenteExterna = null);
 
 /* ------------------------- Entradas ------------------------- */
 
@@ -181,6 +185,36 @@ public record CambioContrato(
     bool? Facturado,
     string? Estado,
     string? Notas);
+
+public record LineaPedidoDto(
+    int Linea,
+    string Articulo,
+    string? Descripcion,
+    decimal Cantidad,
+    decimal CantidadFacturada,
+    decimal PrecioUnitario,
+    decimal Descuento,
+    string FechaEntrega,
+    string? Estado);
+
+public record FuenteExternaDto(
+    string Fuente,
+    string Servidor,
+    string BaseDatos,
+    string Esquema,
+    string Usuario,
+    bool TieneClave,
+    string? CompaniaId,
+    bool Encriptar);
+
+public record CambioFuenteExterna(
+    string Servidor,
+    string BaseDatos,
+    string Esquema,
+    string? Usuario,
+    string? Clave,
+    string? CompaniaId,
+    bool? Encriptar);
 
 public record NuevoPedido(
     string CompaniaId,

@@ -243,10 +243,28 @@ public static class RegistrosEndpoints
             return Results.Ok(new { id = id.ToString() });
         });
 
-        g.MapPut("/pedidos/{id}", (string id, CambioPedido p, HttpContext ctx, Db db) =>
+        g.MapPut("/pedidos/{id}", (string id, CambioPedido p, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!ctx.User.PuedeEditar()) return SinPermiso();
             using var cn = db.Abrir();
+
+            // Pedido de SoftlandERP: solo se admite el paso a Facturado y se refleja en el ERP.
+            if (id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
+            {
+                var numero = id[Softland.PrefijoId.Length..];
+                if (!string.Equals(p.Estado, "Facturado", StringComparison.OrdinalIgnoreCase))
+                    return Results.BadRequest(new { mensaje = "Los pedidos de SoftlandERP solo pueden pasar a Facturado desde esta aplicación." });
+                var cfg = Softland.Leer(cn);
+                if (cfg is null) return Results.BadRequest(new { mensaje = "No hay credenciales de SoftlandERP registradas." });
+                int afectados;
+                try { afectados = Softland.MarcarFacturado(cfg, config["Jwt:Llave"] ?? "", numero); }
+                catch (Exception ex) { return Results.Json(new { mensaje = "SoftlandERP: " + ex.Message }, statusCode: 502); }
+                if (afectados == 0) return Results.NotFound(new { mensaje = "El pedido no existe en SoftlandERP o ya no está en estado Normal." });
+                Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Pedidos", numero, "Modificación",
+                    "SoftlandERP: N (Normal)", "SoftlandERP: F (Facturado)");
+                return Results.Ok(new { mensaje = "Pedido facturado en SoftlandERP." });
+            }
+
             var filas = cn.Execute(
                 """
                 UPDATE flujo.Pedido SET
@@ -266,6 +284,8 @@ public static class RegistrosEndpoints
         g.MapDelete("/pedidos/{id}", (string id, HttpContext ctx, Db db) =>
         {
             if (!ctx.User.EsAdministrador()) return SoloAdministrador();
+            if (id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
+                return Results.BadRequest(new { mensaje = "Los pedidos de SoftlandERP no se eliminan desde esta aplicación." });
             using var cn = db.Abrir();
             var filas = cn.Execute("DELETE FROM flujo.Pedido WHERE PedidoId=@id", new { id = Id(id) });
             if (filas == 0) return Results.NotFound(new { mensaje = "Pedido inexistente." });
@@ -356,6 +376,81 @@ public static class RegistrosEndpoints
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", clave,
                 "Modificación", anterior, valor);
             return Results.Ok(new { mensaje = "Parámetro actualizado." });
+        });
+
+        /* ----------------------- Fuente externa: SoftlandERP ------------------ */
+        g.MapGet("/pedidos/{id}/lineas", (string id, Db db, IConfiguration config) =>
+        {
+            if (!id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
+                return Results.Ok(Array.Empty<LineaPedidoDto>());
+            using var cn = db.Abrir();
+            var cfg = Softland.Leer(cn);
+            if (cfg is null) return Results.BadRequest(new { mensaje = "No hay credenciales de SoftlandERP registradas." });
+            try
+            {
+                return Results.Ok(Softland.Lineas(cfg, config["Jwt:Llave"] ?? "", id[Softland.PrefijoId.Length..]));
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { mensaje = "SoftlandERP: " + ex.Message }, statusCode: 502);
+            }
+        });
+
+        g.MapGet("/fuentes-externas/softland", (HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            using var cn = db.Abrir();
+            var c = Softland.Leer(cn);
+            return Results.Ok(c is null
+                ? new FuenteExternaDto(Softland.Fuente, "", "", "", "", false, null, true)
+                : new FuenteExternaDto(Softland.Fuente, c.Servidor, c.BaseDatos, c.Esquema, c.Usuario,
+                    !string.IsNullOrEmpty(c.ClaveCifrada), c.CompaniaId?.ToString(), c.Encriptar));
+        });
+
+        static ConfigSoftland Combinar(ConfigSoftland? actual, CambioFuenteExterna f, string secreto)
+        {
+            var clave = f.Clave is null ? (actual?.ClaveCifrada ?? "")
+                : f.Clave.Length == 0 ? "" : Softland.Cifrar(f.Clave, secreto);
+            return new ConfigSoftland
+            {
+                Servidor = f.Servidor.Trim(),
+                BaseDatos = f.BaseDatos.Trim(),
+                Esquema = f.Esquema.Trim(),
+                Usuario = (f.Usuario ?? "").Trim(),
+                ClaveCifrada = clave,
+                CompaniaId = int.TryParse(f.CompaniaId, out var cid) ? cid : actual?.CompaniaId,
+                Encriptar = f.Encriptar ?? actual?.Encriptar ?? true,
+            };
+        }
+
+        g.MapPut("/fuentes-externas/softland", (CambioFuenteExterna f, HttpContext ctx, Db db, IConfiguration config) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            if (string.IsNullOrWhiteSpace(f.Servidor) || string.IsNullOrWhiteSpace(f.BaseDatos) || string.IsNullOrWhiteSpace(f.Esquema))
+                return Results.BadRequest(new { mensaje = "Servidor, base de datos y esquema son obligatorios." });
+            try { Softland.ValidarEsquema(f.Esquema.Trim()); }
+            catch (ArgumentException ex) { return Results.BadRequest(new { mensaje = ex.Message }); }
+            using var cn = db.Abrir();
+            var actual = Softland.Leer(cn);
+            var nuevo = Combinar(actual, f, config["Jwt:Llave"] ?? "");
+            Softland.Guardar(cn, nuevo, ctx.User.UsuarioId());
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "Conexión SoftlandERP",
+                "Modificación",
+                actual is null ? null : $"{actual.Servidor}/{actual.BaseDatos}.{actual.Esquema} ({actual.Usuario})",
+                $"{nuevo.Servidor}/{nuevo.BaseDatos}.{nuevo.Esquema} ({nuevo.Usuario})");
+            return Results.Ok(new { mensaje = "Conexión a SoftlandERP guardada." });
+        });
+
+        g.MapPost("/fuentes-externas/softland/probar", (CambioFuenteExterna f, HttpContext ctx, Db db, IConfiguration config) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            using var cn = db.Abrir();
+            var secreto = config["Jwt:Llave"] ?? "";
+            ConfigSoftland cfg;
+            try { cfg = Combinar(Softland.Leer(cn), f, secreto); Softland.ValidarEsquema(cfg.Esquema); }
+            catch (ArgumentException ex) { return Results.BadRequest(new { mensaje = ex.Message }); }
+            var (ok, mensaje, pedidos) = Softland.Probar(cfg, secreto);
+            return ok ? Results.Ok(new { mensaje, pedidos }) : Results.BadRequest(new { mensaje });
         });
 
         /* --------------------------- Carga inicial --------------------------- */

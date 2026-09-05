@@ -16,7 +16,7 @@ Ejecute los scripts en este orden desde SQL Server Management Studio:
 3. `database/03_datos_demo.sql` — *opcional*, datos de prueba.
 4. `database/04_seguridad.sql` — usuarios de acceso.
 5. `database/05_parametros.sql` — actualización persistente del tipo de cambio.
-6. `database/06_parametros_generales.sql` — tabla `flujo.Parametro` (clave/valor) para parámetros generales como "Usar datos de pedidos de fuente externa" (`pedidosFuenteExterna`) y su subparámetro "Fuente de pedidos" (`pedidosFuenteOrigen`, por defecto `SoftlandERP`). La API la crea automáticamente al iniciar si falta.
+6. `database/06_parametros_generales.sql` — tabla `flujo.Parametro` (clave/valor) para parámetros generales como "Usar datos de pedidos de fuente externa" (`pedidosFuenteExterna`) y su subparámetro "Fuente de pedidos" (`pedidosFuenteOrigen`, por defecto `SoftlandERP`). Incluye también la tabla `flujo.FuenteExterna` con las credenciales de SoftlandERP (clave cifrada con AES a partir de `Jwt:Llave`). La API la crea automáticamente al iniciar si falta.
 
 Usuarios creados (cambie las contraseñas después del primer ingreso):
 
@@ -100,3 +100,29 @@ fecha, módulo y valores anterior/nuevo.
 - Los perfiles se validan en el servidor: `consulta` no puede escribir y solo
   `administrador` modifica catálogos y tipo de cambio.
 - Publique la API y el sitio bajo HTTPS con certificado válido.
+
+## Integración con SoftlandERP
+
+Cuando `pedidosFuenteExterna = 1` y `pedidosFuenteOrigen = SoftlandERP`, `GET /api/estado` devuelve los pedidos leídos de `[esquema].PEDIDO` (solo `ESTADO = 'N'`) en lugar de `flujo.Pedido`. Equivalencias de campos:
+
+| Aplicación      | SoftlandERP                                   |
+|-----------------|-----------------------------------------------|
+| Numero          | PEDIDO.PEDIDO                                 |
+| Cliente         | PEDIDO.NOMBRE_CLIENTE (o CLIENTE)             |
+| FechaCreacion   | PEDIDO.FECHA_PEDIDO                           |
+| PlazoDias       | CONDICION_PAGO.DIAS_NETO (según CONDICION_PAGO) |
+| Moneda          | PEDIDO.MONEDA_PEDIDO: `D` → USD, otro → CRC   |
+| Monto           | PEDIDO.TOTAL_A_FACTURAR                       |
+| Estado          | PEDIDO.ESTADO: `N` Pendiente, `F` Facturado, `C` Anulado |
+| Notas           | PEDIDO.ORDEN_COMPRA                           |
+| Líneas          | PEDIDO_LINEA (ARTICULO, DESCRIPCION, CANTIDAD_PEDIDA, PRECIO_UNITARIO, MONTO_DESCUENTO, FECHA_ENTREGA) |
+
+Endpoints (solo administrador salvo el detalle de líneas):
+
+- `GET /api/fuentes-externas/softland` — configuración actual (sin la clave).
+- `PUT /api/fuentes-externas/softland` — guarda servidor, base, esquema, usuario, clave, compañía local y cifrado; queda en bitácora.
+- `POST /api/fuentes-externas/softland/probar` — prueba la conexión y verifica las tablas.
+- `GET /api/pedidos/sl:{PEDIDO}/lineas` — líneas del pedido.
+- `PUT /api/pedidos/sl:{PEDIDO}` con `{ "estado": "Facturado" }` — actualiza `PEDIDO.ESTADO` y `PEDIDO_LINEA.ESTADO` de `N` a `F` en Softland y registra el cambio en la bitácora local.
+
+El usuario SQL de Softland necesita `SELECT` sobre PEDIDO, PEDIDO_LINEA y CONDICION_PAGO, y `UPDATE` sobre PEDIDO y PEDIDO_LINEA.

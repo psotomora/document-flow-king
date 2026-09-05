@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.11.0";
+export const APP_VERSION = "1.12.0";
 export const APP_FECHA_VERSION = "2026-09-05";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.12.0",
+    fecha: "2026-09-05",
+    cambios: [
+      "Integración con SoftlandERP: con la fuente externa activa, los pedidos se leen de las tablas PEDIDO y PEDIDO_LINEA (estado Normal).",
+      "Credenciales de SoftlandERP (servidor, base, esquema/compañía, usuario y clave cifrada) se administran en Parámetros con prueba de conexión.",
+      "Al facturar un pedido de SoftlandERP, su estado pasa de N a F en el ERP y queda en bitácora. Detalle de líneas disponible en Pedidos.",
+    ],
+  },
   {
     version: "1.11.0",
     fecha: "2026-09-05",

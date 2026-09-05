@@ -97,6 +97,21 @@ try
         IF NOT EXISTS (SELECT 1 FROM flujo.Parametro WHERE Clave = 'pedidosFuenteOrigen')
             INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
             VALUES ('pedidosFuenteOrigen', 'SoftlandERP', 'Fuente externa de pedidos (subparámetro de pedidosFuenteExterna)');
+
+        IF OBJECT_ID('flujo.FuenteExterna', 'U') IS NULL
+            CREATE TABLE flujo.FuenteExterna
+            (
+                Fuente        NVARCHAR(40)  NOT NULL CONSTRAINT PK_FuenteExterna PRIMARY KEY,
+                Servidor      NVARCHAR(200) NOT NULL,
+                BaseDatos     NVARCHAR(128) NOT NULL,
+                Esquema       NVARCHAR(128) NOT NULL,
+                Usuario       NVARCHAR(128) NOT NULL CONSTRAINT DF_FuenteExterna_Usuario DEFAULT '',
+                ClaveCifrada  NVARCHAR(400) NOT NULL CONSTRAINT DF_FuenteExterna_Clave DEFAULT '',
+                CompaniaId    INT           NULL,
+                Encriptar     BIT           NOT NULL CONSTRAINT DF_FuenteExterna_Encriptar DEFAULT 1,
+                Actualizado   DATETIME2(0)  NOT NULL CONSTRAINT DF_FuenteExterna_Actualizado DEFAULT SYSUTCDATETIME(),
+                UsuarioId     INT           NULL
+            );
         """);
 }
 catch (Exception ex)

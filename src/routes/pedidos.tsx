@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { FileDown, Plus, Trash2 } from "lucide-react";
+import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { DialogoLineasPedido } from "@/components/pedidos/DialogoLineasPedido";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,7 +75,12 @@ function PaginaPedidos() {
     eliminarPedido,
     tipoCambio,
     usuario,
+    pedidosFuenteExterna,
+    pedidosFuenteOrigen,
+    avisoFuenteExterna,
+    modoApi,
   } = useApp();
+  const fuenteExterna = modoApi && pedidosFuenteExterna;
   const [estado, setEstado] = useState<EstadoPedido | "todos">("todos");
   const [abierto, setAbierto] = useState(false);
 
@@ -115,10 +121,31 @@ function PaginaPedidos() {
             <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
               <FileDown className="size-4" /> Exportar Excel
             </Button>
-            {puedeEditar ? <DialogoPedido abierto={abierto} setAbierto={setAbierto} /> : null}
+            {puedeEditar && !fuenteExterna ? (
+              <DialogoPedido abierto={abierto} setAbierto={setAbierto} />
+            ) : null}
           </>
         }
       />
+
+      {fuenteExterna ? (
+        <div
+          className={`flex items-start gap-3 rounded-lg border p-3 text-sm ${
+            avisoFuenteExterna
+              ? "border-advertencia/40 bg-advertencia-suave text-advertencia-foreground"
+              : "border-primary/30 bg-primary/5 text-foreground"
+          }`}
+        >
+          <Database className="mt-0.5 size-4 shrink-0" />
+          <div>
+            <p className="font-medium">Origen de los pedidos: {pedidosFuenteOrigen}</p>
+            <p className="text-xs text-muted-foreground">
+              {avisoFuenteExterna ??
+                "Se muestran los pedidos en estado Normal leídos directamente de las tablas PEDIDO y PEDIDO_LINEA. Al generar la factura correspondiente, el pedido pasa a Facturado en el ERP."}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
@@ -168,8 +195,20 @@ function PaginaPedidos() {
                 <TableCell className="text-xs text-muted-foreground">
                   {companias.find((c) => c.id === p.companiaId)?.codigo}
                 </TableCell>
-                <TableCell className="font-medium">{p.numero}</TableCell>
-                <TableCell>{p.cliente}</TableCell>
+                <TableCell className="font-medium">
+                  {p.numero}
+                  {p.origen ? (
+                    <span className="ml-1.5 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                      {p.origen}
+                    </span>
+                  ) : null}
+                </TableCell>
+                <TableCell>
+                  {p.cliente}
+                  {p.notas ? (
+                    <span className="block text-xs text-muted-foreground">{p.notas}</span>
+                  ) : null}
+                </TableCell>
                 <TableCell className="whitespace-nowrap">
                   {formatearFecha(p.fechaCreacion)}
                 </TableCell>
@@ -184,6 +223,11 @@ function PaginaPedidos() {
                   )}
                 </TableCell>
                 <TableCell>
+                  {p.origen ? (
+                    <span className="inline-flex h-8 items-center rounded-md border border-border px-2.5 text-xs">
+                      {p.estado}
+                    </span>
+                  ) : (
                   <Select
                     value={p.estado}
                     disabled={!puedeEditar}
@@ -203,9 +247,12 @@ function PaginaPedidos() {
                       ))}
                     </SelectContent>
                   </Select>
+                  )}
                 </TableCell>
                 <TableCell>
-                  {esAdministrador ? (
+                  {p.origen ? (
+                    <DialogoLineasPedido pedido={p} />
+                  ) : esAdministrador ? (
                     <Button
                       variant="ghost"
                       size="icon"

@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ConexionSoftland } from "@/components/parametros/ConexionSoftland";
 import {
   FUENTES_PEDIDOS,
   FUENTE_PEDIDOS_DEFECTO,
@@ -154,6 +155,9 @@ function PaginaParametros() {
             </SelectContent>
           </Select>
         </div>
+        {pedidosFuenteOrigen === "SoftlandERP" ? (
+          <ConexionSoftland habilitado={pedidosFuenteExterna} />
+        ) : null}
       </div>
 
       <h2 className="text-sm font-semibold text-foreground">Tipo de cambio</h2>
