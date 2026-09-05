@@ -144,6 +144,13 @@ export function PantallaLogin() {
               </div>
             )}
           </div>
+
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <Tag className="size-3.5" aria-hidden />
+            <span>
+              Versión {APP_VERSION} — {APP_FECHA_VERSION}
+            </span>
+          </div>
         </CardContent>
       </Card>
     </main>
