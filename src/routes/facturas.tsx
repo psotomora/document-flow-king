@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
@@ -79,11 +79,29 @@ function PaginaFacturas() {
 
   const [cliente, setCliente] = useState("");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  /** Estados marcados; vacío equivale a "todos". */
+  /** Estados marcados; vacío equivale a "todos". Se recuerda por usuario. */
+  const claveFiltroEstados = `acfi:facturas:estados:${usuario.id}`;
   const [estados, setEstados] = useState<EstadoFactura[]>([]);
+  useEffect(() => {
+    try {
+      const guardado = window.localStorage.getItem(claveFiltroEstados);
+      const lista = guardado ? (JSON.parse(guardado) as unknown) : [];
+      setEstados(Array.isArray(lista) ? (lista as EstadoFactura[]) : []);
+    } catch {
+      setEstados([]);
+    }
+  }, [claveFiltroEstados]);
   const [facturaDetalle, setFacturaDetalle] = useState<Factura | null>(null);
   const alternarEstado = (e: EstadoFactura, marcado: boolean) =>
-    setEstados((prev) => (marcado ? [...prev, e] : prev.filter((x) => x !== e)));
+    setEstados((prev) => {
+      const siguiente = marcado ? [...prev, e] : prev.filter((x) => x !== e);
+      try {
+        window.localStorage.setItem(claveFiltroEstados, JSON.stringify(siguiente));
+      } catch {
+        /* sin almacenamiento disponible */
+      }
+      return siguiente;
+    });
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [abierto, setAbierto] = useState(false);
