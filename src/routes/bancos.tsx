@@ -197,10 +197,10 @@ function PaginaBancos() {
                   ) : null}
                 </Table>
               </div>
-            </TabsContent>
+            </section>
           );
         })}
-      </Tabs>
+      </div>
     </div>
   );
 }
