@@ -189,7 +189,10 @@ public static partial class Softland
     {
         using var cn = Abrir(c, secreto);
         var e = c.Esquema;
-        return cn.Query<LineaPedidoDto>(
+        // Se leen las filas de forma dinámica y se convierten explícitamente:
+        // los tipos de Softland (int, varchar, datetime nulos) no coinciden
+        // exactamente con el constructor del record y Dapper no lo puede materializar.
+        var filas = cn.Query(
             $"""
             SELECT l.PEDIDO_LINEA AS Linea, l.ARTICULO AS Articulo,
                    CAST(l.DESCRIPCION AS NVARCHAR(400)) AS Descripcion,
@@ -199,7 +202,28 @@ public static partial class Softland
             FROM [{e}].[PEDIDO_LINEA] l
             WHERE l.PEDIDO = @numero
             ORDER BY l.PEDIDO_LINEA
-            """, new { numero }).ToList();
+            """, new { numero });
+
+        static string Texto(object? v) => v is null || v is DBNull ? "" : Convert.ToString(v)?.Trim() ?? "";
+        static decimal Numero(object? v) => v is null || v is DBNull ? 0m : Convert.ToDecimal(v);
+        static int Entero(object? v) => v is null || v is DBNull ? 0 : Convert.ToInt32(v);
+
+        var lista = new List<LineaPedidoDto>();
+        foreach (var f in filas)
+        {
+            var d = (IDictionary<string, object?>)f;
+            lista.Add(new LineaPedidoDto(
+                Entero(d["Linea"]),
+                Texto(d["Articulo"]),
+                Texto(d["Descripcion"]),
+                Numero(d["Cantidad"]),
+                Numero(d["CantidadFacturada"]),
+                Numero(d["PrecioUnitario"]),
+                Numero(d["Descuento"]),
+                Texto(d["FechaEntrega"]),
+                Texto(d["Estado"])));
+        }
+        return lista;
     }
 
     /// <summary>Marca el pedido (y sus líneas) como Facturado (F) en Softland.</summary>
