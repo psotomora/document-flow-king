@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.9.0";
-export const APP_FECHA_VERSION = "2026-09-01";
+export const APP_VERSION = "1.10.0";
+export const APP_FECHA_VERSION = "2026-09-05";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.10.0",
+    fecha: "2026-09-05",
+    cambios: [
+      "Nueva tabla flujo.Parametro para parámetros generales persistidos en base de datos.",
+      "El parámetro 'Usar datos de pedidos de fuente externa' se guarda en SQL Server y queda en bitácora.",
+      "La API crea la tabla y el parámetro automáticamente al iniciar (script 06_parametros_generales.sql).",
+    ],
+  },
   {
     version: "1.9.0",
     fecha: "2026-09-01",
