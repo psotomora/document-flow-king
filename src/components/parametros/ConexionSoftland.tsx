@@ -113,7 +113,7 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
           cada cambio queda en la bitácora.
         </p>
         {!modoApi ? (
-          <p className="mt-1 text-xs text-warning">
+          <p className="mt-1 text-xs text-advertencia">
             Disponible únicamente cuando la aplicación está conectada a SQL Server.
           </p>
         ) : null}
@@ -231,8 +231,8 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
           role="status"
           className={`rounded-md border px-3 py-2 text-xs ${
             resultado.ok
-              ? "border-success/40 bg-success/10 text-success"
-              : "border-destructive/40 bg-destructive/10 text-destructive"
+              ? "border-exito/40 bg-exito-suave text-exito"
+              : "border-destructive/40 bg-destructive-suave text-destructive"
           }`}
         >
           {resultado.mensaje}
