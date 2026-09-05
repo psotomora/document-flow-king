@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { FileDown, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -30,6 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda, formatearNumero } from "@/lib/formato";
@@ -224,6 +238,8 @@ function DialogoPago({
 
   const inicial = pendientes[0];
   const [facturaId, setFacturaId] = useState(inicial?.id ?? "");
+  const [busquedaFactura, setBusquedaFactura] = useState("");
+  const [comboAbierto, setComboAbierto] = useState(false);
   const [fecha, setFecha] = useState(hoy);
   const [bancoId, setBancoId] = useState(bancosPara(inicial?.companiaId)[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? "USD");
@@ -322,19 +338,64 @@ function DialogoPago({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Factura</Label>
-            <Select value={facturaId} onValueChange={elegirFactura}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione una factura" />
-              </SelectTrigger>
-              <SelectContent>
-                {pendientes.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>
-                    {f.numero} · {f.cliente} · saldo{" "}
-                    {formatearMoneda(f.saldoPendiente, f.moneda)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={comboAbierto} onOpenChange={setComboAbierto}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={comboAbierto}
+                  className="w-full justify-between font-normal"
+                >
+                  {factura ? (
+                    <span className="truncate">
+                      {factura.numero} · {factura.cliente} · saldo{" "}
+                      {formatearMoneda(factura.saldoPendiente, factura.moneda)}
+                    </span>
+                  ) : (
+                    "Seleccione una factura"
+                  )}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput
+                    placeholder="Buscar por factura o cliente…"
+                    value={busquedaFactura}
+                    onValueChange={setBusquedaFactura}
+                  />
+                  <CommandList>
+                    <CommandEmpty>No se encontraron facturas.</CommandEmpty>
+                    <CommandGroup>
+                      {pendientes.map((f) => (
+                        <CommandItem
+                          key={f.id}
+                          value={`${f.numero} ${f.cliente}`}
+                          onSelect={() => {
+                            elegirFactura(f.id);
+                            setBusquedaFactura("");
+                            setComboAbierto(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4 shrink-0",
+                              facturaId === f.id ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          <span className="flex-1 truncate">
+                            {f.numero} · {f.cliente}
+                          </span>
+                          <span className="ml-2 shrink-0 text-xs text-muted-foreground">
+                            {formatearMoneda(f.saldoPendiente, f.moneda)}
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="p-fecha">Fecha del pago</Label>
