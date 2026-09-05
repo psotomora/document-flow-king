@@ -223,7 +223,7 @@ function DialogoPago({
   const [fecha, setFecha] = useState(hoy);
   const [bancoId, setBancoId] = useState(bancos[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? "USD");
-  const [monto, setMonto] = useState(inicial ? sugerirMonto(inicial.saldoPendiente) : "");
+  const [monto, setMonto] = useState<number>(inicial ? sugerirMonto(inicial.saldoPendiente) : 0);
 
   /** Al elegir una factura se sugiere su saldo pendiente y su moneda; el usuario puede cambiarlos. */
   const elegirFactura = (id: string) => {
