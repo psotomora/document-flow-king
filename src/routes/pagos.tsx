@@ -278,7 +278,7 @@ function DialogoPago({
       facturaId,
       fecha,
       bancoId,
-      monto: Number(monto),
+      monto,
       moneda,
       tipoCambioOperacion: requiereTc ? Number(tc) : undefined,
       metodo,
@@ -286,7 +286,7 @@ function DialogoPago({
     });
     toast.success("Pago registrado y aplicado a la factura");
     setAbierto(false);
-    setMonto("");
+    setMonto(0);
     setReferencia("");
   };
 
