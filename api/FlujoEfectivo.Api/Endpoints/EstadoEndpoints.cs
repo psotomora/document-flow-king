@@ -118,8 +118,12 @@ public static class EstadoEndpoints
             var usuario = new UsuarioDto(
                 ctx.User.UsuarioId().ToString(), ctx.User.NombreUsuario(), ctx.User.Perfil());
 
+            var parametros = cn.Query<(string Clave, string Valor)>(
+                    "SELECT Clave, Valor FROM flujo.Parametro")
+                .ToDictionary(p => p.Clave, p => p.Valor);
+
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
-                erogaciones, contratos, pedidos, tiposCambio, bitacora));
+                erogaciones, contratos, pedidos, tiposCambio, bitacora, parametros));
         }).RequireAuthorization();
     }
 }

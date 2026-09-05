@@ -16,6 +16,7 @@ Ejecute los scripts en este orden desde SQL Server Management Studio:
 3. `database/03_datos_demo.sql` — *opcional*, datos de prueba.
 4. `database/04_seguridad.sql` — usuarios de acceso.
 5. `database/05_parametros.sql` — actualización persistente del tipo de cambio.
+6. `database/06_parametros_generales.sql` — tabla `flujo.Parametro` (clave/valor) para parámetros generales como "Usar datos de pedidos de fuente externa". La API la crea automáticamente al iniciar si falta.
 
 Usuarios creados (cambie las contraseñas después del primer ingreso):
 

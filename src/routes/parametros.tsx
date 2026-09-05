@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-
-const CLAVE_PEDIDOS_EXTERNOS = "aplix.param.pedidosFuenteExterna";
 import {
   Table,
   TableBody,
@@ -17,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useApp } from "@/contexto/AppContexto";
+import { PARAM_PEDIDOS_FUENTE_EXTERNA, useApp } from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
 
 export const Route = createFileRoute("/parametros")({
@@ -40,19 +38,26 @@ export const Route = createFileRoute("/parametros")({
 });
 
 function PaginaParametros() {
-  const { tipoCambio, tiposCambio, esAdministrador, registrarTipoCambio, bitacora, modoApi } =
-    useApp();
+  const {
+    tipoCambio,
+    tiposCambio,
+    esAdministrador,
+    registrarTipoCambio,
+    bitacora,
+    modoApi,
+    pedidosFuenteExterna,
+    actualizarParametro,
+  } = useApp();
   const [valor, setValor] = useState(String(tipoCambio));
   const [nota, setNota] = useState("");
-  const [pedidosExternos, setPedidosExternos] = useState(false);
-
-  useEffect(() => {
-    setPedidosExternos(window.localStorage.getItem(CLAVE_PEDIDOS_EXTERNOS) === "1");
-  }, []);
 
   const cambiarPedidosExternos = (activo: boolean) => {
-    setPedidosExternos(activo);
-    window.localStorage.setItem(CLAVE_PEDIDOS_EXTERNOS, activo ? "1" : "0");
+    actualizarParametro(PARAM_PEDIDOS_FUENTE_EXTERNA, activo ? "1" : "0");
+    toast.success(
+      activo
+        ? "Los pedidos se tomarán de la fuente externa (SoftlandERP)."
+        : "Los pedidos se tomarán del registro interno.",
+    );
   };
 
 
@@ -85,15 +90,15 @@ function PaginaParametros() {
           <div className="space-y-0.5">
             <Label htmlFor="pedidos-externos">Usar datos de pedidos de fuente externa</Label>
             <p className="text-xs text-muted-foreground">
-              Opción reservada para una integración futura. Por ahora no modifica el
-              comportamiento del sistema.
+              Se guarda en la base de datos y cada cambio queda en la bitácora. Solo el
+              administrador puede modificarlo.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">{pedidosExternos ? "Sí" : "No"}</span>
+            <span className="text-xs text-muted-foreground">{pedidosFuenteExterna ? "Sí" : "No"}</span>
             <Switch
               id="pedidos-externos"
-              checked={pedidosExternos}
+              checked={pedidosFuenteExterna}
               onCheckedChange={cambiarPedidosExternos}
               disabled={!esAdministrador}
             />

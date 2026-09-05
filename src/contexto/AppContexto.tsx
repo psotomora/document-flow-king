@@ -45,7 +45,11 @@ interface EstadoServidor {
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
   bitacora: RegistroBitacora[];
+  parametros?: Record<string, string>;
 }
+
+/** Clave del parámetro que indica si los pedidos se leen de SoftlandERP. */
+export const PARAM_PEDIDOS_FUENTE_EXTERNA = "pedidosFuenteExterna";
 
 interface EstadoApp {
   hoy: string;
@@ -68,6 +72,9 @@ interface EstadoApp {
   tiposCambio: TipoCambio[];
   tipoCambio: number;
   bitacora: RegistroBitacora[];
+  parametros: Record<string, string>;
+  pedidosFuenteExterna: boolean;
+  actualizarParametro: (clave: string, valor: string) => void;
   facturasCalculadas: FacturaCalculada[];
   puedeEditar: boolean;
   esAdministrador: boolean;
@@ -141,6 +148,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [pedidos, setPedidos] = useState<Pedido[]>(semilla.pedidos);
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>(semilla.bitacoraInicial);
+  const [parametros, setParametros] = useState<Record<string, string>>({
+    [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
+  });
   const iniciado = useRef(false);
 
   const hoy = modoApi ? new Date().toISOString().slice(0, 10) : semilla.FECHA_CORTE;
@@ -164,6 +174,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setPedidos(estado.pedidos);
     setTiposCambio(estado.tiposCambio);
     setBitacora(estado.bitacora);
+    setParametros({ [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0", ...(estado.parametros ?? {}) });
   }, []);
 
   /** Si la sesión ya no es válida en el servidor, se vuelve a pedir el inicio de sesión. */
@@ -384,6 +395,14 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       tiposCambio,
       tipoCambio,
       bitacora,
+      parametros,
+      pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
+      actualizarParametro: (clave, nuevoValor) =>
+        mutar(`/parametros/${encodeURIComponent(clave)}`, "PUT", { valor: nuevoValor }, () => {
+          const anterior = parametros[clave];
+          setParametros((prev) => ({ ...prev, [clave]: nuevoValor }));
+          anotar("Parámetros", clave, "Modificación", nuevoValor, anterior);
+        }),
       facturasCalculadas,
       puedeEditar,
       esAdministrador,
@@ -635,6 +654,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     modoApi,
     mutar,
     pagos,
+    parametros,
     pedidos,
     recargar,
     tipoCambio,
