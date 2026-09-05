@@ -74,8 +74,10 @@ export function PantallaLogin() {
               <Input
                 id="usuario"
                 autoComplete="username"
+                autoFocus
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
+                onKeyDown={alPresionarEnter}
                 required
               />
             </div>
