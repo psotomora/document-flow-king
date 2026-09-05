@@ -390,12 +390,17 @@ function DialogoFactura({
                 {pedidosPendientes.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.numero} · {p.cliente} · {formatearMoneda(p.monto, p.moneda)}
+                    {p.origen ? ` · ${p.origen}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Al guardar, el pedido seleccionado pasa de Pendiente a Facturado.
+              Al guardar, el pedido seleccionado pasa de Pendiente a Facturado
+              {pedidosPendientes.some((p) => p.origen)
+                ? " (en los pedidos de SoftlandERP el estado se actualiza de N a F en el ERP)"
+                : ""}
+              .
             </p>
           </div>
 
