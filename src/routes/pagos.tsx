@@ -238,6 +238,8 @@ function DialogoPago({
 
   const inicial = pendientes[0];
   const [facturaId, setFacturaId] = useState(inicial?.id ?? "");
+  const [busquedaFactura, setBusquedaFactura] = useState("");
+  const [comboAbierto, setComboAbierto] = useState(false);
   const [fecha, setFecha] = useState(hoy);
   const [bancoId, setBancoId] = useState(bancosPara(inicial?.companiaId)[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? "USD");
