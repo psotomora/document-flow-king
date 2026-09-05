@@ -108,17 +108,16 @@ function PaginaBancos() {
       </div>
 
 
-      <Tabs defaultValue="USD">
-        <TabsList>
-          <TabsTrigger value="USD">Dólares (USD)</TabsTrigger>
-          <TabsTrigger value="CRC">Colones (CRC)</TabsTrigger>
-        </TabsList>
+      <div className="space-y-8">
         {(["USD", "CRC"] as Moneda[]).map((moneda) => {
           const filas = saldos[moneda];
           const total = totalizarSaldos(filas);
           return (
-            <TabsContent key={moneda} value={moneda} className="space-y-3">
-              <div className="flex justify-end">
+            <section key={moneda} className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-base font-semibold text-foreground">
+                  {moneda === "USD" ? "Dólares (USD)" : "Colones (CRC)"}
+                </h2>
                 <Button
                   variant="outline"
                   size="sm"
