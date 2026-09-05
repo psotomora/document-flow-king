@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="../build/FlujoEfectivo.Api.props" />
-</Project>
