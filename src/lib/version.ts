@@ -18,6 +18,7 @@ export const HISTORIAL_VERSIONES: EntradaVersion[] = [
     cambios: [
       "El campo Monto en el registro de pagos ahora usa formato numérico (miles y decimales) sin mostrar el símbolo de moneda.",
       "El valor sugerido del pago se mantiene como número y se formatea al perder el foco o al abrir el diálogo.",
+      "Corregido: ahora se pueden registrar pagos sobre facturas leídas de SoftlandERP (se guardan con el número de factura externa).",
     ],
   },
   {
