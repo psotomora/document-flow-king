@@ -331,6 +331,33 @@ public static class RegistrosEndpoints
             return Results.Ok(new { id = id.ToString() });
         });
 
+        /* ------------------------ Parámetros generales ----------------------- */
+        g.MapPut("/parametros/{clave}", (string clave, CambioParametro p, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            if (string.IsNullOrWhiteSpace(clave) || clave.Length > 60)
+                return Results.BadRequest(new { mensaje = "Clave de parámetro inválida." });
+            var valor = (p.Valor ?? "").Trim();
+            if (valor.Length > 200)
+                return Results.BadRequest(new { mensaje = "El valor del parámetro es demasiado largo." });
+            using var cn = db.Abrir();
+            var anterior = cn.ExecuteScalar<string?>(
+                "SELECT Valor FROM flujo.Parametro WHERE Clave = @clave", new { clave });
+            cn.Execute(
+                """
+                MERGE flujo.Parametro AS destino
+                USING (SELECT @clave AS Clave) AS origen ON destino.Clave = origen.Clave
+                WHEN MATCHED THEN
+                    UPDATE SET Valor = @valor, Actualizado = SYSUTCDATETIME(), UsuarioId = @usuarioId
+                WHEN NOT MATCHED THEN
+                    INSERT (Clave, Valor, UsuarioId) VALUES (@clave, @valor, @usuarioId);
+                """,
+                new { clave, valor, usuarioId = ctx.User.UsuarioId() });
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", clave,
+                "Modificación", anterior, valor);
+            return Results.Ok(new { mensaje = "Parámetro actualizado." });
+        });
+
         /* --------------------------- Carga inicial --------------------------- */
         g.MapPost("/importacion/lote", (LoteImportacion lote, HttpContext ctx, Db db) =>
         {

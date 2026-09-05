@@ -79,6 +79,20 @@ try
         IF OBJECT_ID('flujo.TipoCambio', 'U') IS NOT NULL
            AND COL_LENGTH('flujo.TipoCambio', 'Nota') IS NULL
             ALTER TABLE flujo.TipoCambio ADD Nota NVARCHAR(200) NULL;
+
+        IF OBJECT_ID('flujo.Parametro', 'U') IS NULL
+            CREATE TABLE flujo.Parametro
+            (
+                Clave        NVARCHAR(60)  NOT NULL CONSTRAINT PK_Parametro PRIMARY KEY,
+                Valor        NVARCHAR(200) NOT NULL,
+                Descripcion  NVARCHAR(200) NULL,
+                Actualizado  DATETIME2(0)  NOT NULL CONSTRAINT DF_Parametro_Actualizado DEFAULT SYSUTCDATETIME(),
+                UsuarioId    INT           NULL
+            );
+
+        IF NOT EXISTS (SELECT 1 FROM flujo.Parametro WHERE Clave = 'pedidosFuenteExterna')
+            INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
+            VALUES ('pedidosFuenteExterna', '0', 'Usar datos de pedidos de fuente externa (SoftlandERP)');
         """);
 }
 catch (Exception ex)

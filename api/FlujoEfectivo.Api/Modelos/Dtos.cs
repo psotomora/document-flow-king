@@ -104,7 +104,8 @@ public record EstadoDto(
     IEnumerable<ContratoDto> Contratos,
     IEnumerable<PedidoDto> Pedidos,
     IEnumerable<TipoCambioDto> TiposCambio,
-    IEnumerable<BitacoraDto> Bitacora);
+    IEnumerable<BitacoraDto> Bitacora,
+    Dictionary<string, string> Parametros);
 
 /* ------------------------- Entradas ------------------------- */
 
@@ -207,6 +208,8 @@ public record CambioBanco(
     bool? Activo);
 
 public record NuevoTipoCambio(decimal Valor, string? Nota);
+
+public record CambioParametro(string Valor);
 
 public record LoteImportacion(
     List<NuevaFactura>? Facturas,
