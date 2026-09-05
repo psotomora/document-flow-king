@@ -404,6 +404,57 @@ function DialogoPago({
 }
 
 /** Redondea el saldo a dos decimales para proponerlo como monto del pago. */
-function sugerirMonto(saldo: number): string {
-  return (Math.round(saldo * 100) / 100).toString();
+function sugerirMonto(saldo: number): number {
+  return Math.round(saldo * 100) / 100;
+}
+
+function InputNumero({
+  id,
+  value,
+  onChange,
+  className,
+  placeholder,
+}: {
+  id?: string;
+  value: number;
+  onChange: (n: number) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  const [editando, setEditando] = useState(false);
+  const [raw, setRaw] = useState(String(value));
+
+  const display = formatearNumero(value);
+  return (
+    <Input
+      id={id}
+      type="text"
+      inputMode="decimal"
+      className={`font-mono tabular-nums text-right ${className ?? ""}`}
+      value={editando ? raw : display}
+      placeholder={placeholder}
+      onFocus={() => {
+        setEditando(true);
+        setRaw(value ? String(value).replace(".", ",") : "");
+      }}
+      onChange={(e) => setRaw(e.target.value)}
+      onBlur={() => {
+        onChange(parsearMonto(raw));
+        setEditando(false);
+      }}
+    />
+  );
+}
+
+function parsearMonto(valor: string): number {
+  const limpio = valor.replace(/[^0-9.,]/g, "");
+  if (!limpio) return 0;
+  const separadores = [...limpio.matchAll(/[.,]/g)];
+  if (separadores.length === 0) return Number(limpio) || 0;
+  const ultimo = separadores[separadores.length - 1]!;
+  const idx = ultimo.index!;
+  const entero = limpio.slice(0, idx).replace(/[.,]/g, "").replace(/^0+(?=\d)/, "");
+  const decimal = limpio.slice(idx + 1).replace(/[.,]/g, "").slice(0, 2).padEnd(2, "0");
+  const numero = Number(`${entero || "0"}.${decimal}`);
+  return Number.isFinite(numero) ? numero : 0;
 }
