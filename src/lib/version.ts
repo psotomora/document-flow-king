@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.13.1";
-export const APP_FECHA_VERSION = "2026-09-06";
+export const APP_VERSION = "1.13.2";
+export const APP_FECHA_VERSION = "2026-09-05";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.13.2",
+    fecha: "2026-09-05",
+    cambios: [
+      "Registro de pagos: el mensaje de confirmación se muestra solo cuando SQL Server confirma el guardado; si falla, el diálogo permanece abierto con el error.",
+      "El banco receptor se limita a las cuentas activas de la compañía de la factura, para que el pago se refleje en Saldo por banco.",
+    ],
+  },
   {
     version: "1.13.1",
     fecha: "2026-09-06",
