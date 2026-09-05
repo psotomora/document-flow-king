@@ -223,7 +223,7 @@ function DialogoPago({
   const [fecha, setFecha] = useState(hoy);
   const [bancoId, setBancoId] = useState(bancos[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? "USD");
-  const [monto, setMonto] = useState(inicial ? sugerirMonto(inicial.saldoPendiente) : "");
+  const [monto, setMonto] = useState<number>(inicial ? sugerirMonto(inicial.saldoPendiente) : 0);
 
   /** Al elegir una factura se sugiere su saldo pendiente y su moneda; el usuario puede cambiarlos. */
   const elegirFactura = (id: string) => {
@@ -248,7 +248,7 @@ function DialogoPago({
             facturaId,
             fecha,
             bancoId,
-            monto: Number(monto),
+            monto,
             moneda,
             tipoCambioOperacion: Number(tc),
             metodo,
@@ -262,7 +262,7 @@ function DialogoPago({
       toast.error("Seleccione la factura a la que se aplica el pago.");
       return;
     }
-    if (!(Number(monto) > 0)) {
+    if (!(monto > 0)) {
       toast.error("El monto del pago debe ser mayor que cero.");
       return;
     }
@@ -278,7 +278,7 @@ function DialogoPago({
       facturaId,
       fecha,
       bancoId,
-      monto: Number(monto),
+      monto,
       moneda,
       tipoCambioOperacion: requiereTc ? Number(tc) : undefined,
       metodo,
@@ -286,7 +286,7 @@ function DialogoPago({
     });
     toast.success("Pago registrado y aplicado a la factura");
     setAbierto(false);
-    setMonto("");
+    setMonto(0);
     setReferencia("");
   };
 
@@ -364,12 +364,7 @@ function DialogoPago({
                 Sugerido: saldo pendiente {formatearMoneda(factura.saldoPendiente, factura.moneda)}
               </p>
             ) : null}
-            <Input
-              id="p-monto"
-              type="number"
-              value={monto}
-              onChange={(e) => setMonto(e.target.value)}
-            />
+            <InputNumero id="p-monto" value={monto} onChange={setMonto} />
           </div>
           {requiereTc ? (
             <div className="space-y-1.5 sm:col-span-2">
@@ -409,6 +404,57 @@ function DialogoPago({
 }
 
 /** Redondea el saldo a dos decimales para proponerlo como monto del pago. */
-function sugerirMonto(saldo: number): string {
-  return (Math.round(saldo * 100) / 100).toString();
+function sugerirMonto(saldo: number): number {
+  return Math.round(saldo * 100) / 100;
+}
+
+function InputNumero({
+  id,
+  value,
+  onChange,
+  className,
+  placeholder,
+}: {
+  id?: string;
+  value: number;
+  onChange: (n: number) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  const [editando, setEditando] = useState(false);
+  const [raw, setRaw] = useState(String(value));
+
+  const display = formatearNumero(value);
+  return (
+    <Input
+      id={id}
+      type="text"
+      inputMode="decimal"
+      className={`font-mono tabular-nums text-right ${className ?? ""}`}
+      value={editando ? raw : display}
+      placeholder={placeholder}
+      onFocus={() => {
+        setEditando(true);
+        setRaw(value ? String(value).replace(".", ",") : "");
+      }}
+      onChange={(e) => setRaw(e.target.value)}
+      onBlur={() => {
+        onChange(parsearMonto(raw));
+        setEditando(false);
+      }}
+    />
+  );
+}
+
+function parsearMonto(valor: string): number {
+  const limpio = valor.replace(/[^0-9.,]/g, "");
+  if (!limpio) return 0;
+  const separadores = [...limpio.matchAll(/[.,]/g)];
+  if (separadores.length === 0) return Number(limpio) || 0;
+  const ultimo = separadores[separadores.length - 1]!;
+  const idx = ultimo.index!;
+  const entero = limpio.slice(0, idx).replace(/[.,]/g, "").replace(/^0+(?=\d)/, "");
+  const decimal = limpio.slice(idx + 1).replace(/[.,]/g, "").slice(0, 2).padEnd(2, "0");
+  const numero = Number(`${entero || "0"}.${decimal}`);
+  return Number.isFinite(numero) ? numero : 0;
 }
