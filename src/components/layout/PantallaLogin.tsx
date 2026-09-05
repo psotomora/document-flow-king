@@ -88,6 +88,7 @@ export function PantallaLogin() {
                 autoComplete="current-password"
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
+                onKeyDown={alPresionarEnter}
                 required
               />
             </div>
