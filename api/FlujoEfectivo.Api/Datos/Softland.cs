@@ -21,7 +21,7 @@ public sealed class ConfigSoftland
 }
 
 /// <summary>
-/// Acceso de solo lectura (y cambio de estado) a las tablas PEDIDO y PEDIDO_LINEA
+/// Acceso de solo lectura (y cambio de estado) a las tablas PEDIDO, PEDIDO_LINEA, FACTURA y FACTURA_LINEA
 /// de SoftlandERP. El esquema equivale a la compañía dentro del ERP.
 /// </summary>
 public static partial class Softland
@@ -132,7 +132,17 @@ public static partial class Softland
             if (existen == 0)
                 return (false, $"Conectó al servidor, pero no existen las tablas {c.Esquema}.PEDIDO / {c.Esquema}.PEDIDO_LINEA.", 0);
             var n = cn.ExecuteScalar<int>($"SELECT COUNT(1) FROM [{c.Esquema}].[PEDIDO] WHERE ESTADO = 'N'");
-            return (true, $"Conexión correcta. {n} pedido(s) en estado Normal.", n);
+            var msg = $"Conexión correcta. {n} pedido(s) en estado Normal.";
+            var hayFacturas = cn.ExecuteScalar<int>(
+                "SELECT CASE WHEN OBJECT_ID(@f, 'U') IS NOT NULL AND OBJECT_ID(@l, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+                new { f = $"{c.Esquema}.FACTURA", l = $"{c.Esquema}.FACTURA_LINEA" }) == 1;
+            if (hayFacturas)
+            {
+                var nf = cn.ExecuteScalar<int>($"SELECT COUNT(1) FROM [{c.Esquema}].[FACTURA] WHERE TIPO_DOCUMENTO = 'F' AND ISNULL(ANULADA, 'N') <> 'S'");
+                msg += $" {nf} factura(s) vigente(s).";
+            }
+            else msg += " No se encontraron las tablas FACTURA / FACTURA_LINEA.";
+            return (true, msg, n);
         }
         catch (Exception ex)
         {
@@ -204,10 +214,6 @@ public static partial class Softland
             ORDER BY l.PEDIDO_LINEA
             """, new { numero });
 
-        static string Texto(object? v) => v is null || v is DBNull ? "" : Convert.ToString(v)?.Trim() ?? "";
-        static decimal Numero(object? v) => v is null || v is DBNull ? 0m : Convert.ToDecimal(v);
-        static int Entero(object? v) => v is null || v is DBNull ? 0 : Convert.ToInt32(v);
-
         var lista = new List<LineaPedidoDto>();
         foreach (var f in filas)
         {
@@ -242,6 +248,99 @@ public static partial class Softland
         tx.Commit();
         return filas;
     }
+
+    /* -------------------------------- Facturas ------------------------------- */
+
+    /// <summary>
+    /// Facturas de SoftlandERP (tabla FACTURA) no anuladas, mapeadas a la estructura interna.
+    /// Equivalencias: FACTURA→Numero, NOMBRE_CLIENTE/CLIENTE→Cliente, FECHA→FechaEmision,
+    /// CONDICION_PAGO.DIAS_NETO→PlazoDias, MONEDA_FACTURA (L/D)→Moneda (CRC/USD),
+    /// TOTAL_FACTURA→Monto, PEDIDO/ORDEN_COMPRA→Notas, ANULADA='N' filtra las vigentes.
+    /// </summary>
+    public static IEnumerable<FacturaDto> Facturas(ConfigSoftland c, string secreto, string companiaId)
+    {
+        using var cn = Abrir(c, secreto);
+        var e = c.Esquema;
+        var tieneCondicion = cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{e}.CONDICION_PAGO" }) == 1;
+        var plazo = tieneCondicion
+            ? $"ISNULL((SELECT TOP 1 cp.DIAS_NETO FROM [{e}].[CONDICION_PAGO] cp WHERE cp.CONDICION_PAGO = f.CONDICION_PAGO), 0)"
+            : "0";
+
+        var filas = cn.Query(
+            $"""
+            SELECT f.FACTURA AS Numero,
+                   ISNULL(NULLIF(LTRIM(RTRIM(f.NOMBRE_CLIENTE)), ''), f.CLIENTE) AS Cliente,
+                   CONVERT(CHAR(10), f.FECHA, 23) AS FechaEmision,
+                   {plazo} AS PlazoDias,
+                   f.MONEDA_FACTURA AS Moneda,
+                   f.TOTAL_FACTURA AS Monto,
+                   f.PEDIDO AS Pedido,
+                   f.ORDEN_COMPRA AS OrdenCompra,
+                   f.COBRADA AS Cobrada,
+                   (SELECT COUNT(1) FROM [{e}].[FACTURA_LINEA] l
+                     WHERE l.FACTURA = f.FACTURA AND l.TIPO_DOCUMENTO = f.TIPO_DOCUMENTO) AS Lineas
+            FROM [{e}].[FACTURA] f
+            WHERE f.TIPO_DOCUMENTO = 'F' AND ISNULL(f.ANULADA, 'N') <> 'S'
+            ORDER BY f.FECHA DESC, f.FACTURA DESC
+            """);
+
+        var lista = new List<FacturaDto>();
+        foreach (var fila in filas)
+        {
+            var d = (IDictionary<string, object?>)fila;
+            var numero = Texto(d["Numero"]);
+            var notas = new List<string>();
+            var pedido = Texto(d["Pedido"]);
+            var oc = Texto(d["OrdenCompra"]);
+            if (pedido.Length > 0) notas.Add($"Pedido {pedido}");
+            if (oc.Length > 0) notas.Add($"OC {oc}");
+            if (Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase)) notas.Add("Cobrada en ERP");
+            lista.Add(new FacturaDto(
+                PrefijoId + numero, companiaId, numero, Texto(d["Cliente"]), Texto(d["FechaEmision"]),
+                Entero(d["PlazoDias"]), MapearMoneda(Texto(d["Moneda"])), Numero(d["Monto"]),
+                notas.Count > 0 ? string.Join(" · ", notas) : null,
+                Fuente, Entero(d["Lineas"])));
+        }
+        return lista;
+    }
+
+    /// <summary>Líneas (FACTURA_LINEA) de una factura de Softland.</summary>
+    public static IEnumerable<LineaFacturaDto> LineasFactura(ConfigSoftland c, string secreto, string numero)
+    {
+        using var cn = Abrir(c, secreto);
+        var e = c.Esquema;
+        var filas = cn.Query(
+            $"""
+            SELECT l.LINEA AS Linea, l.ARTICULO AS Articulo,
+                   CAST(l.DESCRIPCION AS NVARCHAR(400)) AS Descripcion,
+                   l.CANTIDAD AS Cantidad, l.PRECIO_UNITARIO AS PrecioUnitario,
+                   ISNULL(l.DESC_TOT_LINEA, 0) + ISNULL(l.DESC_TOT_GENERAL, 0) AS Descuento,
+                   ISNULL(l.TOTAL_IMPUESTO1, 0) + ISNULL(l.TOTAL_IMPUESTO2, 0) AS Impuesto,
+                   l.PRECIO_TOTAL AS Total, l.BODEGA AS Bodega, l.PEDIDO AS Pedido
+            FROM [{e}].[FACTURA_LINEA] l
+            WHERE l.FACTURA = @numero AND l.TIPO_DOCUMENTO = 'F'
+            ORDER BY l.LINEA
+            """, new { numero });
+
+        var lista = new List<LineaFacturaDto>();
+        foreach (var f in filas)
+        {
+            var d = (IDictionary<string, object?>)f;
+            lista.Add(new LineaFacturaDto(
+                Entero(d["Linea"]), Texto(d["Articulo"]), Texto(d["Descripcion"]),
+                Numero(d["Cantidad"]), Numero(d["PrecioUnitario"]), Numero(d["Descuento"]),
+                Numero(d["Impuesto"]), Numero(d["Total"]), Texto(d["Bodega"]), Texto(d["Pedido"])));
+        }
+        return lista;
+    }
+
+    /* ------------------------------ Conversión ------------------------------- */
+
+    private static string Texto(object? v) => v is null || v is DBNull ? "" : Convert.ToString(v)?.Trim() ?? "";
+    private static decimal Numero(object? v) => v is null || v is DBNull ? 0m : Convert.ToDecimal(v);
+    private static int Entero(object? v) => v is null || v is DBNull ? 0 : Convert.ToInt32(v);
 
     private static string MapearMoneda(string? m) =>
         string.Equals(m?.Trim(), "D", StringComparison.OrdinalIgnoreCase) ? "USD" : "CRC";

@@ -16,7 +16,7 @@ Ejecute los scripts en este orden desde SQL Server Management Studio:
 3. `database/03_datos_demo.sql` — *opcional*, datos de prueba.
 4. `database/04_seguridad.sql` — usuarios de acceso.
 5. `database/05_parametros.sql` — actualización persistente del tipo de cambio.
-6. `database/06_parametros_generales.sql` — tabla `flujo.Parametro` (clave/valor) para parámetros generales como "Usar datos de pedidos de fuente externa" (`pedidosFuenteExterna`) y su subparámetro "Fuente de pedidos" (`pedidosFuenteOrigen`, por defecto `SoftlandERP`). Incluye también la tabla `flujo.FuenteExterna` con las credenciales de SoftlandERP (clave cifrada con AES a partir de `Jwt:Llave`). La API la crea automáticamente al iniciar si falta.
+6. `database/06_parametros_generales.sql` — tabla `flujo.Parametro` (clave/valor) para parámetros generales como "Usar datos de pedidos de fuente externa" (`pedidosFuenteExterna`), "Usar datos de facturas de fuente externa" (`facturasFuenteExterna`) y su subparámetro compartido "Fuente de pedidos" (`pedidosFuenteOrigen`, por defecto `SoftlandERP`). Incluye también la tabla `flujo.FuenteExterna` con las credenciales de SoftlandERP (clave cifrada con AES a partir de `Jwt:Llave`). La API la crea automáticamente al iniciar si falta.
 
 Usuarios creados (cambie las contraseñas después del primer ingreso):
 
@@ -126,3 +126,22 @@ Endpoints (solo administrador salvo el detalle de líneas):
 - `PUT /api/pedidos/sl:{PEDIDO}` con `{ "estado": "Facturado" }` — actualiza `PEDIDO.ESTADO` y `PEDIDO_LINEA.ESTADO` de `N` a `F` en Softland y registra el cambio en la bitácora local.
 
 El usuario SQL de Softland necesita `SELECT` sobre PEDIDO, PEDIDO_LINEA y CONDICION_PAGO, y `UPDATE` sobre PEDIDO y PEDIDO_LINEA.
+
+### Facturas desde SoftlandERP
+
+Cuando `facturasFuenteExterna = 1` y `pedidosFuenteOrigen = SoftlandERP`, `GET /api/estado` devuelve las facturas leídas de `[esquema].FACTURA` (solo `TIPO_DOCUMENTO = 'F'` y `ANULADA <> 'S'`) en lugar de `flujo.Factura`, usando las mismas credenciales de `flujo.FuenteExterna`. Equivalencias de campos:
+
+| Interno (`FacturaDto`) | SoftlandERP `FACTURA` |
+| --- | --- |
+| `id` | `"sl:" + FACTURA` |
+| `numero` | `FACTURA` |
+| `cliente` | `NOMBRE_CLIENTE` (o `CLIENTE` si viene vacío) |
+| `fechaEmision` | `FECHA` |
+| `plazoDias` | `CONDICION_PAGO.DIAS_NETO` (0 si no existe la tabla) |
+| `moneda` | `MONEDA_FACTURA`: `D` → USD, otro → CRC |
+| `monto` | `TOTAL_FACTURA` |
+| `notas` | `PEDIDO`, `ORDEN_COMPRA` y marca "Cobrada en ERP" si `COBRADA = 'S'` |
+| `origen` | `SoftlandERP` |
+| `lineas` | `COUNT(FACTURA_LINEA)` |
+
+`GET /api/facturas/{id}/lineas` devuelve `FACTURA_LINEA` (`LINEA`, `ARTICULO`, `DESCRIPCION`, `CANTIDAD`, `PRECIO_UNITARIO`, `DESC_TOT_LINEA + DESC_TOT_GENERAL`, `TOTAL_IMPUESTO1 + TOTAL_IMPUESTO2`, `PRECIO_TOTAL`, `BODEGA`, `PEDIDO`). Las facturas de SoftlandERP no se crean, editan ni eliminan desde la aplicación; el usuario SQL solo necesita permiso de lectura sobre `FACTURA` y `FACTURA_LINEA`.

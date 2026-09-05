@@ -51,7 +51,9 @@ interface EstadoServidor {
 
 /** Clave del parámetro que indica si los pedidos se leen de una fuente externa. */
 export const PARAM_PEDIDOS_FUENTE_EXTERNA = "pedidosFuenteExterna";
-/** Clave del subparámetro que indica cuál es la fuente externa de pedidos. */
+/** Clave del parámetro que indica si las facturas se leen de una fuente externa. */
+export const PARAM_FACTURAS_FUENTE_EXTERNA = "facturasFuenteExterna";
+/** Clave del subparámetro que indica cuál es la fuente externa (compartida por pedidos y facturas). */
 export const PARAM_PEDIDOS_FUENTE_ORIGEN = "pedidosFuenteOrigen";
 /** Fuentes externas de pedidos disponibles. */
 export const FUENTES_PEDIDOS: { valor: string; etiqueta: string }[] = [
@@ -60,6 +62,7 @@ export const FUENTES_PEDIDOS: { valor: string; etiqueta: string }[] = [
 export const FUENTE_PEDIDOS_DEFECTO = "SoftlandERP";
 const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
+  [PARAM_FACTURAS_FUENTE_EXTERNA]: "0",
   [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
 };
 
@@ -86,6 +89,7 @@ interface EstadoApp {
   bitacora: RegistroBitacora[];
   parametros: Record<string, string>;
   pedidosFuenteExterna: boolean;
+  facturasFuenteExterna: boolean;
   pedidosFuenteOrigen: string;
   /** Mensaje del servidor cuando la fuente externa está activa pero no pudo leerse. */
   avisoFuenteExterna: string | null;
@@ -412,6 +416,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       bitacora,
       parametros,
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
+      facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
       pedidosFuenteOrigen: parametros[PARAM_PEDIDOS_FUENTE_ORIGEN] || FUENTE_PEDIDOS_DEFECTO,
       avisoFuenteExterna,
       actualizarParametro: (clave, nuevoValor) =>

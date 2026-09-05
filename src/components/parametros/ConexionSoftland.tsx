@@ -29,7 +29,7 @@ const VACIA: Conexion = {
 };
 
 /**
- * Credenciales de la base de datos de SoftlandERP (tablas PEDIDO / PEDIDO_LINEA).
+ * Credenciales de la base de datos de SoftlandERP (tablas PEDIDO, PEDIDO_LINEA, FACTURA y FACTURA_LINEA).
  * Solo el administrador puede verlas y modificarlas; la clave se guarda cifrada
  * en la base de datos y nunca se devuelve al navegador.
  */
@@ -108,7 +108,7 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
       <div>
         <p className="text-sm font-medium text-foreground">Conexión a SoftlandERP</p>
         <p className="text-xs text-muted-foreground">
-          Base de datos de la que se leen las tablas PEDIDO y PEDIDO_LINEA. El esquema corresponde a
+          Base de datos de la que se leen las tablas PEDIDO, PEDIDO_LINEA, FACTURA y FACTURA_LINEA. El esquema corresponde a
           la compañía dentro del ERP (por ejemplo <code>capa</code>). La clave se guarda cifrada y
           cada cambio queda en la bitácora.
         </p>

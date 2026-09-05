@@ -32,7 +32,21 @@ public record FacturaDto(
     int PlazoDias,
     string Moneda,
     decimal Monto,
-    string? Notas);
+    string? Notas,
+    string? Origen = null,
+    int? Lineas = null);
+
+public record LineaFacturaDto(
+    int Linea,
+    string Articulo,
+    string? Descripcion,
+    decimal Cantidad,
+    decimal PrecioUnitario,
+    decimal Descuento,
+    decimal Impuesto,
+    decimal Total,
+    string? Bodega,
+    string? Pedido);
 
 public record PagoDto(
     string Id,
