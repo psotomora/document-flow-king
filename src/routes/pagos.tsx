@@ -344,7 +344,7 @@ function DialogoPago({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {bancos.map((b) => (
+                {bancosPara(factura?.companiaId).map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     {b.nombre}
                   </SelectItem>
