@@ -28,7 +28,24 @@ export interface Factura {
   plazoDias: number;
   moneda: Moneda;
   monto: number;
-  notas?: string | undefined;
+  notas?: string | null | undefined;
+  /** Sistema del que proviene la factura; ausente = registro interno. */
+  origen?: string | null;
+  /** Cantidad de líneas (solo facturas de fuente externa). */
+  lineas?: number | null;
+}
+
+export interface LineaFactura {
+  linea: number;
+  articulo: string;
+  descripcion?: string | null;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  impuesto: number;
+  total: number;
+  bodega?: string | null;
+  pedido?: string | null;
 }
 
 export interface Pago {

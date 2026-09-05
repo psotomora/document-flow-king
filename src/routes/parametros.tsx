@@ -28,6 +28,7 @@ import {
   FUENTE_PEDIDOS_DEFECTO,
   PARAM_PEDIDOS_FUENTE_EXTERNA,
   PARAM_PEDIDOS_FUENTE_ORIGEN,
+  PARAM_FACTURAS_FUENTE_EXTERNA,
   useApp,
 } from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
@@ -60,6 +61,7 @@ function PaginaParametros() {
     bitacora,
     modoApi,
     pedidosFuenteExterna,
+    facturasFuenteExterna,
     pedidosFuenteOrigen,
     parametros,
     actualizarParametro,
@@ -79,6 +81,20 @@ function PaginaParametros() {
     );
   };
 
+
+  const cambiarFacturasExternas = (activo: boolean) => {
+    actualizarParametro(PARAM_FACTURAS_FUENTE_EXTERNA, activo ? "1" : "0");
+    if (activo && !parametros[PARAM_PEDIDOS_FUENTE_ORIGEN]) {
+      actualizarParametro(PARAM_PEDIDOS_FUENTE_ORIGEN, FUENTE_PEDIDOS_DEFECTO);
+    }
+    toast.success(
+      activo
+        ? "Las facturas se tomarán de la fuente externa (SoftlandERP)."
+        : "Las facturas se tomarán del registro interno.",
+    );
+  };
+
+  const algunaFuenteExterna = pedidosFuenteExterna || facturasFuenteExterna;
 
   const guardar = () => {
     const numero = Number(valor);
@@ -123,25 +139,43 @@ function PaginaParametros() {
             />
           </div>
         </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="facturas-externas">Usar datos de facturas de fuente externa</Label>
+            <p className="text-xs text-muted-foreground">
+              Las facturas se leen de las tablas FACTURA y FACTURA_LINEA del sistema externo,
+              usando la misma fuente y conexión que los pedidos.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{facturasFuenteExterna ? "Sí" : "No"}</span>
+            <Switch
+              id="facturas-externas"
+              checked={facturasFuenteExterna}
+              onCheckedChange={cambiarFacturasExternas}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
         <div
           className={`mt-4 flex flex-wrap items-center justify-between gap-3 border-l-2 border-border pl-4 ${
-            pedidosFuenteExterna ? "" : "opacity-50"
+            algunaFuenteExterna ? "" : "opacity-50"
           }`}
         >
           <div className="space-y-0.5">
-            <Label htmlFor="fuente-pedidos">Fuente de pedidos</Label>
+            <Label htmlFor="fuente-pedidos">Fuente externa (pedidos y facturas)</Label>
             <p className="text-xs text-muted-foreground">
-              Sistema externo del que se consultan los pedidos. Disponible solo cuando la opción
-              anterior está en Sí.
+              Sistema externo del que se consultan los pedidos y las facturas. Disponible cuando
+              alguna de las opciones anteriores está en Sí.
             </p>
           </div>
           <Select
             value={pedidosFuenteOrigen}
             onValueChange={(v) => {
               actualizarParametro(PARAM_PEDIDOS_FUENTE_ORIGEN, v);
-              toast.success(`Fuente de pedidos: ${v}`);
+              toast.success(`Fuente externa: ${v}`);
             }}
-            disabled={!pedidosFuenteExterna || !esAdministrador}
+            disabled={!algunaFuenteExterna || !esAdministrador}
           >
             <SelectTrigger id="fuente-pedidos" className="w-56">
               <SelectValue placeholder="Seleccione la fuente" />
@@ -156,7 +190,7 @@ function PaginaParametros() {
           </Select>
         </div>
         {pedidosFuenteOrigen === "SoftlandERP" ? (
-          <ConexionSoftland habilitado={pedidosFuenteExterna} />
+          <ConexionSoftland habilitado={algunaFuenteExterna} />
         ) : null}
       </div>
 
