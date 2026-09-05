@@ -306,6 +306,18 @@ public static partial class Softland
         return lista;
     }
 
+    /// <summary>Moneda (CRC/USD) de una factura vigente de Softland, o null si no existe.</summary>
+    public static string? MonedaFactura(ConfigSoftland c, string secreto, string numero)
+    {
+        using var cn = Abrir(c, secreto);
+        var moneda = cn.ExecuteScalar<string?>(
+            $"""
+            SELECT TOP 1 f.MONEDA_FACTURA FROM [{c.Esquema}].[FACTURA] f
+            WHERE f.FACTURA = @numero AND f.TIPO_DOCUMENTO = 'F' AND ISNULL(f.ANULADA, 'N') <> 'S'
+            """, new { numero });
+        return moneda is null ? null : MapearMoneda(moneda);
+    }
+
     /// <summary>Líneas (FACTURA_LINEA) de una factura de Softland.</summary>
     public static IEnumerable<LineaFacturaDto> LineasFactura(ConfigSoftland c, string secreto, string numero)
     {

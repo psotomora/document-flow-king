@@ -102,6 +102,22 @@ try
             INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
             VALUES ('facturasFuenteExterna', '0', 'Usar datos de facturas de fuente externa (SoftlandERP)');
 
+        -- Pagos aplicados a facturas de una fuente externa (SoftlandERP): FacturaId pasa a NULL
+        -- y el número externo se guarda en FacturaExterna.
+        IF OBJECT_ID('flujo.Pago', 'U') IS NOT NULL
+           AND COL_LENGTH('flujo.Pago', 'FacturaExterna') IS NULL
+        BEGIN
+            IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_Pago_Factura' AND object_id = OBJECT_ID('flujo.Pago'))
+                DROP INDEX IX_Pago_Factura ON flujo.Pago;
+            IF OBJECT_ID('flujo.FK_Pago_Factura', 'F') IS NOT NULL
+                ALTER TABLE flujo.Pago DROP CONSTRAINT FK_Pago_Factura;
+            ALTER TABLE flujo.Pago ALTER COLUMN FacturaId INT NULL;
+            ALTER TABLE flujo.Pago ADD FacturaExterna NVARCHAR(60) NULL;
+            ALTER TABLE flujo.Pago ADD CONSTRAINT FK_Pago_Factura FOREIGN KEY (FacturaId) REFERENCES flujo.Factura(FacturaId);
+            CREATE INDEX IX_Pago_Factura ON flujo.Pago (FacturaId);
+            CREATE INDEX IX_Pago_FacturaExterna ON flujo.Pago (FacturaExterna);
+        END
+
         IF OBJECT_ID('flujo.FuenteExterna', 'U') IS NULL
             CREATE TABLE flujo.FuenteExterna
             (

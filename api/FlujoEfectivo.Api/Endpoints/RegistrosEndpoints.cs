@@ -77,15 +77,38 @@ public static class RegistrosEndpoints
         });
 
         /* ------------------------------- Pagos ------------------------------ */
-        g.MapPost("/pagos", (NuevoPago p, HttpContext ctx, Db db) =>
+        g.MapPost("/pagos", (NuevoPago p, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!ctx.User.PuedeEditar()) return SinPermiso();
             using var cn = db.Abrir();
-            var factura = cn.QueryFirstOrDefault<FilaFactura>(
-                "SELECT Numero, Moneda FROM flujo.Factura WHERE FacturaId=@id", new { id = Id(p.FacturaId) });
-            if (factura is null) return Results.BadRequest(new { mensaje = "La factura indicada no existe." });
 
-            if (!string.Equals(factura.Moneda.Trim(), p.Moneda, StringComparison.OrdinalIgnoreCase)
+            // La factura puede ser propia (FacturaId numérico) o de SoftlandERP (prefijo "sl:").
+            var esExterna = p.FacturaId.StartsWith(Softland.PrefijoId, StringComparison.Ordinal);
+            string numeroFactura;
+            string monedaFactura;
+            if (esExterna)
+            {
+                numeroFactura = p.FacturaId[Softland.PrefijoId.Length..];
+                var cfg = Softland.Leer(cn);
+                if (cfg is null) return Results.BadRequest(new { mensaje = "No hay credenciales de SoftlandERP registradas." });
+                string? moneda;
+                try { moneda = Softland.MonedaFactura(cfg, config["Jwt:Llave"] ?? "", numeroFactura); }
+                catch (Exception ex) { return Results.Json(new { mensaje = "SoftlandERP: " + ex.Message }, statusCode: 502); }
+                if (moneda is null) return Results.BadRequest(new { mensaje = "La factura indicada no existe en SoftlandERP." });
+                monedaFactura = moneda;
+            }
+            else
+            {
+                if (!int.TryParse(p.FacturaId, out _))
+                    return Results.BadRequest(new { mensaje = "Identificador de factura inválido." });
+                var factura = cn.QueryFirstOrDefault<FilaFactura>(
+                    "SELECT Numero, Moneda FROM flujo.Factura WHERE FacturaId=@id", new { id = Id(p.FacturaId) });
+                if (factura is null) return Results.BadRequest(new { mensaje = "La factura indicada no existe." });
+                numeroFactura = factura.Numero;
+                monedaFactura = factura.Moneda;
+            }
+
+            if (!string.Equals(monedaFactura.Trim(), p.Moneda, StringComparison.OrdinalIgnoreCase)
                 && (p.TipoCambioOperacion is null or <= 0))
                 return Results.BadRequest(new
                 {
@@ -94,18 +117,21 @@ public static class RegistrosEndpoints
 
             var id = cn.ExecuteScalar<int>(
                 """
-                INSERT INTO flujo.Pago (FacturaId, CuentaBancariaId, Fecha, Moneda, Monto, TipoCambioOperacion, Metodo, Referencia)
+                INSERT INTO flujo.Pago (FacturaId, FacturaExterna, CuentaBancariaId, Fecha, Moneda, Monto, TipoCambioOperacion, Metodo, Referencia)
                 OUTPUT INSERTED.PagoId
-                VALUES (@FacturaId, @BancoId, @Fecha, @Moneda, @Monto, @TipoCambioOperacion, @Metodo, @Referencia)
+                VALUES (@FacturaId, @FacturaExterna, @BancoId, @Fecha, @Moneda, @Monto, @TipoCambioOperacion, @Metodo, @Referencia)
                 """,
                 new
                 {
-                    FacturaId = Id(p.FacturaId), BancoId = Id(p.BancoId), Fecha = DateTime.Parse(p.Fecha),
+                    FacturaId = esExterna ? (int?)null : Id(p.FacturaId),
+                    FacturaExterna = esExterna ? p.FacturaId : null,
+                    BancoId = Id(p.BancoId), Fecha = DateTime.Parse(p.Fecha),
                     p.Moneda, p.Monto, p.TipoCambioOperacion, p.Metodo, p.Referencia,
                 });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Pagos",
-                p.Referencia ?? factura.Numero, "Creación", valorNuevo: $"{p.Moneda} {p.Monto}");
+                p.Referencia ?? numeroFactura, "Creación",
+                valorNuevo: $"{p.Moneda} {p.Monto}" + (esExterna ? $" · Factura SoftlandERP {numeroFactura}" : ""));
             return Results.Ok(new { id = id.ToString() });
         });
 
