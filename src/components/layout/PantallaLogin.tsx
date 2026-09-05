@@ -29,8 +29,8 @@ export function PantallaLogin() {
   const [editandoServidor, setEditandoServidor] = useState(false);
   const [probandoServidor, setProbandoServidor] = useState(false);
 
-  async function enviar(e: FormEvent) {
-    e.preventDefault();
+  async function enviar(e?: FormEvent) {
+    e?.preventDefault();
     setError(null);
     setEnviando(true);
     try {
@@ -39,6 +39,13 @@ export function PantallaLogin() {
       setError(err instanceof Error ? err.message : "No fue posible iniciar sesión");
     } finally {
       setEnviando(false);
+    }
+  }
+
+  function alPresionarEnter(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void enviar();
     }
   }
 
