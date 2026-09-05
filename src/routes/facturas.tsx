@@ -6,6 +6,7 @@ import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { EstadoBadge } from "@/components/comunes/EstadoBadge";
 import { DialogoLineasFactura } from "@/components/facturas/DialogoLineasFactura";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,7 +35,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
-import type { EstadoFactura, Moneda } from "@/data/tipos";
+import type { EstadoFactura, Factura, Moneda } from "@/data/tipos";
+
+const ESTADOS_FACTURA: EstadoFactura[] = ["Pendiente", "Vencida", "Pagada"];
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
@@ -76,7 +79,11 @@ function PaginaFacturas() {
 
   const [cliente, setCliente] = useState("");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [estado, setEstado] = useState<EstadoFactura | "todos">("todos");
+  /** Estados marcados; vacío equivale a "todos". */
+  const [estados, setEstados] = useState<EstadoFactura[]>([]);
+  const [facturaDetalle, setFacturaDetalle] = useState<Factura | null>(null);
+  const alternarEstado = (e: EstadoFactura, marcado: boolean) =>
+    setEstados((prev) => (marcado ? [...prev, e] : prev.filter((x) => x !== e)));
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [abierto, setAbierto] = useState(false);
@@ -85,12 +92,12 @@ function PaginaFacturas() {
     return filtrarPorCompania(facturasCalculadas, companiaActiva).filter((f) => {
       if (cliente && !f.cliente.toLowerCase().includes(cliente.toLowerCase())) return false;
       if (moneda !== "todas" && f.moneda !== moneda) return false;
-      if (estado !== "todos" && f.estado !== estado) return false;
+      if (estados.length > 0 && !estados.includes(f.estado)) return false;
       if (desde && f.fechaEmision < desde) return false;
       if (hasta && f.fechaEmision > hasta) return false;
       return true;
     });
-  }, [facturasCalculadas, companiaActiva, cliente, moneda, estado, desde, hasta]);
+  }, [facturasCalculadas, companiaActiva, cliente, moneda, estados, desde, hasta]);
 
   const totales = useMemo(() => {
     const acumular = (m: Moneda) => ({
@@ -185,17 +192,18 @@ function PaginaFacturas() {
         </div>
         <div className="space-y-1.5">
           <Label>Estado</Label>
-          <Select value={estado} onValueChange={(v) => setEstado(v as EstadoFactura | "todos")}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="Pagada">Pagada</SelectItem>
-              <SelectItem value="Pendiente">Pendiente</SelectItem>
-              <SelectItem value="Vencida">Vencida</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex min-h-9 flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-input bg-background px-3 py-1.5">
+            {ESTADOS_FACTURA.map((e) => (
+              <label key={e} className="flex cursor-pointer items-center gap-1.5 text-sm">
+                <Checkbox
+                  checked={estados.includes(e)}
+                  onCheckedChange={(v) => alternarEstado(e, v === true)}
+                  aria-label={`Filtrar ${e}`}
+                />
+                {e}
+              </label>
+            ))}
+          </div>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="f-desde">Emisión desde</Label>
@@ -227,7 +235,14 @@ function PaginaFacturas() {
           </TableHeader>
           <TableBody>
             {filtradas.map((f) => (
-              <TableRow key={f.id}>
+              <TableRow
+                key={f.id}
+                className={f.origen ? "cursor-pointer" : undefined}
+                title={f.origen ? "Doble clic para ver las líneas" : undefined}
+                onDoubleClick={() => {
+                  if (f.origen) setFacturaDetalle(f);
+                }}
+              >
                 <TableCell className="text-xs text-muted-foreground">
                   {companias.find((c) => c.id === f.companiaId)?.codigo}
                 </TableCell>
@@ -288,6 +303,17 @@ function PaginaFacturas() {
             ) : null}
           </TableBody>
         </Table>
+        {facturaDetalle ? (
+          <DialogoLineasFactura
+            key={facturaDetalle.id}
+            factura={facturaDetalle}
+            abierto
+            sinDisparador
+            onAbiertoChange={(v) => {
+              if (!v) setFacturaDetalle(null);
+            }}
+          />
+        ) : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

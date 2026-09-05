@@ -22,8 +22,25 @@ import { api } from "@/lib/api";
 import { formatearMoneda, formatearNumero } from "@/lib/formato";
 
 /** Detalle de FACTURA_LINEA para una factura leída desde SoftlandERP. */
-export function DialogoLineasFactura({ factura }: { factura: Factura }) {
-  const [abierto, setAbierto] = useState(false);
+export function DialogoLineasFactura({
+  factura,
+  abierto: abiertoExterno,
+  onAbiertoChange,
+  sinDisparador = false,
+}: {
+  factura: Factura;
+  /** Modo controlado (p. ej. al abrir con doble clic sobre la fila). */
+  abierto?: boolean;
+  onAbiertoChange?: (v: boolean) => void;
+  /** Oculta el botón disparador cuando se controla desde afuera. */
+  sinDisparador?: boolean;
+}) {
+  const [abiertoInterno, setAbiertoInterno] = useState(false);
+  const abierto = abiertoExterno ?? abiertoInterno;
+  const setAbierto = (v: boolean) => {
+    setAbiertoInterno(v);
+    onAbiertoChange?.(v);
+  };
   const [lineas, setLineas] = useState<LineaFactura[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,16 +53,18 @@ export function DialogoLineasFactura({ factura }: { factura: Factura }) {
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={`Ver líneas de la factura ${factura.numero}`}
-          title="Ver líneas de la factura"
-        >
-          <ListTree className="size-4 text-muted-foreground" />
-        </Button>
-      </DialogTrigger>
+      {sinDisparador ? null : (
+        <DialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={`Ver líneas de la factura ${factura.numero}`}
+            title="Ver líneas de la factura"
+          >
+            <ListTree className="size-4 text-muted-foreground" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>
