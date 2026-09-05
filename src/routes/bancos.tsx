@@ -4,7 +4,6 @@ import { Coins, FileDown } from "lucide-react";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
