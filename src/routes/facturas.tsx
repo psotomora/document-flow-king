@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { FileDown, Plus, Trash2 } from "lucide-react";
+import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { EstadoBadge } from "@/components/comunes/EstadoBadge";
+import { DialogoLineasFactura } from "@/components/facturas/DialogoLineasFactura";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,7 +67,12 @@ function PaginaFacturas() {
     agregarFactura,
     eliminarFactura,
     usuario,
+    modoApi,
+    facturasFuenteExterna,
+    pedidosFuenteOrigen,
+    avisoFuenteExterna,
   } = useApp();
+  const fuenteExterna = modoApi && facturasFuenteExterna;
 
   const [cliente, setCliente] = useState("");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
@@ -128,12 +134,31 @@ function PaginaFacturas() {
             <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
               <FileDown className="size-4" /> Exportar Excel
             </Button>
-            {puedeEditar ? (
+            {puedeEditar && !fuenteExterna ? (
               <DialogoFactura abierto={abierto} setAbierto={setAbierto} onGuardar={agregarFactura} />
             ) : null}
           </>
         }
       />
+
+      {fuenteExterna ? (
+        <div
+          className={`flex items-start gap-3 rounded-lg border p-3 text-sm ${
+            avisoFuenteExterna
+              ? "border-advertencia/40 bg-advertencia-suave text-advertencia-foreground"
+              : "border-primary/30 bg-primary/5 text-foreground"
+          }`}
+        >
+          <Database className="mt-0.5 size-4 shrink-0" />
+          <div>
+            <p className="font-medium">Origen de las facturas: {pedidosFuenteOrigen}</p>
+            <p className="text-xs text-muted-foreground">
+              {avisoFuenteExterna ??
+                "Se muestran las facturas vigentes (no anuladas) leídas directamente de las tablas FACTURA y FACTURA_LINEA. Use el ícono de cada fila para ver sus líneas."}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid gap-3 rounded-lg border border-border bg-card p-4 md:grid-cols-5">
         <div className="space-y-1.5">
@@ -206,7 +231,14 @@ function PaginaFacturas() {
                 <TableCell className="text-xs text-muted-foreground">
                   {companias.find((c) => c.id === f.companiaId)?.codigo}
                 </TableCell>
-                <TableCell className="font-medium">{f.numero}</TableCell>
+                <TableCell className="font-medium">
+                  {f.numero}
+                  {f.origen ? (
+                    <span className="ml-1.5 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                      {f.origen}
+                    </span>
+                  ) : null}
+                </TableCell>
                 <TableCell>{f.cliente}</TableCell>
                 <TableCell className="whitespace-nowrap">{formatearFecha(f.fechaEmision)}</TableCell>
                 <TableCell className="text-right tabular-nums">{f.plazoDias}</TableCell>
@@ -228,8 +260,10 @@ function PaginaFacturas() {
                 <TableCell>
                   <EstadoBadge estado={f.estado} />
                 </TableCell>
-                <TableCell>
-                  {esAdministrador ? (
+                <TableCell className="whitespace-nowrap">
+                  {f.origen ? (
+                    <DialogoLineasFactura factura={f} />
+                  ) : esAdministrador ? (
                     <Button
                       variant="ghost"
                       size="icon"
