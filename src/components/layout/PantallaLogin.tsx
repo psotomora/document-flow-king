@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { Loader2, LockKeyhole, ServerCog, Tag } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
 import { configurarUrlApi, probarConexionApi, urlApi } from "@/lib/api";
@@ -29,8 +29,8 @@ export function PantallaLogin() {
   const [editandoServidor, setEditandoServidor] = useState(false);
   const [probandoServidor, setProbandoServidor] = useState(false);
 
-  async function enviar(e: FormEvent) {
-    e.preventDefault();
+  async function enviar(e?: FormEvent) {
+    e?.preventDefault();
     setError(null);
     setEnviando(true);
     try {
@@ -39,6 +39,13 @@ export function PantallaLogin() {
       setError(err instanceof Error ? err.message : "No fue posible iniciar sesión");
     } finally {
       setEnviando(false);
+    }
+  }
+
+  function alPresionarEnter(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      void enviar();
     }
   }
 
@@ -67,8 +74,10 @@ export function PantallaLogin() {
               <Input
                 id="usuario"
                 autoComplete="username"
+                autoFocus
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
+                onKeyDown={alPresionarEnter}
                 required
               />
             </div>
@@ -79,6 +88,7 @@ export function PantallaLogin() {
                 autoComplete="current-password"
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
+                onKeyDown={alPresionarEnter}
                 required
               />
             </div>
