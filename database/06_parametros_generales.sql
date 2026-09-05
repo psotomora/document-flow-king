@@ -25,3 +25,9 @@ IF NOT EXISTS (SELECT 1 FROM flujo.Parametro WHERE Clave = 'pedidosFuenteExterna
     INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
     VALUES ('pedidosFuenteExterna', '0', 'Usar datos de pedidos de fuente externa (SoftlandERP)');
 GO
+
+/* Subparámetro: fuente externa de pedidos. Por ahora 'SoftlandERP' */
+IF NOT EXISTS (SELECT 1 FROM flujo.Parametro WHERE Clave = 'pedidosFuenteOrigen')
+    INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
+    VALUES ('pedidosFuenteOrigen', 'SoftlandERP', 'Fuente externa de pedidos (subparámetro de pedidosFuenteExterna)');
+GO

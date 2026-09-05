@@ -56,7 +56,7 @@ export const PARAM_PEDIDOS_FUENTE_ORIGEN = "pedidosFuenteOrigen";
 export const FUENTES_PEDIDOS: { valor: string; etiqueta: string }[] = [
   { valor: "SoftlandERP", etiqueta: "SoftlandERP" },
 ];
-export const FUENTE_PEDIDOS_DEFECTO = FUENTES_PEDIDOS[0].valor;
+export const FUENTE_PEDIDOS_DEFECTO = "SoftlandERP";
 const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
   [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
@@ -85,6 +85,7 @@ interface EstadoApp {
   bitacora: RegistroBitacora[];
   parametros: Record<string, string>;
   pedidosFuenteExterna: boolean;
+  pedidosFuenteOrigen: string;
   actualizarParametro: (clave: string, valor: string) => void;
   facturasCalculadas: FacturaCalculada[];
   puedeEditar: boolean;
@@ -159,9 +160,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [pedidos, setPedidos] = useState<Pedido[]>(semilla.pedidos);
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>(semilla.bitacoraInicial);
-  const [parametros, setParametros] = useState<Record<string, string>>({
-    [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
-  });
+  const [parametros, setParametros] = useState<Record<string, string>>({ ...PARAMETROS_DEFECTO });
   const iniciado = useRef(false);
 
   const hoy = modoApi ? new Date().toISOString().slice(0, 10) : semilla.FECHA_CORTE;
@@ -185,7 +184,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setPedidos(estado.pedidos);
     setTiposCambio(estado.tiposCambio);
     setBitacora(estado.bitacora);
-    setParametros({ [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0", ...(estado.parametros ?? {}) });
+    setParametros({ ...PARAMETROS_DEFECTO, ...(estado.parametros ?? {}) });
   }, []);
 
   /** Si la sesión ya no es válida en el servidor, se vuelve a pedir el inicio de sesión. */
@@ -408,6 +407,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       bitacora,
       parametros,
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
+      pedidosFuenteOrigen: parametros[PARAM_PEDIDOS_FUENTE_ORIGEN] || FUENTE_PEDIDOS_DEFECTO,
       actualizarParametro: (clave, nuevoValor) =>
         mutar(`/parametros/${encodeURIComponent(clave)}`, "PUT", { valor: nuevoValor }, () => {
           const anterior = parametros[clave];

@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.10.0";
+export const APP_VERSION = "1.11.0";
 export const APP_FECHA_VERSION = "2026-09-05";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.11.0",
+    fecha: "2026-09-05",
+    cambios: [
+      "Nuevo subparámetro 'Fuente de pedidos' (SoftlandERP) que se habilita al activar los pedidos de fuente externa.",
+      "Se guarda en flujo.Parametro (clave pedidosFuenteOrigen) con registro en bitácora; solo el administrador lo modifica.",
+    ],
+  },
   {
     version: "1.10.0",
     fecha: "2026-09-05",
