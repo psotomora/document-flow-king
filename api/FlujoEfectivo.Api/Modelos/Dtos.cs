@@ -79,7 +79,10 @@ public record PedidoDto(
     int PlazoDias,
     string Moneda,
     decimal Monto,
-    string Estado);
+    string Estado,
+    string? Notas = null,
+    string? Origen = null,
+    int? Lineas = null);
 
 public record TipoCambioDto(string Id, decimal Valor, string Fecha, string Usuario, string? Nota);
 

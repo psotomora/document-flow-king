@@ -179,7 +179,7 @@ public static partial class Softland
 
         return filas.Select(f => new PedidoDto(
             PrefijoId + f.Numero, companiaId, f.Numero, f.Cliente, f.FechaCreacion, f.PlazoDias,
-            MapearMoneda(f.Moneda), f.Monto, false, MapearEstado(f.Estado),
+            MapearMoneda(f.Moneda), f.Monto, MapearEstado(f.Estado),
             string.IsNullOrWhiteSpace(f.OrdenCompra) ? null : $"OC {f.OrdenCompra.Trim()}",
             Fuente, f.Lineas));
     }
