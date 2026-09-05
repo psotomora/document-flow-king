@@ -200,7 +200,7 @@ function PaginaFacturas() {
         </div>
         <div className="space-y-1.5 md:col-span-4">
           <Label>Estado</Label>
-          <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-md border border-input bg-background px-3 py-1.5">
+          <div className="flex min-h-9 flex-wrap items-center justify-start gap-x-6 gap-y-1 rounded-md border border-input bg-background px-3 py-1.5">
             {ESTADOS_FACTURA.map((e) => (
               <label key={e} className="flex cursor-pointer items-center gap-1.5 text-sm">
                 <Checkbox
