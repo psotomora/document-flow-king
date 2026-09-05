@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FlujoEfectivo.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+612470c397f0cdd2f1e529072caf5aeb8d8a56a6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+92b1bb3b0e34283ac09ddabad51c1635490a8327")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlujoEfectivo.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlujoEfectivo.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
