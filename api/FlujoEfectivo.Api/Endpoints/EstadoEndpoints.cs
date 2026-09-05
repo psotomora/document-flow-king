@@ -10,12 +10,13 @@ public static class EstadoEndpoints
 {
     public static void MapEstado(this IEndpointRouteBuilder grupo)
     {
-        grupo.MapGet("/estado", (HttpContext ctx, Db db) =>
+        grupo.MapGet("/estado", (HttpContext ctx, Db db, IConfiguration config) =>
         {
             using var cn = db.Abrir();
+            var secreto = config["Jwt:Llave"] ?? "";
 
             var companias = cn.Query<CompaniaDto>(
-                "SELECT CAST(CompaniaId AS NVARCHAR(20)) AS Id, Codigo, Nombre FROM flujo.Compania WHERE Activo = 1 ORDER BY Codigo");
+                "SELECT CAST(CompaniaId AS NVARCHAR(20)) AS Id, Codigo, Nombre FROM flujo.Compania WHERE Activo = 1 ORDER BY Codigo").ToList();
 
             var bancos = cn.Query<BancoDto>(
                 """
@@ -73,7 +74,40 @@ public static class EstadoEndpoints
                 ORDER BY k.ProximaFacturacion
                 """);
 
-            var pedidos = cn.Query<PedidoDto>(
+            var parametros = cn.Query<(string Clave, string Valor)>(
+                    "SELECT Clave, Valor FROM flujo.Parametro")
+                .ToDictionary(p => p.Clave, p => p.Valor);
+
+            string? avisoFuente = null;
+            IEnumerable<PedidoDto> pedidos;
+            var usaSoftland = parametros.GetValueOrDefault("pedidosFuenteExterna") == "1"
+                && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
+                    Softland.Fuente, StringComparison.OrdinalIgnoreCase);
+            if (usaSoftland)
+            {
+                var cfg = Softland.Leer(cn);
+                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                {
+                    pedidos = [];
+                    avisoFuente = "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
+                }
+                else
+                {
+                    try
+                    {
+                        var companiaId = cfg.CompaniaId?.ToString()
+                            ?? companias.FirstOrDefault()?.Id ?? "0";
+                        pedidos = Softland.Pedidos(cfg, secreto, companiaId).ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        pedidos = [];
+                        avisoFuente = "No fue posible leer los pedidos de SoftlandERP: " + ex.Message;
+                    }
+                }
+            }
+            else
+            pedidos = cn.Query<PedidoDto>(
                 """
                 SELECT CAST(d.PedidoId AS NVARCHAR(20)) AS Id,
                        CAST(d.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
@@ -118,12 +152,8 @@ public static class EstadoEndpoints
             var usuario = new UsuarioDto(
                 ctx.User.UsuarioId().ToString(), ctx.User.NombreUsuario(), ctx.User.Perfil());
 
-            var parametros = cn.Query<(string Clave, string Valor)>(
-                    "SELECT Clave, Valor FROM flujo.Parametro")
-                .ToDictionary(p => p.Clave, p => p.Valor);
-
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
-                erogaciones, contratos, pedidos, tiposCambio, bitacora, parametros));
+                erogaciones, contratos, pedidos, tiposCambio, bitacora, parametros, avisoFuente));
         }).RequireAuthorization();
     }
 }
