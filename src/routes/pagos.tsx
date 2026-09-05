@@ -218,11 +218,22 @@ function DialogoPago({
   const { facturasCalculadas, bancos, agregarPago, tipoCambio, hoy } = useApp();
   const pendientes = facturasCalculadas.filter((f) => f.saldoPendiente > 0.009);
 
-  const [facturaId, setFacturaId] = useState(pendientes[0]?.id ?? "");
+  const inicial = pendientes[0];
+  const [facturaId, setFacturaId] = useState(inicial?.id ?? "");
   const [fecha, setFecha] = useState(hoy);
   const [bancoId, setBancoId] = useState(bancos[0]?.id ?? "");
-  const [moneda, setMoneda] = useState<Moneda>("USD");
-  const [monto, setMonto] = useState("");
+  const [moneda, setMoneda] = useState<Moneda>(inicial?.moneda ?? "USD");
+  const [monto, setMonto] = useState(inicial ? sugerirMonto(inicial.saldoPendiente) : "");
+
+  /** Al elegir una factura se sugiere su saldo pendiente y su moneda; el usuario puede cambiarlos. */
+  const elegirFactura = (id: string) => {
+    setFacturaId(id);
+    const f = facturasCalculadas.find((x) => x.id === id);
+    if (f) {
+      setMoneda(f.moneda);
+      setMonto(sugerirMonto(f.saldoPendiente));
+    }
+  };
   const [tc, setTc] = useState(String(tipoCambio));
   const [metodo, setMetodo] = useState("Transferencia");
   const [referencia, setReferencia] = useState("");
@@ -296,7 +307,7 @@ function DialogoPago({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Factura</Label>
-            <Select value={facturaId} onValueChange={setFacturaId}>
+            <Select value={facturaId} onValueChange={elegirFactura}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccione una factura" />
               </SelectTrigger>
@@ -348,6 +359,11 @@ function DialogoPago({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="p-monto">Monto</Label>
+            {factura ? (
+              <p className="text-xs text-muted-foreground">
+                Sugerido: saldo pendiente {formatearMoneda(factura.saldoPendiente, factura.moneda)}
+              </p>
+            ) : null}
             <Input
               id="p-monto"
               type="number"
@@ -390,4 +406,9 @@ function DialogoPago({
       </DialogContent>
     </Dialog>
   );
+}
+
+/** Redondea el saldo a dos decimales para proponerlo como monto del pago. */
+function sugerirMonto(saldo: number): string {
+  return (Math.round(saldo * 100) / 100).toString();
 }
