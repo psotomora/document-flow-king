@@ -86,6 +86,34 @@ export interface Pedido {
   moneda: Moneda;
   monto: number;
   estado: EstadoPedido;
+  /** Sistema del que proviene el pedido; ausente = registro interno. */
+  origen?: string | null;
+  /** Cantidad de líneas (solo pedidos de fuente externa). */
+  lineas?: number | null;
+  notas?: string | null;
+}
+
+export interface LineaPedido {
+  linea: number;
+  articulo: string;
+  descripcion?: string | null;
+  cantidad: number;
+  cantidadFacturada: number;
+  precioUnitario: number;
+  descuento: number;
+  fechaEntrega: string;
+  estado?: string | null;
+}
+
+export interface ConexionSoftland {
+  fuente: string;
+  servidor: string;
+  baseDatos: string;
+  esquema: string;
+  usuario: string;
+  tieneClave: boolean;
+  companiaId?: string | null;
+  encriptar: boolean;
 }
 
 export interface TipoCambio {

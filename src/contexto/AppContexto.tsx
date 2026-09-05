@@ -46,6 +46,7 @@ interface EstadoServidor {
   tiposCambio: TipoCambio[];
   bitacora: RegistroBitacora[];
   parametros?: Record<string, string>;
+  avisoFuenteExterna?: string | null;
 }
 
 /** Clave del parámetro que indica si los pedidos se leen de una fuente externa. */
@@ -86,6 +87,8 @@ interface EstadoApp {
   parametros: Record<string, string>;
   pedidosFuenteExterna: boolean;
   pedidosFuenteOrigen: string;
+  /** Mensaje del servidor cuando la fuente externa está activa pero no pudo leerse. */
+  avisoFuenteExterna: string | null;
   actualizarParametro: (clave: string, valor: string) => void;
   facturasCalculadas: FacturaCalculada[];
   puedeEditar: boolean;
@@ -161,6 +164,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>(semilla.bitacoraInicial);
   const [parametros, setParametros] = useState<Record<string, string>>({ ...PARAMETROS_DEFECTO });
+  const [avisoFuenteExterna, setAvisoFuenteExterna] = useState<string | null>(null);
   const iniciado = useRef(false);
 
   const hoy = modoApi ? new Date().toISOString().slice(0, 10) : semilla.FECHA_CORTE;
@@ -185,6 +189,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setTiposCambio(estado.tiposCambio);
     setBitacora(estado.bitacora);
     setParametros({ ...PARAMETROS_DEFECTO, ...(estado.parametros ?? {}) });
+    setAvisoFuenteExterna(estado.avisoFuenteExterna ?? null);
   }, []);
 
   /** Si la sesión ya no es válida en el servidor, se vuelve a pedir el inicio de sesión. */
@@ -408,6 +413,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       parametros,
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
       pedidosFuenteOrigen: parametros[PARAM_PEDIDOS_FUENTE_ORIGEN] || FUENTE_PEDIDOS_DEFECTO,
+      avisoFuenteExterna,
       actualizarParametro: (clave, nuevoValor) =>
         mutar(`/parametros/${encodeURIComponent(clave)}`, "PUT", { valor: nuevoValor }, () => {
           const anterior = parametros[clave];

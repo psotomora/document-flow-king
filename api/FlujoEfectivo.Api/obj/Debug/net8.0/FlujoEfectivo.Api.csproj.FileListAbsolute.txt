@@ -1,0 +1,7 @@
+/dev-server/api/FlujoEfectivo.Api/obj/Debug/net8.0/FlujoEfectivo.Api.csproj.AssemblyReference.cache
+/dev-server/api/FlujoEfectivo.Api/obj/Debug/net8.0/FlujoEfectivo.Api.GeneratedMSBuildEditorConfig.editorconfig
+/dev-server/api/FlujoEfectivo.Api/obj/Debug/net8.0/FlujoEfectivo.Api.AssemblyInfoInputs.cache
+/dev-server/api/FlujoEfectivo.Api/obj/Debug/net8.0/FlujoEfectivo.Api.AssemblyInfo.cs
+/dev-server/api/FlujoEfectivo.Api/obj/Debug/net8.0/FlujoEfectivo.Api.csproj.CoreCompileInputs.cache
+/dev-server/api/FlujoEfectivo.Api/obj/Debug/net8.0/FlujoEfectivo.Api.MvcApplicationPartsAssemblyInfo.cs
+/dev-server/api/FlujoEfectivo.Api/obj/Debug/net8.0/FlujoEfectivo.Api.MvcApplicationPartsAssemblyInfo.cache
