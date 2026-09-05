@@ -273,24 +273,25 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   );
 
   /** Ejecuta una mutación contra la API y recarga el estado; en modo demo usa el callback local. */
+  /** Ejecuta el cambio (en la API o localmente) y resuelve `true` solo si se guardó. */
   const mutar = useCallback(
-    (ruta: string, metodo: string, cuerpo: unknown, local: () => void) => {
+    async (ruta: string, metodo: string, cuerpo: unknown, local: () => void): Promise<boolean> => {
       if (!hayApi()) {
         local();
-        return;
+        return true;
       }
-      void (async () => {
-        try {
-          await api(ruta, { metodo, cuerpo });
-          await recargar();
-        } catch (e) {
-          if (sesionExpirada(e)) {
-            toast.error("Su sesión expiró. Inicie sesión nuevamente.");
-            return;
-          }
-          toast.error(e instanceof Error ? e.message : "No se pudo guardar el cambio");
+      try {
+        await api(ruta, { metodo, cuerpo });
+        await recargar();
+        return true;
+      } catch (e) {
+        if (sesionExpirada(e)) {
+          toast.error("Su sesión expiró. Inicie sesión nuevamente.");
+          return false;
         }
-      })();
+        toast.error(e instanceof Error ? e.message : "No se pudo guardar el cambio");
+        return false;
+      }
     },
     [recargar, sesionExpirada],
   );
