@@ -48,8 +48,19 @@ interface EstadoServidor {
   parametros?: Record<string, string>;
 }
 
-/** Clave del parámetro que indica si los pedidos se leen de SoftlandERP. */
+/** Clave del parámetro que indica si los pedidos se leen de una fuente externa. */
 export const PARAM_PEDIDOS_FUENTE_EXTERNA = "pedidosFuenteExterna";
+/** Clave del subparámetro que indica cuál es la fuente externa de pedidos. */
+export const PARAM_PEDIDOS_FUENTE_ORIGEN = "pedidosFuenteOrigen";
+/** Fuentes externas de pedidos disponibles. */
+export const FUENTES_PEDIDOS: { valor: string; etiqueta: string }[] = [
+  { valor: "SoftlandERP", etiqueta: "SoftlandERP" },
+];
+export const FUENTE_PEDIDOS_DEFECTO = FUENTES_PEDIDOS[0].valor;
+const PARAMETROS_DEFECTO: Record<string, string> = {
+  [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
+  [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
+};
 
 interface EstadoApp {
   hoy: string;
