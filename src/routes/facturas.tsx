@@ -167,7 +167,7 @@ function PaginaFacturas() {
         </div>
       ) : null}
 
-      <div className="grid gap-3 rounded-lg border border-border bg-card p-4 md:grid-cols-5">
+      <div className="grid gap-3 rounded-lg border border-border bg-card p-4 md:grid-cols-4">
         <div className="space-y-1.5">
           <Label htmlFor="f-cliente">Cliente</Label>
           <Input
@@ -191,8 +191,16 @@ function PaginaFacturas() {
           </Select>
         </div>
         <div className="space-y-1.5">
+          <Label htmlFor="f-desde">Emisión desde</Label>
+          <Input id="f-desde" type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="f-hasta">Emisión hasta</Label>
+          <Input id="f-hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+        </div>
+        <div className="space-y-1.5 md:col-span-4">
           <Label>Estado</Label>
-          <div className="flex min-h-9 flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-input bg-background px-3 py-1.5">
+          <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-md border border-input bg-background px-3 py-1.5">
             {ESTADOS_FACTURA.map((e) => (
               <label key={e} className="flex cursor-pointer items-center gap-1.5 text-sm">
                 <Checkbox
@@ -204,14 +212,6 @@ function PaginaFacturas() {
               </label>
             ))}
           </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="f-desde">Emisión desde</Label>
-          <Input id="f-desde" type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="f-hasta">Emisión hasta</Label>
-          <Input id="f-hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
         </div>
       </div>
 

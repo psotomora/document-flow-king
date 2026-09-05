@@ -359,12 +359,12 @@ function DialogoPago({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="p-monto">Monto</Label>
+            <InputNumero id="p-monto" value={monto} onChange={setMonto} />
             {factura ? (
               <p className="text-xs text-muted-foreground">
                 Sugerido: saldo pendiente {formatearMoneda(factura.saldoPendiente, factura.moneda)}
               </p>
             ) : null}
-            <InputNumero id="p-monto" value={monto} onChange={setMonto} />
           </div>
           {requiereTc ? (
             <div className="space-y-1.5 sm:col-span-2">
