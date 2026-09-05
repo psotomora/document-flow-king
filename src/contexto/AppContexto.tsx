@@ -126,7 +126,7 @@ interface EstadoApp {
   setCompaniaActiva: (id: string | "todas") => void;
   agregarFactura: (f: Omit<Factura, "id">) => void;
   eliminarFactura: (id: string) => void;
-  agregarPago: (p: Omit<Pago, "id">) => void;
+  agregarPago: (p: Omit<Pago, "id">) => Promise<boolean>;
   eliminarPago: (id: string) => void;
   agregarErogacion: (e: Omit<Erogacion, "id">) => void;
   eliminarErogacion: (id: string) => void;
