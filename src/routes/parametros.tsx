@@ -8,6 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -15,7 +22,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PARAM_PEDIDOS_FUENTE_EXTERNA, useApp } from "@/contexto/AppContexto";
+import {
+  FUENTES_PEDIDOS,
+  FUENTE_PEDIDOS_DEFECTO,
+  PARAM_PEDIDOS_FUENTE_EXTERNA,
+  PARAM_PEDIDOS_FUENTE_ORIGEN,
+  useApp,
+} from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
 
 export const Route = createFileRoute("/parametros")({
@@ -46,6 +59,8 @@ function PaginaParametros() {
     bitacora,
     modoApi,
     pedidosFuenteExterna,
+    pedidosFuenteOrigen,
+    parametros,
     actualizarParametro,
   } = useApp();
   const [valor, setValor] = useState(String(tipoCambio));
@@ -53,6 +68,9 @@ function PaginaParametros() {
 
   const cambiarPedidosExternos = (activo: boolean) => {
     actualizarParametro(PARAM_PEDIDOS_FUENTE_EXTERNA, activo ? "1" : "0");
+    if (activo && !parametros[PARAM_PEDIDOS_FUENTE_ORIGEN]) {
+      actualizarParametro(PARAM_PEDIDOS_FUENTE_ORIGEN, FUENTE_PEDIDOS_DEFECTO);
+    }
     toast.success(
       activo
         ? "Los pedidos se tomarán de la fuente externa (SoftlandERP)."
@@ -103,6 +121,38 @@ function PaginaParametros() {
               disabled={!esAdministrador}
             />
           </div>
+        </div>
+        <div
+          className={`mt-4 flex flex-wrap items-center justify-between gap-3 border-l-2 border-border pl-4 ${
+            pedidosFuenteExterna ? "" : "opacity-50"
+          }`}
+        >
+          <div className="space-y-0.5">
+            <Label htmlFor="fuente-pedidos">Fuente de pedidos</Label>
+            <p className="text-xs text-muted-foreground">
+              Sistema externo del que se consultan los pedidos. Disponible solo cuando la opción
+              anterior está en Sí.
+            </p>
+          </div>
+          <Select
+            value={pedidosFuenteOrigen}
+            onValueChange={(v) => {
+              actualizarParametro(PARAM_PEDIDOS_FUENTE_ORIGEN, v);
+              toast.success(`Fuente de pedidos: ${v}`);
+            }}
+            disabled={!pedidosFuenteExterna || !esAdministrador}
+          >
+            <SelectTrigger id="fuente-pedidos" className="w-56">
+              <SelectValue placeholder="Seleccione la fuente" />
+            </SelectTrigger>
+            <SelectContent>
+              {FUENTES_PEDIDOS.map((f) => (
+                <SelectItem key={f.valor} value={f.valor}>
+                  {f.etiqueta}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
