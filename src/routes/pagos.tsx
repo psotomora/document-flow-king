@@ -403,7 +403,9 @@ function DialogoPago({
           <Button variant="outline" onClick={() => setAbierto(false)}>
             Cancelar
           </Button>
-          <Button onClick={guardar}>Guardar pago</Button>
+          <Button onClick={guardar} disabled={guardando}>
+            {guardando ? "Guardando…" : "Guardar pago"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
