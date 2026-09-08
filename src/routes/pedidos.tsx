@@ -181,9 +181,9 @@ function PaginaPedidos() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="overflow-auto rounded-lg border border-border bg-card max-h-[60vh]">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
               <TableHead>Compañía</TableHead>
               <TableHead>Pedido</TableHead>
