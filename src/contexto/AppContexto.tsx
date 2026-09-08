@@ -487,10 +487,12 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       },
       cerrarSesion: () => {
         guardarToken(null);
+        setModoApi(hayApi());
         setAutenticado(false);
         setSesionCerrada(true);
       },
       volverAlLogin: () => setSesionCerrada(false),
+
       cambiarUsuario: (usuarioId) => {
         const u = usuarios.find((x) => x.id === usuarioId);
         if (u) setUsuario(u);
