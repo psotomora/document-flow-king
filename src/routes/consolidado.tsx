@@ -105,17 +105,7 @@ function PaginaConsolidado() {
         ...filas,
         ["Equivalente en USD de los colones", formatearMoneda(proyeccion.equivalenteUsdDeCrc, "USD"), "—"],
         ["Consolidado en USD", formatearMoneda(proyeccion.consolidadoUSD, "USD"), "—"],
-        ["Pedidos pendientes (USD)", formatearMoneda(proyeccion.pedidosPendientesUSD, "USD"), "—"],
-        [
-          "Consolidado incluyendo pedidos",
-          formatearMoneda(proyeccion.consolidadoConPedidosUSD, "USD"),
-          "—",
-        ],
-        [
-          "Saldo proyectado total (USD)",
-          formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD"),
-          "—",
-        ],
+        filaTotal,
       ],
       usuario.nombre,
     );
