@@ -124,11 +124,12 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function Aplicacion() {
-  const { modoApi, autenticado, sesionCerrada } = useApp();
+  const { autenticado, sesionCerrada } = useApp();
 
-  if (modoApi && !autenticado) {
+  if (!autenticado) {
     return sesionCerrada ? <PantallaSesionCerrada /> : <PantallaLogin />;
   }
+
 
   return (
     <AppShell>
