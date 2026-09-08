@@ -19,6 +19,22 @@ public sealed class Db(IConfiguration configuracion)
         return conexion;
     }
 
+    /// <summary>Servidor y base configurados, sin exponer la contraseña.</summary>
+    public string Descripcion()
+    {
+        try
+        {
+            var c = new SqlConnectionStringBuilder(_cadena);
+            var auth = c.IntegratedSecurity ? "Autenticación de Windows" : $"usuario SQL '{c.UserID}'";
+            return $"servidor '{c.DataSource}', base '{c.InitialCatalog}', {auth}";
+        }
+        catch
+        {
+            return "cadena de conexión no válida";
+        }
+    }
+
+
     /// <summary>Devuelve el ClienteId, creándolo si no existe.</summary>
     public static int ObtenerCliente(IDbConnection cn, string nombre, IDbTransaction? tx = null)
     {
