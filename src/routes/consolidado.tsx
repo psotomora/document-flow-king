@@ -216,6 +216,33 @@ function PaginaConsolidado() {
       </div>
 
       <div className="rounded-lg border border-border bg-card p-5">
+        <p className="text-sm font-medium">Cómo se compone el saldo proyectado</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Todos los montos están expresados en dólares. No hay doble conteo: lo ya cobrado se
+          refleja en el banco y desaparece de las cuentas por cobrar.
+        </p>
+        <div className="mt-4 divide-y divide-border">
+          {desglose.map((d) => (
+            <div key={d.concepto} className="flex flex-wrap items-start justify-between gap-2 py-3">
+              <div className="max-w-xl">
+                <p className="text-sm font-medium">{d.concepto}</p>
+                <p className="text-xs text-muted-foreground">{d.nota}</p>
+              </div>
+              <p className="font-mono text-sm tabular-nums">{formatearMoneda(d.valor, "USD")}</p>
+            </div>
+          ))}
+          <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+            <p className="text-sm font-semibold">Total proyectado</p>
+            <p className="font-mono text-sm font-semibold tabular-nums text-primary">
+              {formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD")}
+            </p>
+          </div>
+        </div>
+      </div>
+
+
+
+      <div className="rounded-lg border border-border bg-card p-5">
         <p className="text-sm font-medium">Cómo se llega al consolidado</p>
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
           <Paso
