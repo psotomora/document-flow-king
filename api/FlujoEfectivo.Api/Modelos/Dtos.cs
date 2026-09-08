@@ -113,41 +113,47 @@ public class LineaFacturaDto
     public string? Pedido { get; set; }
 }
 
-public record PagoDto(
-    string Id,
-    string FacturaId,
-    string Fecha,
-    string BancoId,
-    decimal Monto,
-    string Moneda,
-    decimal? TipoCambioOperacion,
-    string Metodo,
-    string? Referencia);
+public class PagoDto
+{
+    public string Id { get; set; } = "";
+    public string FacturaId { get; set; } = "";
+    public string Fecha { get; set; } = "";
+    public string BancoId { get; set; } = "";
+    public decimal Monto { get; set; }
+    public string Moneda { get; set; } = "";
+    public decimal? TipoCambioOperacion { get; set; }
+    public string Metodo { get; set; } = "";
+    public string? Referencia { get; set; }
+}
 
-public record ErogacionDto(
-    string Id,
-    string CompaniaId,
-    string BancoId,
-    string NumeroTransferencia,
-    string Proveedor,
-    string Fecha,
-    string Moneda,
-    decimal Monto,
-    string? Notas);
+public class ErogacionDto
+{
+    public string Id { get; set; } = "";
+    public string CompaniaId { get; set; } = "";
+    public string BancoId { get; set; } = "";
+    public string NumeroTransferencia { get; set; } = "";
+    public string Proveedor { get; set; } = "";
+    public string Fecha { get; set; } = "";
+    public string Moneda { get; set; } = "";
+    public decimal Monto { get; set; }
+    public string? Notas { get; set; }
+}
 
-public record ContratoDto(
-    string Id,
-    string CompaniaId,
-    string Numero,
-    string Cliente,
-    string Periodicidad,
-    string ProximaFacturacion,
-    int PlazoDias,
-    string Moneda,
-    decimal Monto,
-    bool Facturado,
-    string Estado,
-    string? Notas);
+public class ContratoDto
+{
+    public string Id { get; set; } = "";
+    public string CompaniaId { get; set; } = "";
+    public string Numero { get; set; } = "";
+    public string Cliente { get; set; } = "";
+    public string Periodicidad { get; set; } = "";
+    public string ProximaFacturacion { get; set; } = "";
+    public int PlazoDias { get; set; }
+    public string Moneda { get; set; } = "";
+    public decimal Monto { get; set; }
+    public bool Facturado { get; set; }
+    public string Estado { get; set; } = "";
+    public string? Notas { get; set; }
+}
 
 public class PedidoDto
 {
@@ -165,17 +171,26 @@ public class PedidoDto
     public int? Lineas { get; set; }
 }
 
-public record TipoCambioDto(string Id, decimal Valor, string Fecha, string Usuario, string? Nota);
+public class TipoCambioDto
+{
+    public string Id { get; set; } = "";
+    public decimal Valor { get; set; }
+    public string Fecha { get; set; } = "";
+    public string Usuario { get; set; } = "";
+    public string? Nota { get; set; }
+}
 
-public record BitacoraDto(
-    string Id,
-    string FechaHora,
-    string Usuario,
-    string Modulo,
-    string Registro,
-    string Operacion,
-    string? ValorAnterior,
-    string? ValorNuevo);
+public class BitacoraDto
+{
+    public string Id { get; set; } = "";
+    public string FechaHora { get; set; } = "";
+    public string Usuario { get; set; } = "";
+    public string Modulo { get; set; } = "";
+    public string Registro { get; set; } = "";
+    public string Operacion { get; set; } = "";
+    public string? ValorAnterior { get; set; }
+    public string? ValorNuevo { get; set; }
+}
 
 public record EstadoDto(
     UsuarioDto Usuario,
