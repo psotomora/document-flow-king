@@ -273,6 +273,8 @@ export interface SaldoProyectado {
   consolidadoUSD: number;
   pedidosPendientesUSD: number;
   consolidadoConPedidosUSD: number;
+  /** Consolidado en USD + pedidos pendientes + facturas pendientes de pago. */
+  saldoProyectadoTotalUSD: number;
 }
 
 /** RF-009: saldo proyectado consolidado, expresado en dólares. */
