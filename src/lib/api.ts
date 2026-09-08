@@ -18,14 +18,37 @@ function esNavegador(): boolean {
   return typeof window !== "undefined";
 }
 
+function normalizarUrlApi(url: string): string {
+  const valor = url.trim();
+  if (!valor) return "";
+
+  if (/^https?:\/\//i.test(valor)) return valor.replace(/\/+$/, "");
+
+  if (esNavegador()) {
+    const ruta = `/${valor.replace(/^\/+/, "")}`;
+    return `${window.location.origin}${ruta}`.replace(/\/+$/, "");
+  }
+
+  return valor.replace(/\/+$/, "");
+}
+
 export function urlApi(): string {
   const local = esNavegador() ? (window.localStorage.getItem(CLAVE_URL) ?? "") : "";
-  return (local || ENV_API_URL).replace(/\/+$/, "");
+  const original = local || ENV_API_URL;
+  const normalizada = normalizarUrlApi(original);
+
+  // Corrige automáticamente valores antiguos como "api", que el navegador
+  // resolvía de forma relativa a /usuarios y producía /usuarios/api/usuarios.
+  if (esNavegador() && local && normalizada !== local) {
+    window.localStorage.setItem(CLAVE_URL, normalizada);
+  }
+
+  return normalizada;
 }
 
 export function configurarUrlApi(url: string) {
   if (!esNavegador()) return;
-  const limpia = url.trim().replace(/\/+$/, "");
+  const limpia = normalizarUrlApi(url);
   if (limpia) window.localStorage.setItem(CLAVE_URL, limpia);
   else window.localStorage.removeItem(CLAVE_URL);
 }
@@ -36,7 +59,7 @@ export function hayApi(): boolean {
 
 /** Comprueba la API y su acceso a SQL Server antes de guardar la URL. */
 export async function probarConexionApi(url: string): Promise<string> {
-  const base = url.trim().replace(/\/+$/, "");
+  const base = normalizarUrlApi(url);
   if (!base) throw new ErrorApi("Indique la URL de la API.", 0);
 
   let respuesta: Response;

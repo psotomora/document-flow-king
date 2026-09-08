@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.16.4";
+export const APP_VERSION = "1.16.5";
 export const APP_FECHA_VERSION = "2026-09-08";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.16.5",
+    fecha: "2026-09-08",
+    cambios: [
+      "Corrección automática de direcciones relativas de la API para evitar rutas como /usuarios/api/usuarios.",
+      "El sitio IIS ahora dirige las solicitudes /api al servicio .NET antes de procesar las páginas web.",
+    ],
+  },
   {
     version: "1.16.4",
     fecha: "2026-09-08",
