@@ -284,16 +284,42 @@ public record CambioContrato(
     string? Estado,
     string? Notas);
 
-public record LineaPedidoDto(
-    int Linea,
-    string Articulo,
-    string? Descripcion,
-    decimal Cantidad,
-    decimal CantidadFacturada,
-    decimal PrecioUnitario,
-    decimal Descuento,
-    string FechaEntrega,
-    string? Estado);
+public class LineaPedidoDto
+{
+    public LineaPedidoDto() { }
+
+    public LineaPedidoDto(
+        int linea,
+        string articulo,
+        string? descripcion,
+        decimal cantidad,
+        decimal cantidadFacturada,
+        decimal precioUnitario,
+        decimal descuento,
+        string fechaEntrega,
+        string? estado)
+    {
+        Linea = linea;
+        Articulo = articulo;
+        Descripcion = descripcion;
+        Cantidad = cantidad;
+        CantidadFacturada = cantidadFacturada;
+        PrecioUnitario = precioUnitario;
+        Descuento = descuento;
+        FechaEntrega = fechaEntrega;
+        Estado = estado;
+    }
+
+    public int Linea { get; set; }
+    public string Articulo { get; set; } = "";
+    public string? Descripcion { get; set; }
+    public decimal Cantidad { get; set; }
+    public decimal CantidadFacturada { get; set; }
+    public decimal PrecioUnitario { get; set; }
+    public decimal Descuento { get; set; }
+    public string FechaEntrega { get; set; } = "";
+    public string? Estado { get; set; }
+}
 
 public record FuenteExternaDto(
     string Fuente,
