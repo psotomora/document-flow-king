@@ -187,11 +187,21 @@ public static partial class Softland
             ORDER BY p.FECHA_PEDIDO DESC, p.PEDIDO DESC
             """);
 
-        return filas.Select(f => new PedidoDto(
-            PrefijoId + f.Numero, companiaId, f.Numero, f.Cliente, f.FechaCreacion, f.PlazoDias,
-            MapearMoneda(f.Moneda), f.Monto, MapearEstado(f.Estado),
-            string.IsNullOrWhiteSpace(f.OrdenCompra) ? null : $"OC {f.OrdenCompra.Trim()}",
-            Fuente, f.Lineas));
+        return filas.Select(f => new PedidoDto
+        {
+            Id = PrefijoId + f.Numero,
+            CompaniaId = companiaId,
+            Numero = f.Numero,
+            Cliente = f.Cliente,
+            FechaCreacion = f.FechaCreacion,
+            PlazoDias = f.PlazoDias,
+            Moneda = MapearMoneda(f.Moneda),
+            Monto = f.Monto,
+            Estado = MapearEstado(f.Estado),
+            Notas = string.IsNullOrWhiteSpace(f.OrdenCompra) ? null : $"OC {f.OrdenCompra.Trim()}",
+            Origen = Fuente,
+            Lineas = f.Lineas,
+        });
     }
 
     /// <summary>Líneas (PEDIDO_LINEA) de un pedido de Softland.</summary>
