@@ -82,6 +82,16 @@ function PaginaConsolidado() {
       formatearMoneda(proyeccion.proyectadoUSD, "USD"),
       formatearMoneda(proyeccion.proyectadoCRC, "CRC"),
     ],
+    [
+      "Pedidos pendientes",
+      formatearMoneda(proyeccion.pedidosPendientesUSD, "USD"),
+      "—",
+    ],
+    [
+      "Saldo proyectado total (USD)",
+      formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD"),
+      "—",
+    ],
   ];
 
   const exportar = () =>
