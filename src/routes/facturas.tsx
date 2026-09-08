@@ -234,9 +234,33 @@ function PaginaFacturas() {
         </div>
       </div>
 
+      <div className="grid gap-3 sm:grid-cols-2">
+        {(["USD", "CRC"] as Moneda[]).map((m) => (
+          <div key={m} className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Totales en {m}
+            </p>
+            <div className="mt-2 flex flex-wrap gap-6">
+              <div>
+                <p className="text-xs text-muted-foreground">Facturado</p>
+                <p className="font-mono text-lg font-semibold tabular-nums">
+                  {formatearMoneda(totales[m].facturado, m)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Saldo por cobrar</p>
+                <p className="font-mono text-lg font-semibold tabular-nums text-primary">
+                  {formatearMoneda(totales[m].saldo, m)}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="overflow-x-auto rounded-lg border border-border bg-card">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-card">
             <TableRow>
               <TableHead>Compañía</TableHead>
               <TableHead>Factura</TableHead>
@@ -333,30 +357,6 @@ function PaginaFacturas() {
             }}
           />
         ) : null}
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        {(["USD", "CRC"] as Moneda[]).map((m) => (
-          <div key={m} className="rounded-lg border border-border bg-card p-4">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-              Totales en {m}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-6">
-              <div>
-                <p className="text-xs text-muted-foreground">Facturado</p>
-                <p className="font-mono text-lg font-semibold tabular-nums">
-                  {formatearMoneda(totales[m].facturado, m)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Saldo por cobrar</p>
-                <p className="font-mono text-lg font-semibold tabular-nums text-primary">
-                  {formatearMoneda(totales[m].saldo, m)}
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
