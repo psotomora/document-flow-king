@@ -145,7 +145,20 @@ icacls C:\inetpub\FlujoEfectivoApi\logs /grant "IIS AppPool\FlujoEfectivoApi:(OI
 
 En el navegador del servidor: `http://localhost:5080/api/salud`
 
-Debe devolver un JSON con `ok: true` y la conexión a la base de datos. Si aparece **HTTP 500.30 / 500.31**:
+Debe devolver un JSON con `estado: "ok"`, la versión de la API y `operaciones.crearUsuarios: true`. Si muestra una versión anterior, IIS conserva una publicación previa. Detenga el grupo de aplicaciones, publique de nuevo y vuelva a iniciarlo:
+
+```powershell
+Import-Module WebAdministration
+Stop-WebAppPool -Name "FlujoEfectivoApi"
+cd C:\document-flow-king\api\FlujoEfectivo.Api
+dotnet publish -c Release -o C:\inetpub\FlujoEfectivoApi
+Start-WebAppPool -Name "FlujoEfectivoApi"
+Invoke-RestMethod http://localhost:5080/api/salud
+```
+
+No elimine `appsettings.Production.json`. Confirme que la salida indique `versionApi: 1.16.3` y `crearUsuarios: true` antes de probar la pantalla de usuarios.
+
+Si aparece **HTTP 500.30 / 500.31**:
 
 1. Edite `C:\inetpub\FlujoEfectivoApi\web.config` y cambie `stdoutLogEnabled="false"` por `"true"`.
 2. Recargue la página y lea el archivo en `C:\inetpub\FlujoEfectivoApi\logs\`.
