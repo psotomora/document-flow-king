@@ -171,6 +171,13 @@ function PaginaConsolidado() {
                 <TableCell className="text-right font-mono tabular-nums">{crc}</TableCell>
               </TableRow>
             ))}
+            <TableRow className="bg-primary/5">
+              <TableCell className="font-semibold">{filaTotal[0]}</TableCell>
+              <TableCell className="text-right font-mono font-semibold tabular-nums">
+                {filaTotal[1]}
+              </TableCell>
+              <TableCell className="text-right font-mono tabular-nums">{filaTotal[2]}</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>
