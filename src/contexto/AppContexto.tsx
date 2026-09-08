@@ -156,7 +156,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [modoApi, setModoApi] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [errorApi, setErrorApi] = useState<string | null>(null);
-  const [autenticado, setAutenticado] = useState(true);
+  // La aplicación siempre arranca en la pantalla de inicio de sesión.
+  const [autenticado, setAutenticado] = useState(false);
+
   const [sesionCerrada, setSesionCerrada] = useState(false);
   const [usuario, setUsuario] = useState<Usuario>(semilla.usuarios[0]!);
   const [usuarios, setUsuarios] = useState<Usuario[]>(semilla.usuarios);
