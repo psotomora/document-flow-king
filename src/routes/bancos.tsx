@@ -1,9 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { Coins, FileDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Coins, FileDown, Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -14,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
-import type { Moneda } from "@/data/tipos";
+import type { Banco, Moneda } from "@/data/tipos";
 import { calcularSaldosPorBanco, totalizarSaldos } from "@/lib/calculos";
 import { formatearMoneda, formatearNumero } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
@@ -39,7 +50,18 @@ export const Route = createFileRoute("/bancos")({
 });
 
 function PaginaBancos() {
-  const { bancos, pagos, erogaciones, companiaActiva, companias, usuario, tipoCambio } = useApp();
+  const {
+    bancos,
+    pagos,
+    erogaciones,
+    companiaActiva,
+    companias,
+    usuario,
+    tipoCambio,
+    esAdministrador,
+    actualizarBanco,
+  } = useApp();
+  const [enEdicion, setEnEdicion] = useState<Banco | null>(null);
 
   const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
 
@@ -137,6 +159,9 @@ function PaginaBancos() {
                       <TableHead className="text-right">Saldo actual</TableHead>
                       <TableHead className="text-right">Erogaciones</TableHead>
                       <TableHead className="text-right">Saldo disponible</TableHead>
+                      {esAdministrador ? (
+                        <TableHead className="w-16 text-right">Editar</TableHead>
+                      ) : null}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -161,11 +186,28 @@ function PaginaBancos() {
                         <TableCell className="text-right font-mono font-semibold tabular-nums">
                           {formatearMoneda(s.saldoNeto, moneda)}
                         </TableCell>
+                        {esAdministrador ? (
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Editar saldos de ${s.nombre}`}
+                              onClick={() =>
+                                setEnEdicion(bancos.find((b) => b.id === s.bancoId) ?? null)
+                              }
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                          </TableCell>
+                        ) : null}
                       </TableRow>
                     ))}
                     {filas.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                        <TableCell
+                          colSpan={esAdministrador ? 8 : 7}
+                          className="py-10 text-center text-muted-foreground"
+                        >
                           No hay cuentas bancarias activas para la compañía seleccionada.
                         </TableCell>
                       </TableRow>
@@ -190,6 +232,7 @@ function PaginaBancos() {
                         <TableCell className="text-right font-mono font-semibold tabular-nums">
                           {formatearMoneda(total.saldoNeto, moneda)}
                         </TableCell>
+                        {esAdministrador ? <TableCell /> : null}
                       </TableRow>
                     </TableFooter>
                   ) : null}
@@ -199,6 +242,96 @@ function PaginaBancos() {
           );
         })}
       </div>
+
+      <DialogoSaldos
+        banco={enEdicion}
+        alCerrar={() => setEnEdicion(null)}
+        alGuardar={(id, cambios) => {
+          actualizarBanco(id, cambios);
+          setEnEdicion(null);
+          toast.success("Saldos actualizados y registrados en la bitácora");
+        }}
+      />
     </div>
+  );
+}
+
+function DialogoSaldos({
+  banco,
+  alCerrar,
+  alGuardar,
+}: {
+  banco: Banco | null;
+  alCerrar: () => void;
+  alGuardar: (id: string, cambios: Partial<Banco>) => void;
+}) {
+  const [usd, setUsd] = useState("");
+  const [crc, setCrc] = useState("");
+  const [cargado, setCargado] = useState<string | null>(null);
+
+  if (banco && cargado !== banco.id) {
+    setCargado(banco.id);
+    setUsd(String(banco.saldoInicialUSD));
+    setCrc(String(banco.saldoInicialCRC));
+  }
+
+  const guardar = () => {
+    if (!banco) return;
+    const nuevoUsd = Number(usd);
+    const nuevoCrc = Number(crc);
+    if (!Number.isFinite(nuevoUsd) || !Number.isFinite(nuevoCrc)) {
+      toast.error("Digite montos numéricos válidos.");
+      return;
+    }
+    alGuardar(banco.id, { saldoInicialUSD: nuevoUsd, saldoInicialCRC: nuevoCrc });
+  };
+
+  return (
+    <Dialog
+      open={banco !== null}
+      onOpenChange={(abierto) => {
+        if (!abierto) {
+          setCargado(null);
+          alCerrar();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar saldos iniciales</DialogTitle>
+          <DialogDescription>
+            {banco?.nombre}. El cambio queda registrado en la bitácora con su usuario.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="b-usd">Saldo inicial USD</Label>
+            <Input
+              id="b-usd"
+              type="number"
+              step="0.01"
+              value={usd}
+              onChange={(e) => setUsd(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="b-crc">Saldo inicial CRC</Label>
+            <Input
+              id="b-crc"
+              type="number"
+              step="0.01"
+              value={crc}
+              onChange={(e) => setCrc(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={alCerrar}>
+            Cancelar
+          </Button>
+          <Button onClick={guardar}>Guardar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
