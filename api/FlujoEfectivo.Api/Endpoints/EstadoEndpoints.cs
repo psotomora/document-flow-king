@@ -89,7 +89,7 @@ public static class EstadoEndpoints
                     catch (Exception ex)
                     {
                         pedidos = [];
-                        avisoFuente = "No fue posible leer los pedidos de SoftlandERP: " + ex.Message;
+                        avisoFuente = "No fue posible leer los pedidos de SoftlandERP: " + Detalle(ex);
                     }
                 }
             }
@@ -130,7 +130,7 @@ public static class EstadoEndpoints
                     {
                         facturas = [];
                         avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
-                            + "No fue posible leer las facturas de SoftlandERP: " + ex.Message;
+                            + "No fue posible leer las facturas de SoftlandERP: " + Detalle(ex);
                     }
                 }
             }
