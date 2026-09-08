@@ -47,8 +47,10 @@ public class FacturaDto
         decimal monto,
         string? notas,
         string? origen = null,
-        int? lineas = null)
+        int? lineas = null,
+        bool cobrada = false)
     {
+        Cobrada = cobrada;
         Id = id;
         CompaniaId = companiaId;
         Numero = numero;
@@ -73,6 +75,8 @@ public class FacturaDto
     public string? Notas { get; set; }
     public string? Origen { get; set; }
     public int? Lineas { get; set; }
+    /// <summary>Verdadero cuando la factura ya está cobrada en el ERP de origen.</summary>
+    public bool Cobrada { get; set; }
 }
 
 public class LineaFacturaDto
