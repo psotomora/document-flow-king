@@ -287,10 +287,12 @@ export function calcularSaldoProyectado(
 ): SaldoProyectado {
   const saldoActualUSD = totalizarSaldos(saldosUSD).saldoNeto;
   const saldoActualCRC = totalizarSaldos(saldosCRC).saldoNeto;
-  const porCobrarUSD = facturas
+  // Solo facturas pendientes de pago: se excluyen las ya cobradas en el sistema de origen.
+  const porPagar = facturas.filter((f) => f.cobrada !== true);
+  const porCobrarUSD = porPagar
     .filter((f) => f.moneda === "USD")
     .reduce((s, f) => s + Math.max(f.saldoPendiente, 0), 0);
-  const porCobrarCRC = facturas
+  const porCobrarCRC = porPagar
     .filter((f) => f.moneda === "CRC")
     .reduce((s, f) => s + Math.max(f.saldoPendiente, 0), 0);
   const proyectadoUSD = saldoActualUSD + porCobrarUSD;
@@ -314,6 +316,7 @@ export function calcularSaldoProyectado(
     consolidadoUSD,
     pedidosPendientesUSD,
     consolidadoConPedidosUSD: consolidadoUSD + pedidosPendientesUSD,
+    saldoProyectadoTotalUSD: consolidadoUSD + pedidosPendientesUSD,
   };
 }
 
