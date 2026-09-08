@@ -270,6 +270,32 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     };
   }, [modoApi, autenticado, recargar]);
 
+  // Vigilancia de la conexión: si el servidor deja de responder se cierra la sesión.
+  useEffect(() => {
+    if (!modoApi || !autenticado) return;
+    let vivo = true;
+    const revisar = async () => {
+      try {
+        await api<{ estado?: string }>("/salud", { sinToken: true });
+      } catch (e) {
+        if (!vivo) return;
+        const estado = e instanceof ErrorApi ? e.estado : null;
+        if (estado === 0 || estado === 502 || estado === 503 || estado === 504)
+          forzarLogin("Se perdió la conexión con el servidor. Inicie sesión nuevamente.");
+      }
+    };
+    const id = window.setInterval(() => void revisar(), 20000);
+    const alPerderRed = () =>
+      forzarLogin("Se perdió la conexión de red. Inicie sesión nuevamente.");
+    window.addEventListener("offline", alPerderRed);
+    return () => {
+      vivo = false;
+      window.clearInterval(id);
+      window.removeEventListener("offline", alPerderRed);
+    };
+  }, [modoApi, autenticado, forzarLogin]);
+
+
   const autenticar = useCallback(
     async (nombreUsuario: string, contrasena: string) => {
       const resp = await api<{ token: string; usuario: Usuario }>("/auth/login", {
