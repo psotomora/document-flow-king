@@ -44,34 +44,43 @@ export async function probarConexionApi(url: string): Promise<string> {
     respuesta = await fetch(`${base}/salud`, {
       headers: { Accept: "application/json" },
     });
-  } catch {
+  } catch (e) {
+    const detalle = e instanceof Error ? e.message : String(e);
     throw new ErrorApi(
-      "No se pudo contactar la API. Confirme el protocolo, puerto y que dotnet run siga activo.",
+      `No se pudo contactar la API en ${base}/salud (${detalle}). Confirme el protocolo, el puerto, que dotnet run siga activo y que el origen esté permitido en Cors:Origenes.`,
       0,
     );
   }
 
-  const tipoContenido = respuesta.headers.get("content-type") ?? "";
-  const datos = tipoContenido.includes("application/json")
-    ? ((await respuesta.json()) as { estado?: string; mensaje?: string })
-    : null;
+  const texto = await respuesta.text();
+  let datos: { estado?: string; mensaje?: string; detalle?: string; codigoSql?: number } | null =
+    null;
+  try {
+    datos = JSON.parse(texto) as typeof datos;
+  } catch {
+    datos = null;
+  }
 
   if (!respuesta.ok) {
-    throw new ErrorApi(
-      datos?.mensaje ??
-        (respuesta.status === 404
-          ? "La URL no corresponde a esta API. Debe terminar en /api."
-          : `La API respondió con error ${respuesta.status}.`),
-      respuesta.status,
-    );
+    const base404 = "La URL no corresponde a esta API. Debe terminar en /api.";
+    const generico =
+      respuesta.status === 404 ? base404 : `La API respondió con error ${respuesta.status}.`;
+    const extra = datos?.codigoSql ? ` (código SQL ${datos.codigoSql})` : "";
+    const crudo = !datos && texto ? ` Respuesta recibida: ${texto.slice(0, 300)}` : "";
+    throw new ErrorApi(`${datos?.mensaje ?? generico}${extra}${crudo}`, respuesta.status);
   }
 
   if (datos?.estado !== "ok") {
-    throw new ErrorApi("La respuesta recibida no corresponde a la API de Flujo de Efectivo.", 0);
+    throw new ErrorApi(
+      datos?.mensaje ??
+        `La respuesta recibida no corresponde a la API de Flujo de Efectivo. Contenido: ${texto.slice(0, 300)}`,
+      0,
+    );
   }
 
   return base;
 }
+
 
 export function obtenerToken(): string | null {
   return esNavegador() ? window.localStorage.getItem(CLAVE_TOKEN) : null;
