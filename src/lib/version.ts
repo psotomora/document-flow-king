@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.18.1";
+export const APP_VERSION = "1.18.2";
 export const APP_FECHA_VERSION = "2026-09-08";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,13 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.18.2",
+    fecha: "2026-09-08",
+    cambios: [
+      "Saldo consolidado: nuevo desglose del saldo proyectado (bancos, facturas pendientes y pedidos pendientes) en pantalla y en el PDF.",
+    ],
+  },
   {
     version: "1.18.1",
     fecha: "2026-09-08",

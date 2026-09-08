@@ -95,6 +95,29 @@ function PaginaConsolidado() {
     "—",
   ];
 
+  const bancosEnUsd =
+    proyeccion.saldoActualUSD + (tipoCambio > 0 ? proyeccion.saldoActualCRC / tipoCambio : 0);
+  const facturasPendientesEnUsd =
+    proyeccion.porCobrarUSD + (tipoCambio > 0 ? proyeccion.porCobrarCRC / tipoCambio : 0);
+
+  const desglose: { concepto: string; valor: number; nota: string }[] = [
+    {
+      concepto: "Saldo en bancos",
+      valor: bancosEnUsd,
+      nota: "Saldo inicial + pagos recibidos − erogaciones (colones convertidos a dólares).",
+    },
+    {
+      concepto: "Facturas pendientes de cobro",
+      valor: facturasPendientesEnUsd,
+      nota: "Solo el saldo sin pagar de cada factura: las ya cobradas aportan cero porque su dinero ya está en el banco.",
+    },
+    {
+      concepto: "Pedidos pendientes",
+      valor: proyeccion.pedidosPendientesUSD,
+      nota: `Solo pedidos en estado Pendiente (${origenPedidos}); al facturarse dejan de contarse aquí.`,
+    },
+  ];
+
   const exportar = () =>
     exportarPdf(
       "saldo-proyectado-consolidado",
@@ -106,9 +129,19 @@ function PaginaConsolidado() {
         ["Equivalente en USD de los colones", formatearMoneda(proyeccion.equivalenteUsdDeCrc, "USD"), "—"],
         ["Consolidado en USD", formatearMoneda(proyeccion.consolidadoUSD, "USD"), "—"],
         filaTotal,
+        ["Cómo se compone el saldo proyectado", "", ""],
+        ...desglose.map(
+          (d) => [d.concepto, formatearMoneda(d.valor, "USD"), "—"] as [string, string, string],
+        ),
+        [
+          "Total proyectado (USD)",
+          formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD"),
+          "—",
+        ],
       ],
       usuario.nombre,
     );
+
 
   return (
     <div className="space-y-6">
@@ -181,6 +214,33 @@ function PaginaConsolidado() {
           </TableBody>
         </Table>
       </div>
+
+      <div className="rounded-lg border border-border bg-card p-5">
+        <p className="text-sm font-medium">Cómo se compone el saldo proyectado</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Todos los montos están expresados en dólares. No hay doble conteo: lo ya cobrado se
+          refleja en el banco y desaparece de las cuentas por cobrar.
+        </p>
+        <div className="mt-4 divide-y divide-border">
+          {desglose.map((d) => (
+            <div key={d.concepto} className="flex flex-wrap items-start justify-between gap-2 py-3">
+              <div className="max-w-xl">
+                <p className="text-sm font-medium">{d.concepto}</p>
+                <p className="text-xs text-muted-foreground">{d.nota}</p>
+              </div>
+              <p className="font-mono text-sm tabular-nums">{formatearMoneda(d.valor, "USD")}</p>
+            </div>
+          ))}
+          <div className="flex flex-wrap items-center justify-between gap-2 py-3">
+            <p className="text-sm font-semibold">Total proyectado</p>
+            <p className="font-mono text-sm font-semibold tabular-nums text-primary">
+              {formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD")}
+            </p>
+          </div>
+        </div>
+      </div>
+
+
 
       <div className="rounded-lg border border-border bg-card p-5">
         <p className="text-sm font-medium">Cómo se llega al consolidado</p>
