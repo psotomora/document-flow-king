@@ -100,6 +100,11 @@ function PaginaConsolidado() {
           formatearMoneda(proyeccion.consolidadoConPedidosUSD, "USD"),
           "—",
         ],
+        [
+          "Saldo proyectado total (USD)",
+          formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD"),
+          "—",
+        ],
       ],
       usuario.nombre,
     );
@@ -139,6 +144,12 @@ function PaginaConsolidado() {
           valor={formatearMoneda(proyeccion.consolidadoConPedidosUSD, "USD")}
           detalle={`Incluye ${formatearMoneda(proyeccion.pedidosPendientesUSD, "USD")} en pedidos`}
           tono="exito"
+        />
+        <TarjetaIndicador
+          titulo="Saldo proyectado total (USD)"
+          valor={formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD")}
+          detalle={`Bancos + pedidos pendientes (${origenPedidos}) + facturas pendientes de pago (${origenFacturas})`}
+          tono="primario"
         />
       </div>
 
