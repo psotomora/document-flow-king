@@ -8,6 +8,15 @@ namespace FlujoEfectivo.Api.Endpoints;
 /// <summary>GET /api/estado devuelve, en una sola llamada, todo lo que la interfaz necesita.</summary>
 public static class EstadoEndpoints
 {
+    /// <summary>Mensaje legible que incluye la causa raíz del error.</summary>
+    private static string Detalle(Exception ex)
+    {
+        var raiz = ex.GetBaseException();
+        return raiz.Message == ex.Message
+            ? $"{ex.Message} ({ex.GetType().Name})"
+            : $"{ex.Message} → {raiz.Message} ({raiz.GetType().Name})";
+    }
+
     public static void MapEstado(this IEndpointRouteBuilder grupo)
     {
         grupo.MapGet("/estado", (HttpContext ctx, Db db, IConfiguration config) =>
