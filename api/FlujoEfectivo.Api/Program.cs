@@ -66,9 +66,19 @@ app.Use(async (ctx, next) =>
     {
         app.Logger.LogError(ex, "Error no controlado en {Ruta}", ctx.Request.Path);
         ctx.Response.StatusCode = 500;
-        await ctx.Response.WriteAsJsonAsync(new { mensaje = "Ocurrió un error procesando la solicitud." });
+        var raiz = ex;
+        while (raiz.InnerException is not null) raiz = raiz.InnerException;
+        var sql = raiz as Microsoft.Data.SqlClient.SqlException;
+        await ctx.Response.WriteAsJsonAsync(new
+        {
+            mensaje = $"Error en {ctx.Request.Path}: {raiz.Message}",
+            tipo = raiz.GetType().Name,
+            codigoSql = sql?.Number,
+            detalle = raiz.Message,
+        });
     }
 });
+
 
 // Auto-reparación de esquema: agrega columnas nuevas si la base viene de una versión previa.
 try
