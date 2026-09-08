@@ -173,7 +173,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <ConexionApi />
             {modoApi ? (
               <div className="flex flex-col items-end leading-tight">
                 <span className="text-xs font-medium text-foreground">{usuario.nombre}</span>
