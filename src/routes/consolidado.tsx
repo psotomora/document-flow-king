@@ -47,7 +47,12 @@ function PaginaConsolidado() {
     tipoCambio,
     hoy,
     usuario,
+    pedidosFuenteExterna,
+    facturasFuenteExterna,
   } = useApp();
+
+  const origenPedidos = pedidosFuenteExterna ? "SoftlandERP" : "registro local";
+  const origenFacturas = facturasFuenteExterna ? "SoftlandERP" : "registro local";
 
   const proyeccion = useMemo(() => {
     const bancosVisibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
@@ -77,6 +82,17 @@ function PaginaConsolidado() {
       formatearMoneda(proyeccion.proyectadoUSD, "USD"),
       formatearMoneda(proyeccion.proyectadoCRC, "CRC"),
     ],
+    [
+      "Pedidos pendientes",
+      formatearMoneda(proyeccion.pedidosPendientesUSD, "USD"),
+      "—",
+    ],
+  ];
+
+  const filaTotal: [string, string, string] = [
+    "Saldo proyectado total (USD)",
+    formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD"),
+    "—",
   ];
 
   const exportar = () =>
@@ -89,12 +105,7 @@ function PaginaConsolidado() {
         ...filas,
         ["Equivalente en USD de los colones", formatearMoneda(proyeccion.equivalenteUsdDeCrc, "USD"), "—"],
         ["Consolidado en USD", formatearMoneda(proyeccion.consolidadoUSD, "USD"), "—"],
-        ["Pedidos pendientes (USD)", formatearMoneda(proyeccion.pedidosPendientesUSD, "USD"), "—"],
-        [
-          "Consolidado incluyendo pedidos",
-          formatearMoneda(proyeccion.consolidadoConPedidosUSD, "USD"),
-          "—",
-        ],
+        filaTotal,
       ],
       usuario.nombre,
     );
@@ -135,6 +146,12 @@ function PaginaConsolidado() {
           detalle={`Incluye ${formatearMoneda(proyeccion.pedidosPendientesUSD, "USD")} en pedidos`}
           tono="exito"
         />
+        <TarjetaIndicador
+          titulo="Saldo proyectado total (USD)"
+          valor={formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD")}
+          detalle={`Bancos + pedidos pendientes (${origenPedidos}) + facturas pendientes de pago (${origenFacturas})`}
+          tono="primario"
+        />
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border bg-card">
@@ -154,6 +171,13 @@ function PaginaConsolidado() {
                 <TableCell className="text-right font-mono tabular-nums">{crc}</TableCell>
               </TableRow>
             ))}
+            <TableRow className="bg-primary/5">
+              <TableCell className="font-semibold">{filaTotal[0]}</TableCell>
+              <TableCell className="text-right font-mono font-semibold tabular-nums">
+                {filaTotal[1]}
+              </TableCell>
+              <TableCell className="text-right font-mono tabular-nums">{filaTotal[2]}</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>
