@@ -20,7 +20,7 @@ const LOGO_APLIX_URL =
 
 /** Pantalla de autenticación contra la API .NET (tabla flujo.Usuario + JWT). */
 export function PantallaLogin() {
-  const { autenticar } = useApp();
+  const { autenticar, entrarDemostracion } = useApp();
   const [usuario, setUsuario] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,10 +28,15 @@ export function PantallaLogin() {
   const [servidor, setServidor] = useState(urlApi());
   const [editandoServidor, setEditandoServidor] = useState(false);
   const [probandoServidor, setProbandoServidor] = useState(false);
+  const [demostracion, setDemostracion] = useState(false);
 
   async function enviar(e?: FormEvent) {
     e?.preventDefault();
     setError(null);
+    if (demostracion) {
+      entrarDemostracion();
+      return;
+    }
     setEnviando(true);
     try {
       await autenticar(usuario.trim(), contrasena);
@@ -48,6 +53,7 @@ export function PantallaLogin() {
       void enviar();
     }
   }
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-muted/40 px-4 py-10">
