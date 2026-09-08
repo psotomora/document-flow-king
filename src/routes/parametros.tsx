@@ -57,6 +57,10 @@ function PaginaParametros() {
     tipoCambio,
     tiposCambio,
     esAdministrador,
+    perfil,
+    usuario,
+    errorApi,
+    avisoFuenteExterna,
     registrarTipoCambio,
     bitacora,
     modoApi,
@@ -118,6 +122,30 @@ function PaginaParametros() {
         requerimiento="RF-007"
         descripcion="Parámetros generales del sistema. El tipo de cambio se ingresa manualmente; el sistema conserva el historial de valores con fecha y responsable, y usa el último valor para las conversiones."
       />
+
+      {!esAdministrador ? (
+        <div className="rounded-lg border border-advertencia/40 bg-advertencia-suave p-3 text-sm text-advertencia-foreground">
+          <p className="font-medium">Esta pantalla está en modo solo lectura.</p>
+          <p className="text-xs">
+            El usuario {usuario.nombre} tiene el perfil "{perfil}". Solo el perfil administrador
+            puede modificar los parámetros y la conexión a la fuente externa.
+          </p>
+        </div>
+      ) : null}
+
+      {errorApi ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+          <p className="font-medium">No fue posible obtener los datos del servidor.</p>
+          <p className="text-xs break-words">{errorApi}</p>
+        </div>
+      ) : null}
+
+      {avisoFuenteExterna ? (
+        <div className="rounded-lg border border-advertencia/40 bg-advertencia-suave p-3 text-sm text-advertencia-foreground">
+          <p className="font-medium">Aviso de la fuente externa</p>
+          <p className="text-xs break-words">{avisoFuenteExterna}</p>
+        </div>
+      ) : null}
 
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Integración</h2>
