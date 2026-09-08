@@ -95,6 +95,29 @@ function PaginaConsolidado() {
     "—",
   ];
 
+  const bancosEnUsd =
+    proyeccion.saldoActualUSD + (tipoCambio > 0 ? proyeccion.saldoActualCRC / tipoCambio : 0);
+  const facturasPendientesEnUsd =
+    proyeccion.porCobrarUSD + (tipoCambio > 0 ? proyeccion.porCobrarCRC / tipoCambio : 0);
+
+  const desglose: { concepto: string; valor: number; nota: string }[] = [
+    {
+      concepto: "Saldo en bancos",
+      valor: bancosEnUsd,
+      nota: "Saldo inicial + pagos recibidos − erogaciones (colones convertidos a dólares).",
+    },
+    {
+      concepto: "Facturas pendientes de cobro",
+      valor: facturasPendientesEnUsd,
+      nota: "Solo el saldo sin pagar de cada factura: las ya cobradas aportan cero porque su dinero ya está en el banco.",
+    },
+    {
+      concepto: "Pedidos pendientes",
+      valor: proyeccion.pedidosPendientesUSD,
+      nota: `Solo pedidos en estado Pendiente (${origenPedidos}); al facturarse dejan de contarse aquí.`,
+    },
+  ];
+
   const exportar = () =>
     exportarPdf(
       "saldo-proyectado-consolidado",
@@ -106,9 +129,19 @@ function PaginaConsolidado() {
         ["Equivalente en USD de los colones", formatearMoneda(proyeccion.equivalenteUsdDeCrc, "USD"), "—"],
         ["Consolidado en USD", formatearMoneda(proyeccion.consolidadoUSD, "USD"), "—"],
         filaTotal,
+        ["Cómo se compone el saldo proyectado", "", ""],
+        ...desglose.map(
+          (d) => [d.concepto, formatearMoneda(d.valor, "USD"), "—"] as [string, string, string],
+        ),
+        [
+          "Total proyectado (USD)",
+          formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD"),
+          "—",
+        ],
       ],
       usuario.nombre,
     );
+
 
   return (
     <div className="space-y-6">
