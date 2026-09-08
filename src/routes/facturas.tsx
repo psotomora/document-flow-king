@@ -258,9 +258,9 @@ function PaginaFacturas() {
         ))}
       </div>
 
-      <div className="overflow-auto rounded-lg border border-border bg-card max-h-[60vh]">
+      <div className="rounded-lg border border-border bg-card [&>div]:max-h-[60vh] [&>div]:overflow-auto">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-card">
+          <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
             <TableRow>
               <TableHead>Compañía</TableHead>
               <TableHead>Factura</TableHead>
