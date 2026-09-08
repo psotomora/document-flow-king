@@ -99,9 +99,12 @@ interface EstadoApp {
   esAdministrador: boolean;
   iniciarSesion: (usuarioId: string) => void;
   autenticar: (usuario: string, contrasena: string) => Promise<void>;
+  /** Entra a la aplicación con los datos de prueba, sin conectarse a SQL Server. */
+  entrarDemostracion: () => void;
   recargar: () => Promise<void>;
   cerrarSesion: () => void;
   volverAlLogin: () => void;
+
   cambiarUsuario: (usuarioId: string) => void;
   crearUsuario: (datos: {
     nombre: string;
