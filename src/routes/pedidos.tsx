@@ -139,7 +139,7 @@ function PaginaPedidos() {
           <Database className="mt-0.5 size-4 shrink-0" />
           <div>
             <p className="font-medium">Origen de los pedidos: {pedidosFuenteOrigen}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className={avisoFuenteExterna ? "text-xs break-words" : "text-xs text-muted-foreground"}>
               {avisoFuenteExterna ??
                 "Se muestran los pedidos en estado Normal leídos directamente de las tablas PEDIDO y PEDIDO_LINEA. Al generar la factura correspondiente, el pedido pasa a Facturado en el ERP."}
             </p>
