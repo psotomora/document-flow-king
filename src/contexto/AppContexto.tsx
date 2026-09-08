@@ -201,17 +201,33 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setAvisoFuenteExterna(estado.avisoFuenteExterna ?? null);
   }, []);
 
-  /** Si la sesión ya no es válida en el servidor, se vuelve a pedir el inicio de sesión. */
-  const sesionExpirada = useCallback((e: unknown): boolean => {
-    const expiro =
-      (e instanceof ErrorApi && e.estado === 401) ||
-      (e instanceof Error && e.message.includes("Sesión"));
-    if (!expiro) return false;
+  /** Cierra la sesión y devuelve al inicio de sesión. */
+  const forzarLogin = useCallback((mensaje?: string) => {
     guardarToken(null);
     setAutenticado(false);
     setSesionCerrada(false);
-    return true;
+    if (mensaje) toast.error(mensaje);
   }, []);
+
+  /**
+   * Si la sesión venció o se perdió la conexión con el servidor, se cierra la
+   * sesión y se vuelve a pedir el inicio de sesión.
+   */
+  const sesionExpirada = useCallback(
+    (e: unknown): boolean => {
+      const estado = e instanceof ErrorApi ? e.estado : null;
+      const expiro = estado === 401 || (e instanceof Error && e.message.includes("Sesión"));
+      const sinConexion = estado === 0 || estado === 502 || estado === 503 || estado === 504;
+      if (!expiro && !sinConexion) return false;
+      forzarLogin(
+        sinConexion
+          ? "Se perdió la conexión con el servidor. Inicie sesión nuevamente."
+          : undefined,
+      );
+      return true;
+    },
+    [forzarLogin],
+  );
 
   const recargar = useCallback(async () => {
     if (!hayApi()) return;
@@ -230,22 +246,15 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     }
   }, [aplicarEstado, sesionExpirada]);
 
-  // Arranque: detecta si hay API configurada y restaura la sesión guardada.
+  // Arranque: la aplicación siempre pide el inicio de sesión, aun en modo demostración.
   useEffect(() => {
     if (iniciado.current) return;
     iniciado.current = true;
-    if (!hayApi()) {
-      setModoApi(false);
-      setAutenticado(true);
-      return;
-    }
-    setModoApi(true);
-    if (!obtenerToken()) {
-      setAutenticado(false);
-      return;
-    }
-    void recargar();
-  }, [recargar]);
+    setModoApi(hayApi());
+    guardarToken(null);
+    setAutenticado(false);
+  }, []);
+
 
   // Revalida la sesión al volver a la pestaña: si el token venció, se pide el login otra vez.
   useEffect(() => {
