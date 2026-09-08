@@ -5,13 +5,15 @@ namespace FlujoEfectivo.Api.Modelos;
 
 public record UsuarioDto(string Id, string Nombre, string Perfil);
 
-public record UsuarioAdminDto(
-    string Id,
-    string Nombre,
-    string NombreUsuario,
-    string? Correo,
-    string Perfil,
-    bool Activo);
+public class UsuarioAdminDto
+{
+    public string Id { get; set; } = "";
+    public string Nombre { get; set; } = "";
+    public string NombreUsuario { get; set; } = "";
+    public string? Correo { get; set; }
+    public string Perfil { get; set; } = "";
+    public bool Activo { get; set; }
+}
 
 public class CompaniaDto
 {
