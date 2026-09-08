@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -300,6 +301,7 @@ function DialogoPedido({
   const [origen, setOrigen] = useState<"manual" | "contrato">("manual");
   const [contratoId, setContratoId] = useState("");
   const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
+  useCompaniaValida(companias, companiaId, setCompaniaId);
   const [numero, setNumero] = useState("");
   const [cliente, setCliente] = useState("");
   const [fechaCreacion, setFecha] = useState(hoy);

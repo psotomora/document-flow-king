@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useMemo, useState } from "react";
 import { FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -205,6 +206,7 @@ function DialogoErogacion({
 }) {
   const { companias, bancos, agregarErogacion, erogaciones, hoy } = useApp();
   const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
+  useCompaniaValida(companias, companiaId, setCompaniaId);
   const [numeroTransferencia, setNumero] = useState("");
   const [proveedor, setProveedor] = useState("");
   const [fecha, setFecha] = useState(hoy);
