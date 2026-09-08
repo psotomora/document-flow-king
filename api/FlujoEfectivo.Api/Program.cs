@@ -23,7 +23,10 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 // Orígenes permitidos para el sitio React publicado en IIS.
 var origenes = builder.Configuration.GetSection("Cors:Origenes").Get<string[]>() ?? ["http://localhost:8080"];
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.WithOrigins(origenes).AllowAnyHeader().AllowAnyMethod()));
+    p.WithOrigins(origenes)
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .WithExposedHeaders("X-FlujoEfectivo-Api-Version", "X-FlujoEfectivo-Request-Id")));
 
 var tokens = new TokenServicio(builder.Configuration);
 builder.Services
@@ -56,7 +59,11 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.Use(async (ctx, next) =>
 {
+    var requestId = ctx.TraceIdentifier;
     ctx.Response.Headers["X-FlujoEfectivo-Api-Version"] = versionApi;
+    ctx.Response.Headers["X-FlujoEfectivo-Request-Id"] = requestId;
+    app.Logger.LogInformation("Solicitud {RequestId}: {Metodo} {Ruta}",
+        requestId, ctx.Request.Method, ctx.Request.Path);
     await next();
 });
 app.UseAuthentication();
@@ -217,5 +224,14 @@ app.MapGet("/api/salud", (Db db) =>
     }
 
 }).AllowAnonymous();
+
+// Una ruta API desconocida siempre responde JSON. Si el cliente recibe HTML,
+// la solicitud fue atendida por IIS/proxy y nunca alcanzó esta aplicación.
+app.MapFallback("/api/{**ruta}", (HttpContext ctx) => Results.NotFound(new
+{
+    mensaje = $"La operación {ctx.Request.Method} {ctx.Request.Path} no existe en esta versión de la API.",
+    versionApi,
+    requestId = ctx.TraceIdentifier,
+}));
 
 app.Run();
