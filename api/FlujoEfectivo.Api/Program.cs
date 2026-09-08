@@ -66,9 +66,19 @@ app.Use(async (ctx, next) =>
     {
         app.Logger.LogError(ex, "Error no controlado en {Ruta}", ctx.Request.Path);
         ctx.Response.StatusCode = 500;
-        await ctx.Response.WriteAsJsonAsync(new { mensaje = "Ocurrió un error procesando la solicitud." });
+        var raiz = ex;
+        while (raiz.InnerException is not null) raiz = raiz.InnerException;
+        var sql = raiz as Microsoft.Data.SqlClient.SqlException;
+        await ctx.Response.WriteAsJsonAsync(new
+        {
+            mensaje = $"Error en {ctx.Request.Path}: {raiz.Message}",
+            tipo = raiz.GetType().Name,
+            codigoSql = sql?.Number,
+            detalle = raiz.Message,
+        });
     }
 });
+
 
 // Auto-reparación de esquema: agrega columnas nuevas si la base viene de una versión previa.
 try
@@ -172,12 +182,27 @@ app.MapGet("/api/salud", (Db db) =>
     catch (Exception ex)
     {
         app.Logger.LogError(ex, "No fue posible validar la conexión con SQL Server");
+        var raiz = ex;
+        while (raiz.InnerException is not null) raiz = raiz.InnerException;
+        var sql = raiz as Microsoft.Data.SqlClient.SqlException;
+        var causa = sql?.Number switch
+        {
+            53 or -1 or 40615 => "No se encontró el servidor SQL o no acepta conexiones remotas (revise el nombre de la instancia, TCP/IP y el firewall).",
+            18456 => "El usuario o la contraseña de SQL Server no son válidos, o el usuario no tiene acceso a esa base.",
+            4060 => "El usuario se autenticó, pero no puede abrir la base indicada (no existe o no tiene permiso).",
+            2 or 258 => "Tiempo de espera agotado al contactar SQL Server.",
+            _ => "No fue posible abrir la base de datos.",
+        };
         return Results.Json(new
         {
             estado = "error",
-            mensaje = "La API está activa, pero no puede abrir la base FlujoEfectivo. Revise la cadena de conexión, el nombre de la instancia y los permisos de SQL Server."
+            mensaje = $"{causa} Conexión configurada: {db.Descripcion()}. Detalle: {raiz.Message}",
+            tipo = raiz.GetType().Name,
+            codigoSql = sql?.Number,
+            detalle = raiz.Message,
         }, statusCode: 503);
     }
+
 }).AllowAnonymous();
 
 app.Run();
