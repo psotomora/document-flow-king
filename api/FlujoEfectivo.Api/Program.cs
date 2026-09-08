@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Reflection;
 using Dapper;
 using FlujoEfectivo.Api.Datos;
 using FlujoEfectivo.Api.Endpoints;
@@ -44,6 +45,7 @@ builder.Services
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+var versionApi = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "desconocida";
 
 if (app.Environment.IsDevelopment())
 {
@@ -52,6 +54,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+app.Use(async (ctx, next) =>
+{
+    ctx.Response.Headers["X-FlujoEfectivo-Api-Version"] = versionApi;
+    await next();
+});
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -171,7 +178,13 @@ app.MapGet("/api/salud", (Db db) =>
             """) == 1;
 
         if (esquemaCompleto)
-            return Results.Ok(new { estado = "ok", hora = DateTime.UtcNow });
+            return Results.Ok(new
+            {
+                estado = "ok",
+                versionApi,
+                hora = DateTime.UtcNow,
+                operaciones = new { crearUsuarios = true },
+            });
 
         return Results.Json(new
             {
