@@ -470,7 +470,16 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       puedeEditar,
       esAdministrador,
       autenticar,
+      entrarDemostracion: () => {
+        guardarToken(null);
+        setModoApi(false);
+        setUsuario(semilla.usuarios[0]!);
+        setUsuarios(semilla.usuarios);
+        setAutenticado(true);
+        setSesionCerrada(false);
+      },
       recargar,
+
       iniciarSesion: (usuarioId) => {
         const u = semilla.usuarios.find((x) => x.id === usuarioId);
         if (u) setUsuario(u);
