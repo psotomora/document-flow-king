@@ -13,40 +13,105 @@ public record UsuarioAdminDto(
     string Perfil,
     bool Activo);
 
-public record CompaniaDto(string Id, string Codigo, string Nombre);
+public class CompaniaDto
+{
+    public string Id { get; set; } = "";
+    public string Codigo { get; set; } = "";
+    public string Nombre { get; set; } = "";
+}
 
-public record BancoDto(
-    string Id,
-    string Nombre,
-    string CompaniaId,
-    decimal SaldoInicialUSD,
-    decimal SaldoInicialCRC,
-    bool Activo);
+public class BancoDto
+{
+    public string Id { get; set; } = "";
+    public string Nombre { get; set; } = "";
+    public string CompaniaId { get; set; } = "";
+    public decimal SaldoInicialUSD { get; set; }
+    public decimal SaldoInicialCRC { get; set; }
+    public bool Activo { get; set; }
+}
 
-public record FacturaDto(
-    string Id,
-    string CompaniaId,
-    string Numero,
-    string Cliente,
-    string FechaEmision,
-    int PlazoDias,
-    string Moneda,
-    decimal Monto,
-    string? Notas,
-    string? Origen = null,
-    int? Lineas = null);
+public class FacturaDto
+{
+    public FacturaDto() { }
 
-public record LineaFacturaDto(
-    int Linea,
-    string Articulo,
-    string? Descripcion,
-    decimal Cantidad,
-    decimal PrecioUnitario,
-    decimal Descuento,
-    decimal Impuesto,
-    decimal Total,
-    string? Bodega,
-    string? Pedido);
+    public FacturaDto(
+        string id,
+        string companiaId,
+        string numero,
+        string cliente,
+        string fechaEmision,
+        int plazoDias,
+        string moneda,
+        decimal monto,
+        string? notas,
+        string? origen = null,
+        int? lineas = null)
+    {
+        Id = id;
+        CompaniaId = companiaId;
+        Numero = numero;
+        Cliente = cliente;
+        FechaEmision = fechaEmision;
+        PlazoDias = plazoDias;
+        Moneda = moneda;
+        Monto = monto;
+        Notas = notas;
+        Origen = origen;
+        Lineas = lineas;
+    }
+
+    public string Id { get; set; } = "";
+    public string CompaniaId { get; set; } = "";
+    public string Numero { get; set; } = "";
+    public string Cliente { get; set; } = "";
+    public string FechaEmision { get; set; } = "";
+    public int PlazoDias { get; set; }
+    public string Moneda { get; set; } = "";
+    public decimal Monto { get; set; }
+    public string? Notas { get; set; }
+    public string? Origen { get; set; }
+    public int? Lineas { get; set; }
+}
+
+public class LineaFacturaDto
+{
+    public LineaFacturaDto() { }
+
+    public LineaFacturaDto(
+        int linea,
+        string articulo,
+        string? descripcion,
+        decimal cantidad,
+        decimal precioUnitario,
+        decimal descuento,
+        decimal impuesto,
+        decimal total,
+        string? bodega,
+        string? pedido)
+    {
+        Linea = linea;
+        Articulo = articulo;
+        Descripcion = descripcion;
+        Cantidad = cantidad;
+        PrecioUnitario = precioUnitario;
+        Descuento = descuento;
+        Impuesto = impuesto;
+        Total = total;
+        Bodega = bodega;
+        Pedido = pedido;
+    }
+
+    public int Linea { get; set; }
+    public string Articulo { get; set; } = "";
+    public string? Descripcion { get; set; }
+    public decimal Cantidad { get; set; }
+    public decimal PrecioUnitario { get; set; }
+    public decimal Descuento { get; set; }
+    public decimal Impuesto { get; set; }
+    public decimal Total { get; set; }
+    public string? Bodega { get; set; }
+    public string? Pedido { get; set; }
+}
 
 public record PagoDto(
     string Id,
