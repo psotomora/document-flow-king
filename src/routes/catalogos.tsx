@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -159,6 +160,7 @@ function DialogoBanco({
   const { companias, agregarBanco } = useApp();
   const [nombre, setNombre] = useState("");
   const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
+  useCompaniaValida(companias, companiaId, setCompaniaId);
   const [usd, setUsd] = useState("0");
   const [crc, setCrc] = useState("0");
 
