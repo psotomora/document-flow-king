@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+
 import {
   Card,
   CardContent,
@@ -20,7 +22,7 @@ const LOGO_APLIX_URL =
 
 /** Pantalla de autenticación contra la API .NET (tabla flujo.Usuario + JWT). */
 export function PantallaLogin() {
-  const { autenticar } = useApp();
+  const { autenticar, entrarDemostracion } = useApp();
   const [usuario, setUsuario] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,10 +30,15 @@ export function PantallaLogin() {
   const [servidor, setServidor] = useState(urlApi());
   const [editandoServidor, setEditandoServidor] = useState(false);
   const [probandoServidor, setProbandoServidor] = useState(false);
+  const [demostracion, setDemostracion] = useState(false);
 
   async function enviar(e?: FormEvent) {
     e?.preventDefault();
     setError(null);
+    if (demostracion) {
+      entrarDemostracion();
+      return;
+    }
     setEnviando(true);
     try {
       await autenticar(usuario.trim(), contrasena);
@@ -49,6 +56,7 @@ export function PantallaLogin() {
     }
   }
 
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-muted/40 px-4 py-10">
       <img
@@ -63,11 +71,26 @@ export function PantallaLogin() {
           </div>
           <CardTitle>Control de Flujo de Efectivo</CardTitle>
           <CardDescription>
-            Ingrese con su usuario corporativo. La validación se realiza contra la base de datos
-            SQL Server.
+            {demostracion
+              ? "Modo demostración: se usan datos de prueba, sin conexión a SQL Server."
+              : "Ingrese con su usuario corporativo. La validación se realiza contra la base de datos SQL Server."}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 flex items-center justify-between rounded-md border p-3">
+            <Label htmlFor="demo" className="text-sm font-medium">
+              Modo demostración
+            </Label>
+            <Switch
+              id="demo"
+              checked={demostracion}
+              onCheckedChange={(v) => {
+                setDemostracion(v);
+                setError(null);
+              }}
+            />
+          </div>
+
           <form onSubmit={enviar} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="usuario">Usuario</Label>
@@ -75,10 +98,11 @@ export function PantallaLogin() {
                 id="usuario"
                 autoComplete="username"
                 autoFocus
+                disabled={demostracion}
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
                 onKeyDown={alPresionarEnter}
-                required
+                required={!demostracion}
               />
             </div>
             <div className="space-y-2">
@@ -86,10 +110,11 @@ export function PantallaLogin() {
               <CampoContrasena
                 id="contrasena"
                 autoComplete="current-password"
+                disabled={demostracion}
                 value={contrasena}
                 onChange={(e) => setContrasena(e.target.value)}
                 onKeyDown={alPresionarEnter}
-                required
+                required={!demostracion}
               />
             </div>
 
@@ -101,9 +126,10 @@ export function PantallaLogin() {
 
             <Button type="submit" className="w-full" disabled={enviando}>
               {enviando && <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />}
-              Ingresar
+              {demostracion ? "Entrar en modo demostración" : "Ingresar"}
             </Button>
           </form>
+
 
           <div className="mt-6 border-t pt-4">
             <button

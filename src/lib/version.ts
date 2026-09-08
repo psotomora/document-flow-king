@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.13.3";
-export const APP_FECHA_VERSION = "2026-09-05";
+export const APP_VERSION = "1.14.0";
+export const APP_FECHA_VERSION = "2026-09-07";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,16 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.14.0",
+    fecha: "2026-09-07",
+    cambios: [
+      "La aplicación siempre inicia en la pantalla de inicio de sesión, con SQL Server como opción principal.",
+      "Nuevo interruptor de Modo demostración en el inicio de sesión.",
+      "Si se pierde la conexión con el servidor, la sesión se cierra y se regresa al inicio de sesión.",
+      "Los errores de conexión a SQL Server ahora indican la causa exacta y el código de error.",
+    ],
+  },
   {
     version: "1.13.3",
     fecha: "2026-09-05",
