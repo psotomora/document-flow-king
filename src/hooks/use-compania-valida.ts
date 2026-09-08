@@ -12,8 +12,9 @@ export function useCompaniaValida(
   asignar: (id: string) => void,
 ) {
   useEffect(() => {
-    if (companias.length === 0) return;
-    if (!companias.some((c) => c.id === valor)) asignar(companias[0].id);
+    const primera = companias[0];
+    if (!primera) return;
+    if (!companias.some((c) => c.id === valor)) asignar(primera.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companias, valor]);
 }
