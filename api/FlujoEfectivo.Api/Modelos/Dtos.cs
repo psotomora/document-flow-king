@@ -84,19 +84,21 @@ public record ContratoDto(
     string Estado,
     string? Notas);
 
-public record PedidoDto(
-    string Id,
-    string CompaniaId,
-    string Numero,
-    string Cliente,
-    string FechaCreacion,
-    int PlazoDias,
-    string Moneda,
-    decimal Monto,
-    string Estado,
-    string? Notas = null,
-    string? Origen = null,
-    int? Lineas = null);
+public class PedidoDto
+{
+    public string Id { get; set; } = "";
+    public string CompaniaId { get; set; } = "";
+    public string Numero { get; set; } = "";
+    public string Cliente { get; set; } = "";
+    public string FechaCreacion { get; set; } = "";
+    public int PlazoDias { get; set; }
+    public string Moneda { get; set; } = "";
+    public decimal Monto { get; set; }
+    public string Estado { get; set; } = "";
+    public string? Notas { get; set; }
+    public string? Origen { get; set; }
+    public int? Lineas { get; set; }
+}
 
 public record TipoCambioDto(string Id, decimal Valor, string Fecha, string Usuario, string? Nota);
 
