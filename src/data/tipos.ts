@@ -33,6 +33,8 @@ export interface Factura {
   origen?: string | null;
   /** Cantidad de líneas (solo facturas de fuente externa). */
   lineas?: number | null;
+  /** Verdadero cuando la factura ya está cobrada en el sistema de origen. */
+  cobrada?: boolean | null;
 }
 
 export interface LineaFactura {

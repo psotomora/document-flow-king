@@ -306,12 +306,13 @@ public static partial class Softland
             var oc = Texto(d["OrdenCompra"]);
             if (pedido.Length > 0) notas.Add($"Pedido {pedido}");
             if (oc.Length > 0) notas.Add($"OC {oc}");
-            if (Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase)) notas.Add("Cobrada en ERP");
+            var cobrada = Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
+            if (cobrada) notas.Add("Cobrada en ERP");
             lista.Add(new FacturaDto(
                 PrefijoId + numero, companiaId, numero, Texto(d["Cliente"]), Texto(d["FechaEmision"]),
                 Entero(d["PlazoDias"]), MapearMoneda(Texto(d["Moneda"])), Numero(d["Monto"]),
                 notas.Count > 0 ? string.Join(" · ", notas) : null,
-                Fuente, Entero(d["Lineas"])));
+                Fuente, Entero(d["Lineas"]), cobrada));
         }
         return lista;
     }
