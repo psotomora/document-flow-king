@@ -113,6 +113,8 @@ export async function api<T>(
 ): Promise<T> {
   const base = urlApi();
   if (!base) throw new ErrorApi("No hay una API configurada (VITE_API_URL).", 0);
+  const metodo = opciones.metodo ?? "GET";
+  const urlSolicitada = `${base}${ruta}`;
 
   const cabeceras: Record<string, string> = { "Content-Type": "application/json" };
   if (!opciones.sinToken) {
@@ -122,14 +124,15 @@ export async function api<T>(
 
   let respuesta: Response;
   try {
-    respuesta = await fetch(`${base}${ruta}`, {
-      method: opciones.metodo ?? "GET",
+    respuesta = await fetch(urlSolicitada, {
+      method: metodo,
       headers: cabeceras,
       body: opciones.cuerpo === undefined ? null : JSON.stringify(opciones.cuerpo),
     });
-  } catch {
+  } catch (e) {
+    const detalle = e instanceof Error ? e.message : String(e);
     throw new ErrorApi(
-      "No se pudo contactar el servidor. Revise la URL de la API y que el servicio esté activo.",
+      `No se pudo contactar el servidor. Solicitud: ${metodo} ${urlSolicitada}. Detalle: ${detalle}`,
       0,
     );
   }
@@ -155,10 +158,29 @@ export async function api<T>(
   }
 
   if (!esJson) {
+    const tipo = respuesta.headers.get("content-type") ?? "no informado";
+    const servidor = respuesta.headers.get("server") ?? "no informado";
+    const versionApi = respuesta.headers.get("x-flujoefectivo-api-version");
+    const requestId = respuesta.headers.get("x-flujoefectivo-request-id");
+    const tituloHtml = texto.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1]?.trim();
+    const origen = versionApi
+      ? `La solicitud sí llegó a la API versión ${versionApi}.`
+      : "La respuesta no contiene la identificación de la API: IIS, el sitio web o el proxy atendió la solicitud antes de que llegara a la API .NET.";
+    const diagnostico = [
+      `Solicitud: ${metodo} ${urlSolicitada}`,
+      `Dirección final: ${respuesta.url || urlSolicitada}`,
+      `Estado: ${respuesta.status} ${respuesta.statusText || ""}`.trim(),
+      `Tipo: ${tipo}`,
+      `Servidor: ${servidor}`,
+      versionApi ? `Versión API: ${versionApi}` : "Versión API: no detectada",
+      requestId ? `Seguimiento: ${requestId}` : "Seguimiento: no disponible",
+      tituloHtml ? `Página recibida: ${tituloHtml}` : "",
+      origen,
+    ].filter(Boolean).join("\n");
     throw new ErrorApi(
       respuesta.ok
-        ? "La URL configurada no responde con datos de la API (se recibió una página HTML). Verifique que apunte al servicio .NET, por ejemplo http://localhost:5000/api"
-        : `El servidor respondió con un error ${respuesta.status} en formato HTML. Revise que la API .NET esté ejecutándose y que la URL termine en /api.`,
+        ? `Se recibió HTML en vez de datos JSON.\n${diagnostico}`
+        : `El servidor respondió en formato HTML.\n${diagnostico}`,
       respuesta.status || 0,
     );
   }
@@ -172,7 +194,14 @@ export async function api<T>(
       (datos as { mensaje?: string; title?: string } | null)?.mensaje ??
       (datos as { title?: string } | null)?.title ??
       generico;
-    throw new ErrorApi(mensaje, respuesta.status);
+    const versionApi = respuesta.headers.get("x-flujoefectivo-api-version");
+    const requestId = respuesta.headers.get("x-flujoefectivo-request-id");
+    const referencia = [
+      `${metodo} ${urlSolicitada}`,
+      versionApi ? `API ${versionApi}` : "",
+      requestId ? `seguimiento ${requestId}` : "",
+    ].filter(Boolean).join(" · ");
+    throw new ErrorApi(`${mensaje}\n${referencia}`, respuesta.status);
   }
 
 
