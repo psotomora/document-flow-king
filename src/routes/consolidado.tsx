@@ -47,7 +47,12 @@ function PaginaConsolidado() {
     tipoCambio,
     hoy,
     usuario,
+    pedidosFuenteExterna,
+    facturasFuenteExterna,
   } = useApp();
+
+  const origenPedidos = pedidosFuenteExterna ? "SoftlandERP" : "registro local";
+  const origenFacturas = facturasFuenteExterna ? "SoftlandERP" : "registro local";
 
   const proyeccion = useMemo(() => {
     const bancosVisibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
