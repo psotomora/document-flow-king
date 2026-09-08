@@ -53,13 +53,19 @@ export async function probarConexionApi(url: string): Promise<string> {
   }
 
   const texto = await respuesta.text();
-  let datos: { estado?: string; mensaje?: string; detalle?: string; codigoSql?: number } | null =
-    null;
+  type RespuestaSalud = {
+    estado?: string;
+    mensaje?: string;
+    detalle?: string;
+    codigoSql?: number;
+  };
+  let datos: RespuestaSalud | null = null;
   try {
-    datos = JSON.parse(texto) as typeof datos;
+    datos = JSON.parse(texto) as RespuestaSalud;
   } catch {
     datos = null;
   }
+
 
   if (!respuesta.ok) {
     const base404 = "La URL no corresponde a esta API. Debe terminar en /api.";
