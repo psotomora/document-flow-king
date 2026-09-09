@@ -84,9 +84,12 @@ function PaginaPagos() {
   const facturasVisibles = filtrarPorCompania(facturasCalculadas, companiaActiva);
   const idsVisibles = new Set(facturasVisibles.map((f) => f.id));
   const [banco, setBanco] = useState("todos");
+  const [busqueda, setBusqueda] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
+
+  const texto = busqueda.trim().toLowerCase();
 
   const filas = useMemo(
     () =>
@@ -105,10 +108,16 @@ function PaginaPagos() {
             factura,
             aplicado: factura ? montoPagoEnMonedaFactura(p, factura.moneda) : 0,
           };
-        }),
+        })
+        .filter(({ factura }) =>
+          texto
+            ? `${factura?.numero ?? ""} ${factura?.cliente ?? ""}`.toLowerCase().includes(texto)
+            : true,
+        ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pagos, facturasCalculadas, companiaActiva, banco, fechaInicio, fechaFin],
+    [pagos, facturasCalculadas, companiaActiva, banco, texto, fechaInicio, fechaFin],
   );
+
 
   const totales = useMemo(() => {
     const total = (m: Moneda) =>
@@ -169,6 +178,17 @@ function PaginaPagos() {
           </Select>
         </div>
         <div className="space-y-1.5">
+          <Label htmlFor="p-busca">Cliente o número de factura</Label>
+          <Input
+            id="p-busca"
+            className="w-64"
+            placeholder="Buscar…"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+
           <Label htmlFor="p-fecha-inicio">Fecha inicio</Label>
           <Input
             id="p-fecha-inicio"
@@ -203,7 +223,7 @@ function PaginaPagos() {
         ))}
       </div>
 
-      <div className="overflow-auto max-h-[60vh] rounded-lg border border-border bg-card">
+      <div className="overflow-auto max-h-[60vh] rounded-lg border border-border bg-card [&>div]:overflow-visible">
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm">
             <TableRow>
