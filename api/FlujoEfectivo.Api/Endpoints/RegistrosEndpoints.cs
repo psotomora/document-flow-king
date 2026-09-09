@@ -159,17 +159,31 @@ public static class RegistrosEndpoints
                 return Results.BadRequest(new { mensaje = "El número de transferencia ya fue registrado." });
 
             var proveedorId = Db.ObtenerProveedor(cn, e.Proveedor);
+            // Solo los documentos internos tienen identificador numérico; los del
+            // sistema externo se guardan únicamente como número de referencia.
+            int? documentoId = int.TryParse(e.DocumentoPagoId, out var docId) ? docId : null;
             var id = cn.ExecuteScalar<int>(
                 """
-                INSERT INTO flujo.Erogacion (CompaniaId, CuentaBancariaId, NumeroTransferencia, ProveedorId, Fecha, Moneda, Monto, Notas)
+                INSERT INTO flujo.Erogacion (CompaniaId, CuentaBancariaId, NumeroTransferencia, ProveedorId, Fecha, Moneda, Monto, Notas, DocumentoPorPagarId, DocumentoPagoNumero)
                 OUTPUT INSERTED.ErogacionId
-                VALUES (@CompaniaId, @BancoId, @NumeroTransferencia, @ProveedorId, @Fecha, @Moneda, @Monto, @Notas)
+                VALUES (@CompaniaId, @BancoId, @NumeroTransferencia, @ProveedorId, @Fecha, @Moneda, @Monto, @Notas, @DocumentoId, @DocumentoNumero)
                 """,
                 new
                 {
                     CompaniaId = Id(e.CompaniaId), BancoId = Id(e.BancoId), e.NumeroTransferencia,
                     ProveedorId = proveedorId, Fecha = DateTime.Parse(e.Fecha), e.Moneda, e.Monto, e.Notas,
+                    DocumentoId = documentoId, DocumentoNumero = e.DocumentoPagoNumero,
                 });
+
+            // El pago rebaja el saldo del documento interno asociado.
+            if (documentoId is not null)
+                cn.Execute(
+                    """
+                    UPDATE flujo.DocumentoPorPagar
+                    SET Saldo = CASE WHEN Saldo - @monto < 0 THEN 0 ELSE Saldo - @monto END
+                    WHERE DocumentoPorPagarId = @id
+                    """, new { monto = e.Monto, id = documentoId });
+
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Erogaciones",
                 e.NumeroTransferencia, "Creación", valorNuevo: $"{e.Moneda} {e.Monto}");
