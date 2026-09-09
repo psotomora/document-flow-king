@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
-import { FileDown, Plus, Trash2 } from "lucide-react";
+import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ import {
   useApp,
   PREF_CONTRATOS_MES_FILTROS,
 } from "@/contexto/AppContexto";
-import type { EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
+import type { Contrato, EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 import { cn } from "@/lib/utils";
@@ -233,14 +233,20 @@ function PaginaContratos() {
 function ContratosDelMes() {
   const {
     contratosDelMes,
+    contratos,
     companias,
     companiaActiva,
     tipoCambio,
     hoy,
     usuario,
+    puedeEditar,
+    esAdministrador,
+    actualizarContrato,
+    eliminarContrato,
     preferencias,
     actualizarPreferencia,
   } = useApp();
+  const [enEdicion, setEnEdicion] = useState<string | null>(null);
 
   const guardados = useMemo(() => {
     try {
@@ -393,6 +399,7 @@ function ContratosDelMes() {
               <TableHead>Fecha esperada</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Situación</TableHead>
+              <TableHead className="w-24 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -416,11 +423,38 @@ function ContratosDelMes() {
                     ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
                     : "Por facturar"}
                 </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    {puedeEditar ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Editar contrato ${c.numero}`}
+                        onClick={() => setEnEdicion(c.contratoId)}
+                      >
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </Button>
+                    ) : null}
+                    {esAdministrador ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Eliminar contrato ${c.numero}`}
+                        onClick={() => {
+                          eliminarContrato(c.contratoId);
+                          toast.success(`Contrato ${c.numero} eliminado`);
+                        }}
+                      >
+                        <Trash2 className="size-4 text-muted-foreground" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                   No hay contratos por facturar este mes con los filtros aplicados.
                 </TableCell>
               </TableRow>
@@ -428,7 +462,129 @@ function ContratosDelMes() {
           </TableBody>
         </Table>
       </div>
+
+      <DialogoEditarContrato
+        contrato={contratos.find((c) => c.id === enEdicion) ?? null}
+        cerrar={() => setEnEdicion(null)}
+        guardar={(cambios) => {
+          if (enEdicion) actualizarContrato(enEdicion, cambios);
+          setEnEdicion(null);
+          toast.success("Contrato actualizado");
+        }}
+      />
     </section>
+  );
+}
+
+/** Edición rápida de un contrato desde la lista del mes. */
+function DialogoEditarContrato({
+  contrato,
+  cerrar,
+  guardar,
+}: {
+  contrato: Contrato | null;
+  cerrar: () => void;
+  guardar: (cambios: Partial<Contrato>) => void;
+}) {
+  const [cliente, setCliente] = useState("");
+  const [periodicidad, setPeriodicidad] = useState<Periodicidad>("Mensual");
+  const [proximaFacturacion, setProxima] = useState("");
+  const [moneda, setMoneda] = useState<Moneda>("USD");
+  const [monto, setMonto] = useState("");
+
+  useEffect(() => {
+    if (!contrato) return;
+    setCliente(contrato.cliente);
+    setPeriodicidad(contrato.periodicidad);
+    setProxima(contrato.proximaFacturacion.slice(0, 10));
+    setMoneda(contrato.moneda);
+    setMonto(String(contrato.monto));
+  }, [contrato]);
+
+  return (
+    <Dialog open={contrato !== null} onOpenChange={(v) => (!v ? cerrar() : undefined)}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Editar contrato {contrato?.numero}</DialogTitle>
+          <DialogDescription>
+            Los cambios afectan el contrato completo y la lista de facturación del mes.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="e-cli">Cliente</Label>
+            <Input id="e-cli" value={cliente} onChange={(e) => setCliente(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Periodicidad</Label>
+            <Select value={periodicidad} onValueChange={(v) => setPeriodicidad(v as Periodicidad)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PERIODICIDADES.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="e-prox">Próxima facturación</Label>
+            <Input
+              id="e-prox"
+              type="date"
+              value={proximaFacturacion}
+              onChange={(e) => setProxima(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Moneda</Label>
+            <Select value={moneda} onValueChange={(v) => setMoneda(v as Moneda)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="CRC">CRC</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="e-monto">Monto por período</Label>
+            <Input
+              id="e-monto"
+              type="number"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={cerrar}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              if (!cliente || !(Number(monto) > 0)) {
+                toast.error("Indique el cliente y un monto mayor que cero.");
+                return;
+              }
+              guardar({
+                cliente,
+                periodicidad,
+                proximaFacturacion,
+                moneda,
+                monto: Number(monto),
+              });
+            }}
+          >
+            Guardar cambios
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
