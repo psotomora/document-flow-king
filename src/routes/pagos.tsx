@@ -157,20 +157,20 @@ function PaginaPagos() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="overflow-auto max-h-[60vh] rounded-lg border border-border bg-card">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-20 bg-card shadow-sm">
             <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Factura</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Banco</TableHead>
-              <TableHead className="text-right">Monto del pago</TableHead>
-              <TableHead className="text-right">Tipo de cambio</TableHead>
-              <TableHead className="text-right">Aplicado a la factura</TableHead>
-              <TableHead>Método</TableHead>
-              <TableHead>Referencia</TableHead>
-              <TableHead />
+              <TableHead className="bg-card">Fecha</TableHead>
+              <TableHead className="bg-card">Factura</TableHead>
+              <TableHead className="bg-card">Cliente</TableHead>
+              <TableHead className="bg-card">Banco</TableHead>
+              <TableHead className="bg-card text-right">Monto del pago</TableHead>
+              <TableHead className="bg-card text-right">Tipo de cambio</TableHead>
+              <TableHead className="bg-card text-right">Aplicado a la factura</TableHead>
+              <TableHead className="bg-card">Método</TableHead>
+              <TableHead className="bg-card">Referencia</TableHead>
+              <TableHead className="bg-card" />
             </TableRow>
           </TableHeader>
           <TableBody>
