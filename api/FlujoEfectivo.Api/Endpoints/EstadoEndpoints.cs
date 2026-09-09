@@ -52,7 +52,9 @@ public static class EstadoEndpoints
                        CAST(e.CuentaBancariaId AS NVARCHAR(20)) AS BancoId,
                        e.NumeroTransferencia, p.Nombre AS Proveedor,
                        CONVERT(CHAR(10), e.Fecha, 23) AS Fecha,
-                       e.Moneda, e.Monto, e.Notas
+                       e.Moneda, e.Monto, e.Notas,
+                       CAST(e.DocumentoPorPagarId AS NVARCHAR(20)) AS DocumentoPagoId,
+                       e.DocumentoPagoNumero
                 FROM flujo.Erogacion e
                 INNER JOIN flujo.Proveedor p ON p.ProveedorId = e.ProveedorId
                 ORDER BY e.Fecha DESC, e.ErogacionId DESC
