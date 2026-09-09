@@ -145,3 +145,30 @@ Cuando `facturasFuenteExterna = 1` y `pedidosFuenteOrigen = SoftlandERP`, `GET /
 | `lineas` | `COUNT(FACTURA_LINEA)` |
 
 `GET /api/facturas/{id}/lineas` devuelve `FACTURA_LINEA` (`LINEA`, `ARTICULO`, `DESCRIPCION`, `CANTIDAD`, `PRECIO_UNITARIO`, `DESC_TOT_LINEA + DESC_TOT_GENERAL`, `TOTAL_IMPUESTO1 + TOTAL_IMPUESTO2`, `PRECIO_TOTAL`, `BODEGA`, `PEDIDO`). Las facturas de SoftlandERP no se crean, editan ni eliminan desde la aplicación; el usuario SQL solo necesita permiso de lectura sobre `FACTURA` y `FACTURA_LINEA`.
+
+### Saldo pendiente desde cuentas por cobrar (DOCUMENTOS_CC)
+
+El indicador `FACTURA.COBRADA` solo distingue cobrada / no cobrada. El saldo real
+proviene del módulo de cuentas por cobrar, por lo que las facturas se cruzan con
+`DOCUMENTOS_CC`:
+
+```sql
+FROM [esquema].[FACTURA] f
+LEFT JOIN [esquema].[DOCUMENTOS_CC] cc
+       ON cc.DOCUMENTO = f.FACTURA AND cc.TIPO = 'FAC'
+WHERE f.TIPO_DOCUMENTO = 'F' AND ISNULL(f.ANULADA, 'N') <> 'S'
+```
+
+| Campo de la aplicación | Campo en DOCUMENTOS_CC |
+| --- | --- |
+| `saldoErp` | `SALDO` (saldo en la moneda del documento) |
+| `fechaVence` | `FECHA_VENCE` |
+| `cobrada` | `SALDO <= 0` o `FECHA_ANUL IS NOT NULL` |
+
+Una factura se considera pendiente de pago cuando su documento de cuentas por
+cobrar no está anulado (`FECHA_ANUL IS NULL`) y su `SALDO` es mayor que cero.
+Cuando la factura aún no existe en `DOCUMENTOS_CC` se usa el total de la factura
+como saldo pendiente. Si el esquema no tiene la tabla `DOCUMENTOS_CC`, se
+mantiene el comportamiento anterior basado en `FACTURA.COBRADA`.
+El tipo de documento usado en cuentas por cobrar es `FAC` (`Softland.TipoDocCxc`).
+El usuario SQL requiere permiso de lectura sobre `DOCUMENTOS_CC`.
