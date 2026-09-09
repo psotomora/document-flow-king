@@ -26,6 +26,12 @@ export const OPCIONES_VISIBILIDAD = [
     ruta: "/proyeccion",
     detalle: "Ver la proyección de cobros por vencimiento.",
   },
+  {
+    clave: "verCatalogos",
+    etiqueta: "Catálogos",
+    ruta: "/catalogos",
+    detalle: "Consultar y mantener los catálogos del sistema.",
+  },
 ] as const;
 
 export type ClaveVisibilidad = (typeof OPCIONES_VISIBILIDAD)[number]["clave"];

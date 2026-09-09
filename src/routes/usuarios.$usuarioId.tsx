@@ -75,6 +75,7 @@ function PaginaUsuario() {
     verConsolidado: actual?.verConsolidado ?? true,
     verErogaciones: actual?.verErogaciones ?? true,
     verProyeccion: actual?.verProyeccion ?? true,
+    verCatalogos: actual?.verCatalogos ?? true,
   }));
 
   const volver = () => void navigate({ to: "/acceso" });

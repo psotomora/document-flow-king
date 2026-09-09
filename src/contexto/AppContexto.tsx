@@ -117,6 +117,7 @@ interface EstadoApp {
     verConsolidado?: boolean;
     verErogaciones?: boolean;
     verProyeccion?: boolean;
+    verCatalogos?: boolean;
   }) => Promise<void>;
   actualizarUsuario: (
     id: string,
@@ -131,6 +132,7 @@ interface EstadoApp {
       verConsolidado?: boolean;
       verErogaciones?: boolean;
       verProyeccion?: boolean;
+      verCatalogos?: boolean;
     },
   ) => Promise<void>;
   eliminarUsuario: (id: string) => Promise<void>;
@@ -524,6 +526,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           verConsolidado: datos.verConsolidado ?? true,
           verErogaciones: datos.verErogaciones ?? true,
           verProyeccion: datos.verProyeccion ?? true,
+          verCatalogos: datos.verCatalogos ?? true,
         };
         setUsuarios((prev) => [...prev, nuevo]);
         anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
@@ -544,6 +547,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
             ? { verErogaciones: cambios.verErogaciones }
             : {}),
           ...(cambios.verProyeccion !== undefined ? { verProyeccion: cambios.verProyeccion } : {}),
+          ...(cambios.verCatalogos !== undefined ? { verCatalogos: cambios.verCatalogos } : {}),
         };
         setUsuarios((prev) =>
           prev.map((u) =>
