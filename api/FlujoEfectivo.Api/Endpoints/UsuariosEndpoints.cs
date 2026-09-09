@@ -47,9 +47,11 @@ public static class UsuariosEndpoints
             var id = cn.QuerySingle<int>(
                 """
                 INSERT INTO flujo.Usuario
-                    (NombreUsuario, NombreCompleto, CorreoElectronico, HashContrasena, PerfilId, Activo)
+                    (NombreUsuario, NombreCompleto, CorreoElectronico, HashContrasena, PerfilId, Activo,
+                     VerBancos, VerConsolidado, VerErogaciones, VerProyeccion)
                 OUTPUT INSERTED.UsuarioId
-                VALUES (@NombreUsuario, @Nombre, @Correo, @Hash, @PerfilId, @Activo)
+                VALUES (@NombreUsuario, @Nombre, @Correo, @Hash, @PerfilId, @Activo,
+                        @VerBancos, @VerConsolidado, @VerErogaciones, @VerProyeccion)
                 """,
                 new
                 {
@@ -59,11 +61,19 @@ public static class UsuariosEndpoints
                     Hash = string.IsNullOrEmpty(datos.Contrasena) ? null : Contrasenas.Crear(datos.Contrasena),
                     PerfilId = perfilId,
                     Activo = datos.Activo,
+                    VerBancos = datos.VerBancos ?? true,
+                    VerConsolidado = datos.VerConsolidado ?? true,
+                    VerErogaciones = datos.VerErogaciones ?? true,
+                    VerProyeccion = datos.VerProyeccion ?? true,
                 });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Seguridad",
                 datos.NombreUsuario, "Creación",
-                valorNuevo: $"Perfil: {datos.Perfil}; Activo: {datos.Activo}");
+                valorNuevo: $"Perfil: {datos.Perfil}; Activo: {datos.Activo}; "
+                    + $"Saldo por banco: {(datos.VerBancos ?? true ? "Sí" : "No")}; "
+                    + $"Saldo consolidado: {(datos.VerConsolidado ?? true ? "Sí" : "No")}; "
+                    + $"Erogaciones: {(datos.VerErogaciones ?? true ? "Sí" : "No")}; "
+                    + $"Proyección de cobros: {(datos.VerProyeccion ?? true ? "Sí" : "No")}");
 
             return Results.Ok(new { id = id.ToString() });
         });
@@ -179,7 +189,8 @@ public static class UsuariosEndpoints
         public const string Lista =
             """
             SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,
-                   u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo
+                   u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo,
+                   u.VerBancos, u.VerConsolidado, u.VerErogaciones, u.VerProyeccion
             FROM flujo.Usuario u
             INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
             WHERE 1 = 1
