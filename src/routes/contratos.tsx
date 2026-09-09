@@ -152,7 +152,7 @@ function PaginaContratos() {
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Facturado</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="w-12" />
+              <TableHead className="w-24 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
