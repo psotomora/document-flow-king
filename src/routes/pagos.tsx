@@ -84,6 +84,8 @@ function PaginaPagos() {
   const facturasVisibles = filtrarPorCompania(facturasCalculadas, companiaActiva);
   const idsVisibles = new Set(facturasVisibles.map((f) => f.id));
   const [banco, setBanco] = useState("todos");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
 
   const filas = useMemo(
@@ -91,6 +93,11 @@ function PaginaPagos() {
       pagos
         .filter((p) => idsVisibles.has(p.facturaId))
         .filter((p) => banco === "todos" || p.bancoId === banco)
+        .filter((p) => {
+          if (fechaInicio && p.fecha < fechaInicio) return false;
+          if (fechaFin && p.fecha > fechaFin) return false;
+          return true;
+        })
         .map((p) => {
           const factura = facturasCalculadas.find((f) => f.id === p.facturaId);
           return {
@@ -100,7 +107,7 @@ function PaginaPagos() {
           };
         }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pagos, facturasCalculadas, companiaActiva, banco],
+    [pagos, facturasCalculadas, companiaActiva, banco, fechaInicio, fechaFin],
   );
 
   const totales = useMemo(() => {
