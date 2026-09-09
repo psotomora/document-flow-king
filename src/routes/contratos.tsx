@@ -115,6 +115,20 @@ function PaginaContratos() {
     .reduce((s, c) => s + c.monto, 0);
   const totalEnUsd = totalUSD + (tipoCambio > 0 ? totalCRC / tipoCambio : 0);
 
+  const totalesPorPeriodicidad = PERIODICIDADES.map((p) => {
+    const grupo = porFacturar.filter((c) => c.periodicidad === p);
+    const usd = grupo.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0);
+    const crc = grupo.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0);
+    return {
+      periodicidad: p,
+      cantidad: grupo.length,
+      usd,
+      crc,
+      equivalente: usd + (tipoCambio > 0 ? crc / tipoCambio : 0),
+    };
+  });
+
+
 
   const exportar = () =>
     exportarExcel(
@@ -156,6 +170,27 @@ function PaginaContratos() {
         <TotalMes titulo="Por facturar en colones" valor={formatearMoneda(totalCRC, "CRC")} />
         <TotalMes titulo="Total equivalente en USD" valor={formatearMoneda(totalEnUsd, "USD")} />
       </div>
+
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
+          Totales por periodicidad
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {totalesPorPeriodicidad.map((t) => (
+            <div key={t.periodicidad} className="rounded-md border border-border p-3">
+              <p className="text-sm font-medium">{t.periodicidad}</p>
+              <p className="text-xs text-muted-foreground">{t.cantidad} contrato(s)</p>
+              <p className="mt-2 text-sm">{formatearMoneda(t.usd, "USD")}</p>
+              <p className="text-sm">{formatearMoneda(t.crc, "CRC")}</p>
+              <p className="mt-1 text-sm font-semibold">
+                {formatearMoneda(t.equivalente, "USD")} equiv.
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
