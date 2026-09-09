@@ -173,4 +173,5 @@ export interface Usuario {
   verConsolidado?: boolean;
   verErogaciones?: boolean;
   verProyeccion?: boolean;
+  verCatalogos?: boolean;
 }

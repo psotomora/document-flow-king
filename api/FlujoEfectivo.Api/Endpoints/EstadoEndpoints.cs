@@ -181,7 +181,7 @@ public static class EstadoEndpoints
                 """
                 SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,
                        u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo,
-                       u.VerBancos, u.VerConsolidado, u.VerErogaciones, u.VerProyeccion
+                       u.VerBancos, u.VerConsolidado, u.VerErogaciones, u.VerProyeccion, u.VerCatalogos
                 FROM flujo.Usuario u
                 INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
                 """;

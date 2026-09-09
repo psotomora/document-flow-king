@@ -16,7 +16,7 @@ export const HISTORIAL_VERSIONES: EntradaVersion[] = [
     version: "1.19.3",
     fecha: "2026-09-09",
     cambios: [
-      "Permisos por usuario: el administrador decide, con un interruptor por opción, si cada usuario ve Saldo por banco, Saldo consolidado, Erogaciones y Proyección de cobros.",
+      "Permisos por usuario: el administrador decide, con un interruptor por opción, si cada usuario ve Saldo por banco, Saldo consolidado, Erogaciones, Proyección de cobros y Catálogos.",
       "Las opciones no permitidas desaparecen del menú y no pueden abrirse por dirección directa.",
       "Los cambios de permisos quedan registrados en la bitácora (script database/07_permisos_usuario.sql; la API actualiza la base automáticamente).",
     ],
