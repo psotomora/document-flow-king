@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.20.2",
+    fecha: "2026-09-09",
+    cambios: [
+      "Despliegue en Windows: la compilación ahora respeta NITRO_PRESET=node-server y genera un servidor Node autónomo para IIS.",
+    ],
+  },
+  {
     version: "1.20.1",
     fecha: "2026-09-09",
     cambios: [
