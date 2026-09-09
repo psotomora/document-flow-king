@@ -72,12 +72,22 @@ public static partial class Softland
     public static string Descifrar(string cifrado, string secreto)
     {
         if (string.IsNullOrEmpty(cifrado)) return "";
-        var todo = Convert.FromBase64String(cifrado);
-        using var aes = Aes.Create();
-        aes.Key = LlaveDe(secreto);
-        var iv = todo[..16];
-        var datos = todo[16..];
-        return Encoding.UTF8.GetString(aes.DecryptCbc(datos, iv));
+        try
+        {
+            var todo = Convert.FromBase64String(cifrado);
+            using var aes = Aes.Create();
+            aes.Key = LlaveDe(secreto);
+            var iv = todo[..16];
+            var datos = todo[16..];
+            return Encoding.UTF8.GetString(aes.DecryptCbc(datos, iv));
+        }
+        catch (Exception ex) when (ex is CryptographicException or FormatException or ArgumentException)
+        {
+            throw new InvalidOperationException(
+                "La clave guardada de SoftlandERP no se puede descifrar porque la llave de seguridad "
+                + "(Jwt:Llave en appsettings) cambió. Abra Parámetros → Conexión a SoftlandERP, "
+                + "vuelva a escribir la clave y guarde.");
+        }
     }
 
     /* ------------------------------- Conexión -------------------------------- */
