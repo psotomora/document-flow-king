@@ -520,6 +520,10 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           nombreUsuario: datos.nombreUsuario,
           correo: datos.correo,
           activo: datos.activo,
+          verBancos: datos.verBancos ?? true,
+          verConsolidado: datos.verConsolidado ?? true,
+          verErogaciones: datos.verErogaciones ?? true,
+          verProyeccion: datos.verProyeccion ?? true,
         };
         setUsuarios((prev) => [...prev, nuevo]);
         anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
@@ -531,6 +535,16 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           return;
         }
         const anterior = usuarios.find((u) => u.id === id);
+        const visibilidad = {
+          ...(cambios.verBancos !== undefined ? { verBancos: cambios.verBancos } : {}),
+          ...(cambios.verConsolidado !== undefined
+            ? { verConsolidado: cambios.verConsolidado }
+            : {}),
+          ...(cambios.verErogaciones !== undefined
+            ? { verErogaciones: cambios.verErogaciones }
+            : {}),
+          ...(cambios.verProyeccion !== undefined ? { verProyeccion: cambios.verProyeccion } : {}),
+        };
         setUsuarios((prev) =>
           prev.map((u) =>
             u.id === id
@@ -543,12 +557,17 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
                   ...(cambios.correo !== undefined ? { correo: cambios.correo } : {}),
                   ...(cambios.perfil !== undefined ? { perfil: cambios.perfil } : {}),
                   ...(cambios.activo !== undefined ? { activo: cambios.activo } : {}),
+                  ...visibilidad,
                 }
               : u,
           ),
         );
-        if (anterior?.id === usuario.id && cambios.perfil)
-          setUsuario((u) => ({ ...u, perfil: cambios.perfil! }));
+        if (anterior?.id === usuario.id)
+          setUsuario((u) => ({
+            ...u,
+            ...(cambios.perfil ? { perfil: cambios.perfil } : {}),
+            ...visibilidad,
+          }));
         anotar(
           "Seguridad",
           anterior?.nombreUsuario ?? anterior?.nombre ?? id,
