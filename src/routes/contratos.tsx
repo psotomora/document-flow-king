@@ -489,7 +489,14 @@ function ContratosDelMes() {
         ) : null}
       </div>
 
-      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-contratos-mes" filas={filasMes} onCambio={establecerFilasMes} />
+      </div>
+
+      <div
+        style={estiloTablaMes}
+        className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
+      >
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
             <TableRow>
