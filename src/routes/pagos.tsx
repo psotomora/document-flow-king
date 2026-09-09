@@ -103,6 +103,12 @@ function PaginaPagos() {
     [pagos, facturasCalculadas, companiaActiva, banco],
   );
 
+  const totales = useMemo(() => {
+    const total = (m: Moneda) =>
+      filas.filter(({ pago }) => pago.moneda === m).reduce((s, { pago }) => s + pago.monto, 0);
+    return { USD: total("USD"), CRC: total("CRC") };
+  }, [filas]);
+
   const exportar = () =>
     exportarExcel(
       "pagos-recibidos",
