@@ -119,7 +119,11 @@ public static class UsuariosEndpoints
                     CorreoElectronico = CASE WHEN @Correo IS NULL THEN CorreoElectronico ELSE NULLIF(@Correo, '') END,
                     PerfilId          = ISNULL(@PerfilId, PerfilId),
                     Activo            = ISNULL(@Activo, Activo),
-                    HashContrasena    = ISNULL(@Hash, HashContrasena)
+                    HashContrasena    = ISNULL(@Hash, HashContrasena),
+                    VerBancos         = ISNULL(@VerBancos, VerBancos),
+                    VerConsolidado    = ISNULL(@VerConsolidado, VerConsolidado),
+                    VerErogaciones    = ISNULL(@VerErogaciones, VerErogaciones),
+                    VerProyeccion     = ISNULL(@VerProyeccion, VerProyeccion)
                 WHERE UsuarioId = @usuarioId
                 """,
                 new
@@ -130,13 +134,24 @@ public static class UsuariosEndpoints
                     PerfilId = perfilId,
                     datos.Activo,
                     Hash = string.IsNullOrEmpty(datos.Contrasena) ? null : Contrasenas.Crear(datos.Contrasena),
+                    datos.VerBancos,
+                    datos.VerConsolidado,
+                    datos.VerErogaciones,
+                    datos.VerProyeccion,
                     usuarioId,
                 });
 
+            static string Si(bool valor) => valor ? "Sí" : "No";
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Seguridad",
                 actual.NombreUsuario, "Modificación",
-                valorAnterior: $"Perfil: {actual.Perfil}; Activo: {actual.Activo}",
-                valorNuevo: $"Perfil: {datos.Perfil ?? actual.Perfil}; Activo: {datos.Activo ?? actual.Activo}");
+                valorAnterior: $"Perfil: {actual.Perfil}; Activo: {actual.Activo}; "
+                    + $"Saldo por banco: {Si(actual.VerBancos)}; Saldo consolidado: {Si(actual.VerConsolidado)}; "
+                    + $"Erogaciones: {Si(actual.VerErogaciones)}; Proyección de cobros: {Si(actual.VerProyeccion)}",
+                valorNuevo: $"Perfil: {datos.Perfil ?? actual.Perfil}; Activo: {datos.Activo ?? actual.Activo}; "
+                    + $"Saldo por banco: {Si(datos.VerBancos ?? actual.VerBancos)}; "
+                    + $"Saldo consolidado: {Si(datos.VerConsolidado ?? actual.VerConsolidado)}; "
+                    + $"Erogaciones: {Si(datos.VerErogaciones ?? actual.VerErogaciones)}; "
+                    + $"Proyección de cobros: {Si(datos.VerProyeccion ?? actual.VerProyeccion)}");
 
             return Results.Ok(new { mensaje = "Usuario actualizado." });
         });
