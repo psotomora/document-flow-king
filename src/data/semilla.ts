@@ -2,6 +2,7 @@ import type {
   Banco,
   Compania,
   Contrato,
+  DocumentoPorPagar,
   Erogacion,
   Factura,
   Pago,
@@ -109,6 +110,15 @@ export const erogaciones: Erogacion[] = [
   { id: "e6", companiaId: "ax", bancoId: "promerica-ax", numeroTransferencia: "TE-80042", proveedor: "CCSS", fecha: "2026-08-01", moneda: "CRC", monto: 2980000, notas: "Cargas sociales" },
   { id: "e7", companiaId: "ax", bancoId: "bac-ax", numeroTransferencia: "TE-80077", proveedor: "Kölbi Empresarial", fecha: "2026-08-12", moneda: "CRC", monto: 385000, notas: "Telecomunicaciones" },
   { id: "e8", companiaId: "ax", bancoId: "bac-ax", numeroTransferencia: "TE-80095", proveedor: "JetBrains", fecha: "2026-08-22", moneda: "USD", monto: 1150, notas: "Licencias de desarrollo" },
+];
+
+export const documentosPorPagar: DocumentoPorPagar[] = [
+  { id: "dp1", companiaId: "tx", proveedor: "Amazon Web Services", numero: "AWS-90211", tipo: "FAC", fecha: "2026-08-05", fechaVence: "2026-09-04", moneda: "USD", monto: 3850, saldo: 3850, notas: "Infraestructura agosto" },
+  { id: "dp2", companiaId: "tx", proveedor: "Inmobiliaria Lindora", numero: "IL-2208", tipo: "FAC", fecha: "2026-08-01", fechaVence: "2026-09-01", moneda: "CRC", monto: 1850000, saldo: 900000, notas: "Alquiler setiembre (abono parcial)" },
+  { id: "dp3", companiaId: "tx", proveedor: "Microsoft", numero: "MS-77401", tipo: "FAC", fecha: "2026-08-15", fechaVence: "2026-09-14", moneda: "USD", monto: 2140, saldo: 2140 },
+  { id: "dp4", companiaId: "ax", proveedor: "Kölbi Empresarial", numero: "KE-33120", tipo: "FAC", fecha: "2026-08-12", fechaVence: "2026-09-11", moneda: "CRC", monto: 385000, saldo: 385000, notas: "Telecomunicaciones" },
+  { id: "dp5", companiaId: "ax", proveedor: "JetBrains", numero: "JB-5540", tipo: "FAC", fecha: "2026-08-22", fechaVence: "2026-09-21", moneda: "USD", monto: 1150, saldo: 1150 },
+  { id: "dp6", companiaId: "ax", proveedor: "CCSS", numero: "CCSS-0826", tipo: "FAC", fecha: "2026-08-31", fechaVence: "2026-09-15", moneda: "CRC", monto: 2980000, saldo: 2980000, notas: "Cargas sociales agosto" },
 ];
 
 export const contratos: Contrato[] = [

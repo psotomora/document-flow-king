@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.19.11";
+export const APP_VERSION = "1.20.0";
 export const APP_FECHA_VERSION = "2026-09-09";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,16 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.20.0",
+    fecha: "2026-09-09",
+    cambios: [
+      "Nueva sección Operación → Documentos por pagar con los documentos de proveedores pendientes de pago.",
+      "Filtros por proveedor o número de documento y por periodo (este mes, todos o rango de fechas), con totales USD, CRC y consolidado.",
+      "Nuevo parámetro de administrador para leer los documentos pendientes de pago desde la fuente externa (DOCUMENTOS_CP), con la misma conexión de pedidos y facturas.",
+      "Las erogaciones pueden asociarse a un documento por pagar y rebajan su saldo; también pueden registrarse sin documento.",
+    ],
+  },
   {
     version: "1.19.11",
     fecha: "2026-09-09",

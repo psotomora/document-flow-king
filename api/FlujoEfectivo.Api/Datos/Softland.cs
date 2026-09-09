@@ -358,6 +358,69 @@ public static partial class Softland
         return lista;
     }
 
+    /* -------------------------- Documentos por pagar ------------------------- */
+
+    /// <summary>
+    /// Documentos de cuentas por pagar (tabla DOCUMENTOS_CP) con saldo pendiente y no anulados.
+    /// Se incluyen todos los tipos de documento; el nombre del proveedor se resuelve contra
+    /// la tabla PROVEEDOR cuando existe, y si no se muestra el código.
+    /// </summary>
+    public static IEnumerable<DocumentoPorPagarDto> DocumentosPorPagar(
+        ConfigSoftland c, string secreto, string companiaId)
+    {
+        using var cn = Abrir(c, secreto);
+        var e = c.Esquema;
+        var tieneProveedor = cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{e}.PROVEEDOR" }) == 1;
+        var nombre = tieneProveedor
+            ? $"ISNULL((SELECT TOP 1 pr.NOMBRE FROM [{e}].[PROVEEDOR] pr WHERE pr.PROVEEDOR = d.PROVEEDOR), d.PROVEEDOR)"
+            : "d.PROVEEDOR";
+
+        var filas = cn.Query(
+            $"""
+            SELECT d.PROVEEDOR AS Codigo,
+                   {nombre} AS Proveedor,
+                   d.DOCUMENTO AS Numero,
+                   d.TIPO AS Tipo,
+                   CONVERT(CHAR(10), ISNULL(d.FECHA_DOCUMENTO, d.FECHA), 23) AS Fecha,
+                   CONVERT(CHAR(10), d.FECHA_VENCE, 23) AS FechaVence,
+                   d.MONEDA AS Moneda,
+                   d.MONTO AS Monto,
+                   d.SALDO AS Saldo,
+                   d.ESTADO AS Estado
+            FROM [{e}].[DOCUMENTOS_CP] d
+            WHERE d.SALDO > 0
+              AND d.FECHA_ANUL IS NULL
+              AND ISNULL(d.ANULADO, 'N') <> 'S'
+            ORDER BY ISNULL(d.FECHA_DOCUMENTO, d.FECHA) DESC, d.DOCUMENTO DESC
+            """);
+
+        var lista = new List<DocumentoPorPagarDto>();
+        foreach (var fila in filas)
+        {
+            var d = (IDictionary<string, object?>)fila;
+            var numero = Texto(d["Numero"]);
+            var tipo = Texto(d["Tipo"]);
+            lista.Add(new DocumentoPorPagarDto
+            {
+                Id = PrefijoId + tipo + "-" + numero,
+                CompaniaId = companiaId,
+                Proveedor = Texto(d["Proveedor"]),
+                Numero = numero,
+                Tipo = tipo.Length > 0 ? tipo : "FAC",
+                Fecha = Texto(d["Fecha"]),
+                FechaVence = Texto(d["FechaVence"]) is { Length: > 0 } fv ? fv : null,
+                Moneda = MapearMoneda(Texto(d["Moneda"])),
+                Monto = Numero(d["Monto"]),
+                Saldo = Numero(d["Saldo"]),
+                Origen = Fuente,
+                Notas = Texto(d["Codigo"]) is { Length: > 0 } cod ? $"Proveedor {cod}" : null,
+            });
+        }
+        return lista;
+    }
+
     /// <summary>Moneda (CRC/USD) de una factura vigente de Softland, o null si no existe.</summary>
     public static string? MonedaFactura(ConfigSoftland c, string secreto, string numero)
     {

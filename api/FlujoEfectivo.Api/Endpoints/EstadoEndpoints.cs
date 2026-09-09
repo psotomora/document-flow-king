@@ -52,7 +52,9 @@ public static class EstadoEndpoints
                        CAST(e.CuentaBancariaId AS NVARCHAR(20)) AS BancoId,
                        e.NumeroTransferencia, p.Nombre AS Proveedor,
                        CONVERT(CHAR(10), e.Fecha, 23) AS Fecha,
-                       e.Moneda, e.Monto, e.Notas
+                       e.Moneda, e.Monto, e.Notas,
+                       CAST(e.DocumentoPorPagarId AS NVARCHAR(20)) AS DocumentoPagoId,
+                       e.DocumentoPagoNumero
                 FROM flujo.Erogacion e
                 INNER JOIN flujo.Proveedor p ON p.ProveedorId = e.ProveedorId
                 ORDER BY e.Fecha DESC, e.ErogacionId DESC
@@ -158,6 +160,49 @@ public static class EstadoEndpoints
                 """);
 
 
+            // Documentos por pagar: registro interno o fuente externa (DOCUMENTOS_CP).
+            IEnumerable<DocumentoPorPagarDto> documentosPorPagar;
+            var cpSoftland = parametros.GetValueOrDefault("documentosPagoFuenteExterna") == "1"
+                && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
+                    Softland.Fuente, StringComparison.OrdinalIgnoreCase);
+            if (cpSoftland)
+            {
+                var cfg = Softland.Leer(cn);
+                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                {
+                    documentosPorPagar = [];
+                    avisoFuente ??= "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
+                }
+                else
+                {
+                    try
+                    {
+                        var companiaId = cfg.CompaniaId?.ToString()
+                            ?? companias.FirstOrDefault()?.Id ?? "0";
+                        documentosPorPagar = Softland.DocumentosPorPagar(cfg, secreto, companiaId).ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        documentosPorPagar = [];
+                        avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
+                            + "No fue posible leer los documentos por pagar de SoftlandERP: " + Detalle(ex);
+                    }
+                }
+            }
+            else
+            documentosPorPagar = cn.Query<DocumentoPorPagarDto>(
+                """
+                SELECT CAST(d.DocumentoPorPagarId AS NVARCHAR(20)) AS Id,
+                       CAST(d.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
+                       d.Proveedor, d.Numero, d.Tipo,
+                       CONVERT(CHAR(10), d.Fecha, 23) AS Fecha,
+                       CONVERT(CHAR(10), d.FechaVence, 23) AS FechaVence,
+                       d.Moneda, d.Monto, d.Saldo, d.Notas
+                FROM flujo.DocumentoPorPagar d
+                WHERE d.Saldo > 0 AND d.Anulado = 0
+                ORDER BY d.Fecha DESC, d.DocumentoPorPagarId DESC
+                """);
+
             var tiposCambio = cn.Query<TipoCambioDto>(
                 """
                 SELECT CAST(t.TipoCambioId AS NVARCHAR(20)) AS Id, t.Valor,
@@ -210,8 +255,8 @@ public static class EstadoEndpoints
             }
 
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
-                erogaciones, contratos, pedidos, tiposCambio, bitacora, parametros, avisoFuente,
-                preferencias));
+                erogaciones, documentosPorPagar, contratos, pedidos, tiposCambio, bitacora,
+                parametros, avisoFuente, preferencias));
         }).RequireAuthorization();
     }
 }

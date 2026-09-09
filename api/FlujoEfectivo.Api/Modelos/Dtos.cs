@@ -156,6 +156,24 @@ public class ErogacionDto
     public string Moneda { get; set; } = "";
     public decimal Monto { get; set; }
     public string? Notas { get; set; }
+    public string? DocumentoPagoId { get; set; }
+    public string? DocumentoPagoNumero { get; set; }
+}
+
+public class DocumentoPorPagarDto
+{
+    public string Id { get; set; } = "";
+    public string CompaniaId { get; set; } = "";
+    public string Proveedor { get; set; } = "";
+    public string Numero { get; set; } = "";
+    public string Tipo { get; set; } = "";
+    public string Fecha { get; set; } = "";
+    public string? FechaVence { get; set; }
+    public string Moneda { get; set; } = "";
+    public decimal Monto { get; set; }
+    public decimal Saldo { get; set; }
+    public string? Origen { get; set; }
+    public string? Notas { get; set; }
 }
 
 public class ContratoDto
@@ -219,6 +237,7 @@ public record EstadoDto(
     IEnumerable<FacturaDto> Facturas,
     IEnumerable<PagoDto> Pagos,
     IEnumerable<ErogacionDto> Erogaciones,
+    IEnumerable<DocumentoPorPagarDto> DocumentosPorPagar,
     IEnumerable<ContratoDto> Contratos,
     IEnumerable<PedidoDto> Pedidos,
     IEnumerable<TipoCambioDto> TiposCambio,
@@ -287,6 +306,20 @@ public record NuevaErogacion(
     string Fecha,
     string Moneda,
     decimal Monto,
+    string? Notas,
+    string? DocumentoPagoId = null,
+    string? DocumentoPagoNumero = null);
+
+public record NuevoDocumentoPorPagar(
+    string CompaniaId,
+    string Proveedor,
+    string Numero,
+    string Tipo,
+    string Fecha,
+    string? FechaVence,
+    string Moneda,
+    decimal Monto,
+    decimal Saldo,
     string? Notas);
 
 public record NuevoContrato(

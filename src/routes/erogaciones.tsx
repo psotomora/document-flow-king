@@ -285,7 +285,8 @@ function DialogoErogacion({
   abierto: boolean;
   setAbierto: (v: boolean) => void;
 }) {
-  const { companias, bancos, agregarErogacion, erogaciones, hoy } = useApp();
+  const { companias, bancos, agregarErogacion, erogaciones, documentosPorPagar, hoy } = useApp();
+  const [documentoPagoId, setDocumentoPagoId] = useState("sin");
   const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
   useCompaniaValida(companias, companiaId, setCompaniaId);
   const [numeroTransferencia, setNumero] = useState("");
@@ -297,6 +298,21 @@ function DialogoErogacion({
   const [notas, setNotas] = useState("");
 
   const bancosCompania = bancos.filter((b) => b.companiaId === companiaId);
+  const documentosCompania = documentosPorPagar.filter(
+    (d) => d.companiaId === companiaId && d.saldo > 0,
+  );
+  const documentoElegido = documentosCompania.find((d) => d.id === documentoPagoId);
+
+  /** Al elegir un documento, se precargan proveedor, moneda y saldo pendiente. */
+  const elegirDocumento = (valor: string) => {
+    setDocumentoPagoId(valor);
+    const doc = documentosCompania.find((d) => d.id === valor);
+    if (doc) {
+      setProveedor(doc.proveedor);
+      setMoneda(doc.moneda);
+      setMonto(String(doc.saldo));
+    }
+  };
 
   const guardar = () => {
     if (!numeroTransferencia || !proveedor || !bancoId) {
@@ -320,6 +336,8 @@ function DialogoErogacion({
       moneda,
       monto: Number(monto),
       notas,
+      documentoPagoId: documentoElegido ? documentoElegido.id : null,
+      documentoPagoNumero: documentoElegido ? documentoElegido.numero : null,
     });
     toast.success("Erogación registrada");
     setAbierto(false);
@@ -327,6 +345,7 @@ function DialogoErogacion({
     setProveedor("");
     setMonto("");
     setNotas("");
+    setDocumentoPagoId("sin");
   };
 
   return (
@@ -360,6 +379,22 @@ function DialogoErogacion({
                 {companias.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.codigo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Documento por pagar</Label>
+            <Select value={documentoPagoId} onValueChange={elegirDocumento}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sin">Sin documento</SelectItem>
+                {documentosCompania.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.numero} — {d.proveedor} ({d.moneda} {d.saldo.toLocaleString("es-CR")})
                   </SelectItem>
                 ))}
               </SelectContent>

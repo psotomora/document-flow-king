@@ -41,6 +41,7 @@ const navegacion = [
       { to: "/facturas", etiqueta: "Facturas por cobrar", icono: FileText },
       { to: "/pagos", etiqueta: "Pagos recibidos", icono: Receipt },
       { to: "/erogaciones", etiqueta: "Erogaciones", icono: Banknote },
+      { to: "/documentos-pagar", etiqueta: "Documentos por pagar", icono: Receipt },
       { to: "/bancos", etiqueta: "Saldo por banco", icono: Landmark },
     ],
   },
