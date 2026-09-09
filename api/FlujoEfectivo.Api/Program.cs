@@ -173,6 +173,20 @@ try
         IF COL_LENGTH('flujo.Usuario', 'VerCatalogos') IS NULL
             ALTER TABLE flujo.Usuario ADD VerCatalogos BIT NOT NULL
                 CONSTRAINT DF_Usuario_VerCatalogos DEFAULT 1;
+
+        -- Preferencias personales por usuario (08_preferencias_usuario.sql).
+        IF OBJECT_ID('flujo.PreferenciaUsuario', 'U') IS NULL
+            CREATE TABLE flujo.PreferenciaUsuario
+            (
+                UsuarioId   INT           NOT NULL,
+                Clave       NVARCHAR(60)  NOT NULL,
+                Valor       NVARCHAR(400) NOT NULL,
+                Actualizado DATETIME2(0)  NOT NULL
+                    CONSTRAINT DF_PreferenciaUsuario_Actualizado DEFAULT SYSUTCDATETIME(),
+                CONSTRAINT PK_PreferenciaUsuario PRIMARY KEY (UsuarioId, Clave),
+                CONSTRAINT FK_PreferenciaUsuario_Usuario FOREIGN KEY (UsuarioId)
+                    REFERENCES flujo.Usuario(UsuarioId) ON DELETE CASCADE
+            );
         """);
 }
 catch (Exception ex)
