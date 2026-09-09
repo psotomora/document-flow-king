@@ -384,6 +384,22 @@ function DialogoErogacion({
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label>Documento por pagar</Label>
+            <Select value={documentoPagoId} onValueChange={elegirDocumento}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sin">Sin documento</SelectItem>
+                {documentosCompania.map((d) => (
+                  <SelectItem key={d.id} value={d.id}>
+                    {d.numero} — {d.proveedor} ({d.moneda} {d.saldo.toLocaleString("es-CR")})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-1.5">
             <Label>Banco</Label>
             <Select value={bancoId} onValueChange={setBancoId}>
