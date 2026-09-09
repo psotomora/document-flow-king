@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { SelectorFilas } from "@/components/comunes/SelectorFilas";
+import { useFilasVisibles } from "@/lib/preferencias";
 import { EstadoBadge } from "@/components/comunes/EstadoBadge";
 import { DialogoLineasFactura } from "@/components/facturas/DialogoLineasFactura";
 import { Button } from "@/components/ui/button";
