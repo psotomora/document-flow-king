@@ -53,6 +53,11 @@ export const Route = createFileRoute("/bancos")({
 
 function PaginaBancos() {
   const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("bancos");
+  const {
     bancos,
     pagos,
     erogaciones,
