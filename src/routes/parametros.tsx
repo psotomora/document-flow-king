@@ -55,6 +55,7 @@ export const Route = createFileRoute("/parametros")({
 });
 
 function PaginaParametros() {
+  const { filas: filasGlobales, establecer: establecerFilasGlobales } = useFilasGlobales();
   const {
     tipoCambio,
     tiposCambio,
