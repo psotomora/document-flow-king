@@ -258,7 +258,14 @@ function PaginaFacturas() {
         ))}
       </div>
 
-      <div className="rounded-lg border border-border bg-card [&>div]:max-h-[60vh] [&>div]:overflow-auto">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-facturas" filas={filasVisibles} onCambio={establecerFilas} />
+      </div>
+
+      <div
+        style={estiloTabla}
+        className="rounded-lg border border-border bg-card [&>div]:max-h-[var(--alto-tabla)] [&>div]:overflow-auto"
+      >
         <Table>
           <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
             <TableRow>
