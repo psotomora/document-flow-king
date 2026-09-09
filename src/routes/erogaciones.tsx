@@ -136,6 +136,56 @@ function PaginaErogaciones() {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="f-prov">Proveedor</Label>
+          <Input
+            id="f-prov"
+            className="w-56"
+            placeholder="Buscar proveedor…"
+            value={proveedor}
+            onChange={(e) => setProveedor(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Periodo</Label>
+          <Select
+            value={periodo}
+            onValueChange={(v) => setPeriodo(v as "mes" | "todos" | "rango")}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mes">Este mes</SelectItem>
+              <SelectItem value="todos">Todos los registros</SelectItem>
+              <SelectItem value="rango">Rango de fechas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {periodo === "rango" ? (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="f-ini">Fecha inicio</Label>
+              <Input
+                id="f-ini"
+                type="date"
+                className="w-44"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="f-fin">Fecha fin</Label>
+              <Input
+                id="f-fin"
+                type="date"
+                className="w-44"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+              />
+            </div>
+          </>
+        ) : null}
         <div className="ml-auto flex gap-6 text-right">
           <div>
             <p className="text-xs text-muted-foreground">Total USD</p>
@@ -152,9 +202,10 @@ function PaginaErogaciones() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="max-h-[46rem] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
+
             <TableRow>
               <TableHead>Compañía</TableHead>
               <TableHead>N.º transferencia</TableHead>
