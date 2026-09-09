@@ -142,6 +142,13 @@ public static partial class Softland
                 msg += $" {nf} factura(s) vigente(s).";
             }
             else msg += " No se encontraron las tablas FACTURA / FACTURA_LINEA.";
+            if (HayCuentasPorCobrar(cn, c.Esquema))
+            {
+                var ncc = cn.ExecuteScalar<int>(
+                    $"SELECT COUNT(1) FROM [{c.Esquema}].[DOCUMENTOS_CC] WHERE TIPO = '{TipoDocCxc}' AND FECHA_ANUL IS NULL AND SALDO > 0");
+                msg += $" {ncc} documento(s) de cuentas por cobrar con saldo pendiente.";
+            }
+            else msg += " No se encontró la tabla DOCUMENTOS_CC (cuentas por cobrar).";
             return (true, msg, n);
         }
         catch (Exception ex)
