@@ -74,12 +74,14 @@ function PaginaContratos() {
     contratos,
     companias,
     companiaActiva,
+    tipoCambio,
     puedeEditar,
     esAdministrador,
     actualizarContrato,
     eliminarContrato,
     usuario,
   } = useApp();
+
   const [estado, setEstado] = useState<EstadoContrato | "todos">("todos");
   const [busqueda, setBusqueda] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
