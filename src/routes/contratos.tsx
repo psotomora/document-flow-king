@@ -611,6 +611,7 @@ function DialogoEditarContrato({
                 proximaFacturacion,
                 moneda,
                 monto: Number(monto),
+                plazoDias: Number(plazoDias) || 0,
               });
             }}
           >
