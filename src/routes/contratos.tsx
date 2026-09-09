@@ -585,6 +585,15 @@ function DialogoEditarContrato({
               onChange={(e) => setMonto(e.target.value)}
             />
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="e-plazo">Plazo en días</Label>
+            <Input
+              id="e-plazo"
+              type="number"
+              value={plazoDias}
+              onChange={(e) => setPlazo(e.target.value)}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={cerrar}>
