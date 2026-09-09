@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.19.11",
+    fecha: "2026-09-09",
+    cambios: [
+      "Contratos recurrentes: nueva sección con los totales por periodicidad (mensual, bimestral, trimestral, semestral y anual) según los filtros aplicados.",
+    ],
+  },
+  {
     version: "1.19.10",
     fecha: "2026-09-09",
     cambios: [
