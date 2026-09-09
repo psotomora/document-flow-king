@@ -115,14 +115,7 @@ function PaginaContratos() {
     .reduce((s, c) => s + c.monto, 0);
   const totalEnUsd = totalUSD + (tipoCambio > 0 ? totalCRC / tipoCambio : 0);
 
-  const periodicidades: Periodicidad[] = [
-    "Mensual",
-    "Bimestral",
-    "Trimestral",
-    "Semestral",
-    "Anual",
-  ];
-  const totalesPorPeriodicidad = periodicidades.map((p) => {
+  const totalesPorPeriodicidad = PERIODICIDADES.map((p) => {
     const grupo = porFacturar.filter((c) => c.periodicidad === p);
     const usd = grupo.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0);
     const crc = grupo.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0);
