@@ -224,7 +224,8 @@ public record EstadoDto(
     IEnumerable<TipoCambioDto> TiposCambio,
     IEnumerable<BitacoraDto> Bitacora,
     Dictionary<string, string> Parametros,
-    string? AvisoFuenteExterna = null);
+    string? AvisoFuenteExterna = null,
+    Dictionary<string, string>? Preferencias = null);
 
 /* ------------------------- Entradas ------------------------- */
 
