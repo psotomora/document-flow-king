@@ -47,9 +47,11 @@ public static class UsuariosEndpoints
             var id = cn.QuerySingle<int>(
                 """
                 INSERT INTO flujo.Usuario
-                    (NombreUsuario, NombreCompleto, CorreoElectronico, HashContrasena, PerfilId, Activo)
+                    (NombreUsuario, NombreCompleto, CorreoElectronico, HashContrasena, PerfilId, Activo,
+                     VerBancos, VerConsolidado, VerErogaciones, VerProyeccion)
                 OUTPUT INSERTED.UsuarioId
-                VALUES (@NombreUsuario, @Nombre, @Correo, @Hash, @PerfilId, @Activo)
+                VALUES (@NombreUsuario, @Nombre, @Correo, @Hash, @PerfilId, @Activo,
+                        @VerBancos, @VerConsolidado, @VerErogaciones, @VerProyeccion)
                 """,
                 new
                 {
@@ -59,11 +61,19 @@ public static class UsuariosEndpoints
                     Hash = string.IsNullOrEmpty(datos.Contrasena) ? null : Contrasenas.Crear(datos.Contrasena),
                     PerfilId = perfilId,
                     Activo = datos.Activo,
+                    VerBancos = datos.VerBancos ?? true,
+                    VerConsolidado = datos.VerConsolidado ?? true,
+                    VerErogaciones = datos.VerErogaciones ?? true,
+                    VerProyeccion = datos.VerProyeccion ?? true,
                 });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Seguridad",
                 datos.NombreUsuario, "Creación",
-                valorNuevo: $"Perfil: {datos.Perfil}; Activo: {datos.Activo}");
+                valorNuevo: $"Perfil: {datos.Perfil}; Activo: {datos.Activo}; "
+                    + $"Saldo por banco: {(datos.VerBancos ?? true ? "Sí" : "No")}; "
+                    + $"Saldo consolidado: {(datos.VerConsolidado ?? true ? "Sí" : "No")}; "
+                    + $"Erogaciones: {(datos.VerErogaciones ?? true ? "Sí" : "No")}; "
+                    + $"Proyección de cobros: {(datos.VerProyeccion ?? true ? "Sí" : "No")}");
 
             return Results.Ok(new { id = id.ToString() });
         });
@@ -109,7 +119,11 @@ public static class UsuariosEndpoints
                     CorreoElectronico = CASE WHEN @Correo IS NULL THEN CorreoElectronico ELSE NULLIF(@Correo, '') END,
                     PerfilId          = ISNULL(@PerfilId, PerfilId),
                     Activo            = ISNULL(@Activo, Activo),
-                    HashContrasena    = ISNULL(@Hash, HashContrasena)
+                    HashContrasena    = ISNULL(@Hash, HashContrasena),
+                    VerBancos         = ISNULL(@VerBancos, VerBancos),
+                    VerConsolidado    = ISNULL(@VerConsolidado, VerConsolidado),
+                    VerErogaciones    = ISNULL(@VerErogaciones, VerErogaciones),
+                    VerProyeccion     = ISNULL(@VerProyeccion, VerProyeccion)
                 WHERE UsuarioId = @usuarioId
                 """,
                 new
@@ -120,13 +134,24 @@ public static class UsuariosEndpoints
                     PerfilId = perfilId,
                     datos.Activo,
                     Hash = string.IsNullOrEmpty(datos.Contrasena) ? null : Contrasenas.Crear(datos.Contrasena),
+                    datos.VerBancos,
+                    datos.VerConsolidado,
+                    datos.VerErogaciones,
+                    datos.VerProyeccion,
                     usuarioId,
                 });
 
+            static string Si(bool valor) => valor ? "Sí" : "No";
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Seguridad",
                 actual.NombreUsuario, "Modificación",
-                valorAnterior: $"Perfil: {actual.Perfil}; Activo: {actual.Activo}",
-                valorNuevo: $"Perfil: {datos.Perfil ?? actual.Perfil}; Activo: {datos.Activo ?? actual.Activo}");
+                valorAnterior: $"Perfil: {actual.Perfil}; Activo: {actual.Activo}; "
+                    + $"Saldo por banco: {Si(actual.VerBancos)}; Saldo consolidado: {Si(actual.VerConsolidado)}; "
+                    + $"Erogaciones: {Si(actual.VerErogaciones)}; Proyección de cobros: {Si(actual.VerProyeccion)}",
+                valorNuevo: $"Perfil: {datos.Perfil ?? actual.Perfil}; Activo: {datos.Activo ?? actual.Activo}; "
+                    + $"Saldo por banco: {Si(datos.VerBancos ?? actual.VerBancos)}; "
+                    + $"Saldo consolidado: {Si(datos.VerConsolidado ?? actual.VerConsolidado)}; "
+                    + $"Erogaciones: {Si(datos.VerErogaciones ?? actual.VerErogaciones)}; "
+                    + $"Proyección de cobros: {Si(datos.VerProyeccion ?? actual.VerProyeccion)}");
 
             return Results.Ok(new { mensaje = "Usuario actualizado." });
         });
@@ -179,7 +204,8 @@ public static class UsuariosEndpoints
         public const string Lista =
             """
             SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,
-                   u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo
+                   u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo,
+                   u.VerBancos, u.VerConsolidado, u.VerErogaciones, u.VerProyeccion
             FROM flujo.Usuario u
             INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
             WHERE 1 = 1

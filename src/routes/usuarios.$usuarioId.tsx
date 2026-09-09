@@ -17,6 +17,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useApp } from "@/contexto/AppContexto";
 import type { Perfil } from "@/data/tipos";
+import { OPCIONES_VISIBILIDAD, type ClaveVisibilidad } from "@/lib/permisos";
 
 export const Route = createFileRoute("/usuarios/$usuarioId")({
   head: () => ({
@@ -69,6 +70,12 @@ function PaginaUsuario() {
   const [activo, setActivo] = useState(actual?.activo ?? true);
   const [contrasena, setContrasena] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [visibilidad, setVisibilidad] = useState<Record<ClaveVisibilidad, boolean>>(() => ({
+    verBancos: actual?.verBancos ?? true,
+    verConsolidado: actual?.verConsolidado ?? true,
+    verErogaciones: actual?.verErogaciones ?? true,
+    verProyeccion: actual?.verProyeccion ?? true,
+  }));
 
   const volver = () => void navigate({ to: "/acceso" });
 
@@ -116,6 +123,7 @@ function PaginaUsuario() {
           perfil,
           activo,
           ...(contrasena ? { contrasena } : {}),
+          ...visibilidad,
         });
         toast.success("Usuario creado");
       } else {
@@ -126,6 +134,7 @@ function PaginaUsuario() {
           perfil,
           activo,
           ...(contrasena ? { contrasena } : {}),
+          ...visibilidad,
         });
         toast.success("Usuario actualizado");
       }
@@ -227,6 +236,36 @@ function PaginaUsuario() {
             </div>
             <Switch checked={activo} onCheckedChange={setActivo} />
           </div>
+
+          <div className="space-y-3 rounded-md border border-border p-3">
+            <div>
+              <p className="text-sm font-medium">Opciones visibles para este usuario</p>
+              <p className="text-xs text-muted-foreground">
+                Solo un administrador puede cambiar estos permisos. El perfil administrador siempre
+                ve todas las opciones.
+              </p>
+            </div>
+            {OPCIONES_VISIBILIDAD.map((opcion) => (
+              <div
+                key={opcion.clave}
+                className="flex items-center justify-between gap-3 rounded-md bg-muted/40 p-2.5"
+              >
+                <div>
+                  <p className="text-sm font-medium">{opcion.etiqueta}</p>
+                  <p className="text-xs text-muted-foreground">{opcion.detalle}</p>
+                </div>
+                <Switch
+                  checked={perfil === "administrador" ? true : visibilidad[opcion.clave]}
+                  disabled={perfil === "administrador"}
+                  onCheckedChange={(v) =>
+                    setVisibilidad((prev) => ({ ...prev, [opcion.clave]: v }))
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
+
 
           <div className="flex flex-wrap gap-2 pt-1">
             <Button onClick={() => void guardar()} disabled={guardando} className="gap-1.5">

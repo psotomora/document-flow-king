@@ -177,16 +177,20 @@ public static class EstadoEndpoints
                 """);
 
             var esAdmin = string.Equals(ctx.User.Perfil(), "administrador", StringComparison.OrdinalIgnoreCase);
+            const string consultaUsuarios =
+                """
+                SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,
+                       u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo,
+                       u.VerBancos, u.VerConsolidado, u.VerErogaciones, u.VerProyeccion
+                FROM flujo.Usuario u
+                INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
+                """;
+            // El administrador ve la lista completa; los demás perfiles solo su
+            // propio registro, para conocer sus permisos de visibilidad.
             var usuarios = esAdmin
-                ? cn.Query<UsuarioAdminDto>(
-                    """
-                    SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,
-                           u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo
-                    FROM flujo.Usuario u
-                    INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
-                    ORDER BY u.NombreCompleto
-                    """)
-                : [];
+                ? cn.Query<UsuarioAdminDto>(consultaUsuarios + " ORDER BY u.NombreCompleto")
+                : cn.Query<UsuarioAdminDto>(consultaUsuarios + " WHERE u.UsuarioId = @usuarioId",
+                    new { usuarioId = ctx.User.UsuarioId() });
 
             var usuario = new UsuarioDto(
                 ctx.User.UsuarioId().ToString(), ctx.User.NombreUsuario(), ctx.User.Perfil());

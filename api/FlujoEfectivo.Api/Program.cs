@@ -156,6 +156,20 @@ try
                 Actualizado   DATETIME2(0)  NOT NULL CONSTRAINT DF_FuenteExterna_Actualizado DEFAULT SYSUTCDATETIME(),
                 UsuarioId     INT           NULL
             );
+
+        -- Permisos de visibilidad por usuario (07_permisos_usuario.sql).
+        IF COL_LENGTH('flujo.Usuario', 'VerBancos') IS NULL
+            ALTER TABLE flujo.Usuario ADD VerBancos BIT NOT NULL
+                CONSTRAINT DF_Usuario_VerBancos DEFAULT 1;
+        IF COL_LENGTH('flujo.Usuario', 'VerConsolidado') IS NULL
+            ALTER TABLE flujo.Usuario ADD VerConsolidado BIT NOT NULL
+                CONSTRAINT DF_Usuario_VerConsolidado DEFAULT 1;
+        IF COL_LENGTH('flujo.Usuario', 'VerErogaciones') IS NULL
+            ALTER TABLE flujo.Usuario ADD VerErogaciones BIT NOT NULL
+                CONSTRAINT DF_Usuario_VerErogaciones DEFAULT 1;
+        IF COL_LENGTH('flujo.Usuario', 'VerProyeccion') IS NULL
+            ALTER TABLE flujo.Usuario ADD VerProyeccion BIT NOT NULL
+                CONSTRAINT DF_Usuario_VerProyeccion DEFAULT 1;
         """);
 }
 catch (Exception ex)

@@ -19,6 +19,7 @@ import {
 import type { ReactNode } from "react";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import { formatearFecha, formatearNumero } from "@/lib/formato";
+import { opcionDeRuta, puedeVer } from "@/lib/permisos";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -79,6 +80,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // Opciones ocultas para el usuario según sus permisos de visibilidad.
+  const rutaVisible = (item: { to: string }) => {
+    const opcion = opcionDeRuta(item.to);
+    return !opcion || puedeVer(usuario, opcion.clave);
+  };
+  const opcionActual = opcionDeRuta(pathname);
+  const accesoDenegado = !!opcionActual && !puedeVer(usuario, opcionActual.clave);
+
+
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
@@ -102,7 +112,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {seccion.grupo}
               </p>
               <ul className="space-y-0.5">
-                {seccion.items.map((item) => {
+                {seccion.items.filter(rutaVisible).map((item) => {
                   const activo =
                     item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
                   const Icono = item.icono;
@@ -215,7 +225,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 space-y-6 px-4 py-6 lg:px-6">{children}</main>
+        <main className="min-w-0 flex-1 space-y-6 px-4 py-6 lg:px-6">
+          {accesoDenegado ? (
+            <div className="rounded-lg border border-border bg-card p-6">
+              <p className="text-sm font-medium">Opción no disponible</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Su usuario no tiene habilitada la opción «{opcionActual?.etiqueta}». Solicite el
+                permiso a un administrador del sistema.
+              </p>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );

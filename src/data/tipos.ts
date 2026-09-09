@@ -168,4 +168,9 @@ export interface Usuario {
   nombreUsuario?: string;
   correo?: string | undefined;
   activo?: boolean;
+  /** Permisos de visibilidad por usuario (ausente = permitido). */
+  verBancos?: boolean;
+  verConsolidado?: boolean;
+  verErogaciones?: boolean;
+  verProyeccion?: boolean;
 }
