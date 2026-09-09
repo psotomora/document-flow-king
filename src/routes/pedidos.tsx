@@ -84,10 +84,22 @@ function PaginaPedidos() {
   const fuenteExterna = modoApi && pedidosFuenteExterna;
   const [estado, setEstado] = useState<EstadoPedido | "todos">("todos");
   const [abierto, setAbierto] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
 
-  const filtrados = filtrarPorCompania(pedidos, companiaActiva).filter(
-    (p) => (fuenteExterna ? p.estado === "Pendiente" : estado === "todos" || p.estado === estado),
-  );
+  const filtrados = filtrarPorCompania(pedidos, companiaActiva)
+    .filter((p) => (fuenteExterna ? p.estado === "Pendiente" : estado === "todos" || p.estado === estado))
+    .filter((p) => {
+      if (!busqueda.trim()) return true;
+      const termino = busqueda.toLowerCase();
+      return p.numero.toLowerCase().includes(termino) || p.cliente.toLowerCase().includes(termino);
+    })
+    .filter((p) => {
+      if (fechaInicio && p.fechaCreacion < fechaInicio) return false;
+      if (fechaFin && p.fechaCreacion > fechaFin) return false;
+      return true;
+    });
 
   const pendientesUSD = filtrados
     .filter((p) => p.estado === "Pendiente")
@@ -170,6 +182,36 @@ function PaginaPedidos() {
               </SelectContent>
             </Select>
           )}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pd-buscar">Buscar</Label>
+          <Input
+            id="pd-buscar"
+            placeholder="Número o cliente…"
+            className="w-64"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pd-fecha-inicio">Fecha inicio</Label>
+          <Input
+            id="pd-fecha-inicio"
+            type="date"
+            className="w-44"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="pd-fecha-fin">Fecha fin</Label>
+          <Input
+            id="pd-fecha-fin"
+            type="date"
+            className="w-44"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
         </div>
         <div className="ml-auto text-right">
           <p className="text-xs text-muted-foreground">
