@@ -17,6 +17,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useApp } from "@/contexto/AppContexto";
 import type { Perfil } from "@/data/tipos";
+import { OPCIONES_VISIBILIDAD, type ClaveVisibilidad } from "@/lib/permisos";
 
 export const Route = createFileRoute("/usuarios/$usuarioId")({
   head: () => ({
@@ -69,6 +70,12 @@ function PaginaUsuario() {
   const [activo, setActivo] = useState(actual?.activo ?? true);
   const [contrasena, setContrasena] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const [visibilidad, setVisibilidad] = useState<Record<ClaveVisibilidad, boolean>>(() => ({
+    verBancos: actual?.verBancos ?? true,
+    verConsolidado: actual?.verConsolidado ?? true,
+    verErogaciones: actual?.verErogaciones ?? true,
+    verProyeccion: actual?.verProyeccion ?? true,
+  }));
 
   const volver = () => void navigate({ to: "/acceso" });
 

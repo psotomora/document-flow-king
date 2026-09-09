@@ -225,7 +225,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 space-y-6 px-4 py-6 lg:px-6">{children}</main>
+        <main className="min-w-0 flex-1 space-y-6 px-4 py-6 lg:px-6">
+          {accesoDenegado ? (
+            <div className="rounded-lg border border-border bg-card p-6">
+              <p className="text-sm font-medium">Opción no disponible</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Su usuario no tiene habilitada la opción «{opcionActual?.etiqueta}». Solicite el
+                permiso a un administrador del sistema.
+              </p>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );
