@@ -79,3 +79,83 @@ export function pedidosPendientesDeContratos(
 
   return generados;
 }
+
+/** Contrato que debe facturarse dentro del mes corriente. */
+export interface ContratoDelMes {
+  contratoId: string;
+  companiaId: string;
+  numero: string;
+  cliente: string;
+  periodicidad: Periodicidad;
+  /** Fecha esperada de facturación dentro del mes. */
+  fecha: string;
+  moneda: Contrato["moneda"];
+  monto: number;
+  /** Verdadero si ya existe un pedido o factura asociado a esa facturación. */
+  yaDocumentado: boolean;
+  /** Número del pedido o factura encontrado, si existe. */
+  documento?: string;
+}
+
+/** Último día del mes indicado en formato YYYY-MM. */
+function finDeMes(mes: string): string {
+  const [a, m] = mes.split("-").map(Number);
+  const ultimo = new Date(Date.UTC(a ?? 1970, m ?? 1, 0)).getUTCDate();
+  return `${mes}-${String(ultimo).padStart(2, "0")}`;
+}
+
+/**
+ * Contratos activos cuya facturación cae dentro del mes indicado (YYYY-MM).
+ * Marca los que ya tienen pedido o factura registrada, para no contarlos dos
+ * veces en el saldo proyectado. Funciona igual con datos locales o externos.
+ */
+export function contratosPorFacturarDelMes(
+  contratos: Contrato[],
+  documentos: { numero: string; fecha: string }[],
+  mes: string,
+): ContratoDelMes[] {
+  const inicio = `${mes}-01`;
+  const fin = finDeMes(mes);
+  const delMes = documentos.filter((d) => (d.fecha ?? "").slice(0, 7) === mes);
+  const resultado: ContratoDelMes[] = [];
+
+  for (const c of contratos) {
+    if (c.estado !== "Activo") continue;
+    const paso = MESES_POR_PERIODICIDAD[c.periodicidad] ?? 1;
+    let fecha = c.proximaFacturacion.slice(0, 10);
+    let vueltas = 0;
+    // Alinea la fecha con el mes solicitado, hacia atrás o hacia adelante.
+    while (fecha > fin && vueltas < 60) {
+      fecha = sumarMeses(fecha, -paso);
+      vueltas++;
+    }
+    while (fecha < inicio && vueltas < 60) {
+      fecha = sumarMeses(fecha, paso);
+      vueltas++;
+    }
+    while (fecha >= inicio && fecha <= fin) {
+      const esperado = numeroPedidoDeContrato(c.numero, fecha);
+      const clave = c.numero.trim().toUpperCase();
+      const doc = delMes.find(
+        (d) =>
+          d.numero === esperado ||
+          (clave.length > 0 && d.numero.trim().toUpperCase().includes(clave)),
+      );
+      resultado.push({
+        contratoId: c.id,
+        companiaId: c.companiaId,
+        numero: c.numero,
+        cliente: c.cliente,
+        periodicidad: c.periodicidad,
+        fecha,
+        moneda: c.moneda,
+        monto: c.monto,
+        yaDocumentado: doc !== undefined,
+        ...(doc ? { documento: doc.numero } : {}),
+      });
+      fecha = sumarMeses(fecha, paso);
+    }
+  }
+
+  return resultado.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.numero.localeCompare(b.numero));
+}
