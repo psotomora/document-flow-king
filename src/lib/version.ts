@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.20.3",
+    fecha: "2026-09-09",
+    cambios: [
+      "SoftlandERP: mensaje claro cuando la clave guardada no se puede descifrar porque cambió la llave de seguridad; basta volver a guardarla en Parámetros.",
+    ],
+  },
+  {
     version: "1.20.2",
     fecha: "2026-09-09",
     cambios: [
