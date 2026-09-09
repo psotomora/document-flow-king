@@ -233,14 +233,20 @@ function PaginaContratos() {
 function ContratosDelMes() {
   const {
     contratosDelMes,
+    contratos,
     companias,
     companiaActiva,
     tipoCambio,
     hoy,
     usuario,
+    puedeEditar,
+    esAdministrador,
+    actualizarContrato,
+    eliminarContrato,
     preferencias,
     actualizarPreferencia,
   } = useApp();
+  const [enEdicion, setEnEdicion] = useState<string | null>(null);
 
   const guardados = useMemo(() => {
     try {
