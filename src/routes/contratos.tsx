@@ -81,12 +81,31 @@ function PaginaContratos() {
     usuario,
   } = useApp();
   const [estado, setEstado] = useState<EstadoContrato | "todos">("todos");
+  const [busqueda, setBusqueda] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
   const [enEdicion, setEnEdicion] = useState<string | null>(null);
 
-  const filtrados = filtrarPorCompania(contratos, companiaActiva).filter(
-    (c) => estado === "todos" || c.estado === estado,
-  );
+  const texto = busqueda.trim().toLowerCase();
+  const filtrados = filtrarPorCompania(contratos, companiaActiva).filter((c) => {
+    if (estado !== "todos" && c.estado !== estado) return false;
+    if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
+    const fecha = c.proximaFacturacion.slice(0, 10);
+    if (fechaInicio && fecha < fechaInicio) return false;
+    if (fechaFin && fecha > fechaFin) return false;
+    return true;
+  });
+
+  const porFacturar = filtrados.filter((c) => c.estado === "Activo" && !c.facturado);
+  const totalUSD = porFacturar
+    .filter((c) => c.moneda === "USD")
+    .reduce((s, c) => s + c.monto, 0);
+  const totalCRC = porFacturar
+    .filter((c) => c.moneda === "CRC")
+    .reduce((s, c) => s + c.monto, 0);
+  const totalEnUsd = totalUSD + (tipoCambio > 0 ? totalCRC / tipoCambio : 0);
+
 
   const exportar = () =>
     exportarExcel(
