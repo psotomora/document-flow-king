@@ -76,7 +76,8 @@ function PaginaDocumentosPorPagar() {
     hoy,
   } = useApp();
 
-  const [busqueda, setBusqueda] = useState("");
+  const [proveedorBusqueda, setProveedorBusqueda] = useState("");
+  const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
   const [periodo, setPeriodo] = useState<"mes" | "todos" | "rango">("todos");
   const [fechaInicio, setFechaInicio] = useState("");
@@ -85,7 +86,8 @@ function PaginaDocumentosPorPagar() {
   const [enEdicion, setEnEdicion] = useState<DocumentoPorPagar | null>(null);
 
   const mesActual = hoy.slice(0, 7);
-  const texto = busqueda.trim().toLowerCase();
+  const proveedorTexto = proveedorBusqueda.trim().toLowerCase();
+  const numeroTexto = numeroBusqueda.trim().toLowerCase();
   const soloLectura = documentosPagoFuenteExterna;
 
   const filtrados = useMemo(
