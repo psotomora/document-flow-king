@@ -222,6 +222,25 @@ function PaginaParametros() {
         ) : null}
       </div>
 
+      <h2 className="text-sm font-semibold text-foreground">Presentación de tablas</h2>
+      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-foreground">Filas visibles en tablas</p>
+          <p className="text-xs text-muted-foreground">
+            Cantidad de filas que se muestran sin desplazarse. Aplica a todas las tablas y se
+            guarda para su usuario; cada pantalla puede cambiarlo por separado.
+          </p>
+        </div>
+        <div className="ml-auto">
+          <SelectorFilas
+            id="filas-global"
+            etiqueta="Filas"
+            filas={filasGlobales}
+            onCambio={establecerFilasGlobales}
+          />
+        </div>
+      </div>
+
       <h2 className="text-sm font-semibold text-foreground">Tipo de cambio</h2>
 
 
