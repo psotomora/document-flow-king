@@ -32,9 +32,21 @@ export function diferenciaDias(desdeIso: string, hastaIso: string): number {
   return Math.round((aFecha(hastaIso).getTime() - aFecha(desdeIso).getTime()) / MS_DIA);
 }
 
-/** RF-003: fecha de vencimiento = fecha de emisión + plazo en días. */
+/**
+ * RF-003: fecha de vencimiento = fecha de emisión + plazo en días.
+ * Si el sistema de origen ya la registró en cuentas por cobrar, se usa esa fecha.
+ */
 export function fechaVencimiento(factura: Factura): string {
+  if (factura.fechaVence) return factura.fechaVence;
   return sumarDias(factura.fechaEmision, factura.plazoDias);
+}
+
+/**
+ * Monto que queda por cobrar según el sistema de origen. Cuando la factura viene
+ * de cuentas por cobrar del ERP, ese saldo manda sobre el total facturado.
+ */
+export function montoPorCobrar(factura: Factura): number {
+  return typeof factura.saldoErp === "number" ? Math.max(factura.saldoErp, 0) : factura.monto;
 }
 
 /** RF-003: días para vencer = fecha de vencimiento - fecha actual. */
