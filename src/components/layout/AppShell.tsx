@@ -102,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {seccion.grupo}
               </p>
               <ul className="space-y-0.5">
-                {seccion.items.map((item) => {
+                {seccion.items.filter(rutaVisible).map((item) => {
                   const activo =
                     item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
                   const Icono = item.icono;
