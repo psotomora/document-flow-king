@@ -32,7 +32,9 @@ export function useFilasVisibles(pantalla: string) {
   const global = Number(preferencias[PREF_FILAS_GLOBAL]);
   const propia = Number(preferencias[prefFilasPantalla(pantalla)]);
   const filas = valida(propia) ? propia : valida(global) ? global : FILAS_DEFECTO;
-  const estiloTabla: CSSProperties = { maxHeight: `calc(${filas} * 3.25rem + 3rem)` };
+  const estiloTabla = {
+    ["--alto-tabla" as string]: `calc(${filas} * 3.25rem + 3rem)`,
+  } as CSSProperties;
   return {
     filas,
     estiloTabla,
