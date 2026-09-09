@@ -103,6 +103,12 @@ function PaginaPagos() {
     [pagos, facturasCalculadas, companiaActiva, banco],
   );
 
+  const totales = useMemo(() => {
+    const total = (m: Moneda) =>
+      filas.filter(({ pago }) => pago.moneda === m).reduce((s, { pago }) => s + pago.monto, 0);
+    return { USD: total("USD"), CRC: total("CRC") };
+  }, [filas]);
+
   const exportar = () =>
     exportarExcel(
       "pagos-recibidos",
@@ -155,6 +161,19 @@ function PaginaPagos() {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {(["USD", "CRC"] as Moneda[]).map((m) => (
+          <div key={m} className="rounded-lg border border-border bg-card p-4">
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Total pagado en {m}
+            </p>
+            <p className="mt-2 font-mono text-lg font-semibold tabular-nums">
+              {formatearMoneda(totales[m], m)}
+            </p>
+          </div>
+        ))}
       </div>
 
       <div className="overflow-auto max-h-[60vh] rounded-lg border border-border bg-card">
