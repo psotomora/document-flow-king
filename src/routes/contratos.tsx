@@ -340,6 +340,11 @@ function PaginaContratos() {
 /** Subsección: contratos que deben facturarse en el mes corriente. */
 function ContratosDelMes() {
   const {
+    filas: filasMes,
+    estiloTabla: estiloTablaMes,
+    establecer: establecerFilasMes,
+  } = useFilasVisibles("contratosMes");
+  const {
     contratosDelMes,
     contratos,
     companias,
