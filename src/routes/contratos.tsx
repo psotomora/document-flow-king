@@ -237,6 +237,16 @@ function PaginaContratos() {
         </Table>
       </div>
 
+      <DialogoEditarContrato
+        contrato={contratos.find((c) => c.id === enEdicion) ?? null}
+        cerrar={() => setEnEdicion(null)}
+        guardar={(cambios) => {
+          if (enEdicion) actualizarContrato(enEdicion, cambios);
+          setEnEdicion(null);
+          toast.success("Contrato actualizado");
+        }}
+      />
+
       <ContratosDelMes />
     </div>
   );
