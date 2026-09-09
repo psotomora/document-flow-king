@@ -514,6 +514,7 @@ function DialogoEditarContrato({
   const [proximaFacturacion, setProxima] = useState("");
   const [moneda, setMoneda] = useState<Moneda>("USD");
   const [monto, setMonto] = useState("");
+  const [plazoDias, setPlazo] = useState("30");
 
   useEffect(() => {
     if (!contrato) return;
