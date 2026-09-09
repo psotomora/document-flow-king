@@ -49,10 +49,24 @@ function PaginaConsolidado() {
     usuario,
     pedidosFuenteExterna,
     facturasFuenteExterna,
+    contratosDelMes,
   } = useApp();
 
   const origenPedidos = pedidosFuenteExterna ? "SoftlandERP" : "registro local";
   const origenFacturas = facturasFuenteExterna ? "SoftlandERP" : "registro local";
+
+  // Contratos del mes que aún no tienen pedido ni factura, en dólares.
+  const contratosMesUSD = useMemo(() => {
+    const pendientes = filtrarPorCompania(contratosDelMes, companiaActiva).filter(
+      (c) => !c.yaDocumentado,
+    );
+    return (
+      pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
+      (tipoCambio > 0
+        ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
+        : 0)
+    );
+  }, [contratosDelMes, companiaActiva, tipoCambio]);
 
   const proyeccion = useMemo(() => {
     const bancosVisibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
@@ -62,9 +76,10 @@ function PaginaConsolidado() {
       filtrarPorCompania(facturasCalculadas, companiaActiva),
       filtrarPorCompania(pedidos, companiaActiva),
       tipoCambio,
+      contratosMesUSD,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bancos, pagos, erogaciones, facturasCalculadas, pedidos, companiaActiva, tipoCambio]);
+  }, [bancos, pagos, erogaciones, facturasCalculadas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
 
   const filas: [string, string, string][] = [
     [
@@ -85,6 +100,11 @@ function PaginaConsolidado() {
     [
       "Pedidos pendientes",
       formatearMoneda(proyeccion.pedidosPendientesUSD, "USD"),
+      "—",
+    ],
+    [
+      "Contratos por facturar este mes",
+      formatearMoneda(proyeccion.contratosMesUSD, "USD"),
       "—",
     ],
   ];
@@ -115,6 +135,11 @@ function PaginaConsolidado() {
       concepto: "Pedidos pendientes",
       valor: proyeccion.pedidosPendientesUSD,
       nota: `Solo pedidos en estado Pendiente (${origenPedidos}); al facturarse dejan de contarse aquí.`,
+    },
+    {
+      concepto: "Contratos por facturar este mes",
+      valor: proyeccion.contratosMesUSD,
+      nota: "Contratos activos cuya facturación cae en el mes corriente y que aún no tienen pedido ni factura; los que ya se documentaron no se cuentan otra vez.",
     },
   ];
 
@@ -180,9 +205,14 @@ function PaginaConsolidado() {
           tono="exito"
         />
         <TarjetaIndicador
+          titulo="Contratos por facturar este mes"
+          valor={formatearMoneda(proyeccion.contratosMesUSD, "USD")}
+          detalle="Contratos activos del mes corriente aún sin pedido ni factura"
+        />
+        <TarjetaIndicador
           titulo="Saldo proyectado total (USD)"
           valor={formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD")}
-          detalle={`Bancos + pedidos pendientes (${origenPedidos}) + facturas pendientes de pago (${origenFacturas})`}
+          detalle={`Bancos + pedidos pendientes (${origenPedidos}) + facturas pendientes de pago (${origenFacturas}) + contratos por facturar del mes`}
           tono="primario"
         />
       </div>

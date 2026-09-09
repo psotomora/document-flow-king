@@ -285,7 +285,9 @@ export interface SaldoProyectado {
   consolidadoUSD: number;
   pedidosPendientesUSD: number;
   consolidadoConPedidosUSD: number;
-  /** Consolidado en USD + pedidos pendientes + facturas pendientes de pago. */
+  /** Contratos que deben facturarse en el mes y aún no tienen documento. */
+  contratosMesUSD: number;
+  /** Consolidado en USD + pedidos pendientes + facturas pendientes + contratos del mes. */
   saldoProyectadoTotalUSD: number;
 }
 
@@ -296,6 +298,7 @@ export function calcularSaldoProyectado(
   facturas: FacturaCalculada[],
   pedidos: Pedido[],
   tipoCambio: number,
+  contratosMesUSD = 0,
 ): SaldoProyectado {
   const saldoActualUSD = totalizarSaldos(saldosUSD).saldoNeto;
   const saldoActualCRC = totalizarSaldos(saldosCRC).saldoNeto;
@@ -328,7 +331,8 @@ export function calcularSaldoProyectado(
     consolidadoUSD,
     pedidosPendientesUSD,
     consolidadoConPedidosUSD: consolidadoUSD + pedidosPendientesUSD,
-    saldoProyectadoTotalUSD: consolidadoUSD + pedidosPendientesUSD,
+    contratosMesUSD,
+    saldoProyectadoTotalUSD: consolidadoUSD + pedidosPendientesUSD + contratosMesUSD,
   };
 }
 

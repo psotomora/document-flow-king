@@ -406,6 +406,29 @@ public static class RegistrosEndpoints
             return Results.Ok(new { mensaje = "Parámetro actualizado." });
         });
 
+        /* ------------------ Preferencias personales por usuario ---------------- */
+        g.MapPut("/preferencias/{clave}", (string clave, CambioParametro p, HttpContext ctx, Db db) =>
+        {
+            if (string.IsNullOrWhiteSpace(clave) || clave.Length > 60)
+                return Results.BadRequest(new { mensaje = "Clave de preferencia inválida." });
+            var valor = (p.Valor ?? "").Trim();
+            if (valor.Length > 400)
+                return Results.BadRequest(new { mensaje = "El valor de la preferencia es demasiado largo." });
+            using var cn = db.Abrir();
+            cn.Execute(
+                """
+                MERGE flujo.PreferenciaUsuario AS destino
+                USING (SELECT @usuarioId AS UsuarioId, @clave AS Clave) AS origen
+                    ON destino.UsuarioId = origen.UsuarioId AND destino.Clave = origen.Clave
+                WHEN MATCHED THEN
+                    UPDATE SET Valor = @valor, Actualizado = SYSUTCDATETIME()
+                WHEN NOT MATCHED THEN
+                    INSERT (UsuarioId, Clave, Valor) VALUES (@usuarioId, @clave, @valor);
+                """,
+                new { usuarioId = ctx.User.UsuarioId(), clave, valor });
+            return Results.Ok(new { mensaje = "Preferencia guardada." });
+        });
+
         /* ----------------------- Fuente externa: SoftlandERP ------------------ */
         g.MapGet("/pedidos/{id}/lineas", (string id, Db db, IConfiguration config) =>
         {

@@ -195,8 +195,23 @@ public static class EstadoEndpoints
             var usuario = new UsuarioDto(
                 ctx.User.UsuarioId().ToString(), ctx.User.NombreUsuario(), ctx.User.Perfil());
 
+            // Preferencias personales del usuario autenticado (filtros recordados).
+            var preferencias = new Dictionary<string, string>();
+            try
+            {
+                preferencias = cn.Query<(string Clave, string Valor)>(
+                        "SELECT Clave, Valor FROM flujo.PreferenciaUsuario WHERE UsuarioId = @usuarioId",
+                        new { usuarioId = ctx.User.UsuarioId() })
+                    .ToDictionary(p => p.Clave, p => p.Valor);
+            }
+            catch
+            {
+                // La tabla puede no existir en bases antiguas; se ignora.
+            }
+
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
-                erogaciones, contratos, pedidos, tiposCambio, bitacora, parametros, avisoFuente));
+                erogaciones, contratos, pedidos, tiposCambio, bitacora, parametros, avisoFuente,
+                preferencias));
         }).RequireAuthorization();
     }
 }
