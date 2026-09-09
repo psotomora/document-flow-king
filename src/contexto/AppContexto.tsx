@@ -113,6 +113,10 @@ interface EstadoApp {
     perfil: Perfil;
     activo: boolean;
     contrasena?: string;
+    verBancos?: boolean;
+    verConsolidado?: boolean;
+    verErogaciones?: boolean;
+    verProyeccion?: boolean;
   }) => Promise<void>;
   actualizarUsuario: (
     id: string,
@@ -123,6 +127,10 @@ interface EstadoApp {
       perfil?: Perfil;
       activo?: boolean;
       contrasena?: string;
+      verBancos?: boolean;
+      verConsolidado?: boolean;
+      verErogaciones?: boolean;
+      verProyeccion?: boolean;
     },
   ) => Promise<void>;
   eliminarUsuario: (id: string) => Promise<void>;
