@@ -83,7 +83,8 @@ con datos en memoria.
 | POST   | `/api/facturas`             | Registrar factura                         |
 | DELETE | `/api/facturas/{id}`        | Eliminar factura y sus pagos              |
 | POST   | `/api/pagos`                | Registrar pago (permite moneda cruzada)   |
-| POST   | `/api/erogaciones`          | Registrar erogación                       |
+| POST   | `/api/erogaciones`          | Registrar erogación (puede referenciar un documento por pagar) |
+| POST/PUT/DELETE | `/api/documentos-pagar` | Documentos por pagar locales (eliminar: solo administrador) |
 | POST/PUT/DELETE | `/api/contratos`   | Gestión de contratos                      |
 | POST/PUT/DELETE | `/api/pedidos`     | Gestión de pedidos                        |
 | POST/PUT | `/api/bancos`             | Catálogo de cuentas (solo administrador)  |
@@ -92,6 +93,21 @@ con datos en memoria.
 
 Todas las operaciones quedan registradas en `flujo.Bitacora` con usuario,
 fecha, módulo y valores anterior/nuevo.
+
+### Documentos por pagar
+
+- Script: `database/09_documentos_por_pagar.sql` crea `flujo.DocumentoPorPagar`
+  y agrega `DocumentoPorPagarId` / `DocumentoPagoNumero` a `flujo.Erogacion`.
+  La API aplica la misma migración automáticamente al iniciar.
+- Parámetro `documentosPagoFuenteExterna` (solo administrador). Cuando está en
+  `1`, `/api/estado` lee los documentos desde la conexión externa configurada
+  para pedidos y facturas, consultando `DOCUMENTOS_CP` con
+  `SALDO > 0`, `FECHA_ANUL IS NULL` y `ISNULL(ANULADO,'N') <> 'S'`; el nombre
+  del proveedor se resuelve contra `PROVEEDOR` cuando la tabla existe.
+- Con fuente externa los documentos son de solo lectura: no se crean, editan
+  ni eliminan, y nunca se escribe en la base del ERP.
+- Con datos locales, al registrar una erogación enlazada se descuenta su monto
+  del saldo del documento.
 
 ## 6. Seguridad
 
