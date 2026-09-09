@@ -423,11 +423,38 @@ function ContratosDelMes() {
                     ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
                     : "Por facturar"}
                 </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    {puedeEditar ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Editar contrato ${c.numero}`}
+                        onClick={() => setEnEdicion(c.contratoId)}
+                      >
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </Button>
+                    ) : null}
+                    {esAdministrador ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Eliminar contrato ${c.numero}`}
+                        onClick={() => {
+                          eliminarContrato(c.contratoId);
+                          toast.success(`Contrato ${c.numero} eliminado`);
+                        }}
+                      >
+                        <Trash2 className="size-4 text-muted-foreground" />
+                      </Button>
+                    ) : null}
+                  </div>
+                </TableCell>
               </TableRow>
             ))}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
                   No hay contratos por facturar este mes con los filtros aplicados.
                 </TableCell>
               </TableRow>
