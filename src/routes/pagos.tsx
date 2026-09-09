@@ -223,7 +223,7 @@ function PaginaPagos() {
         ))}
       </div>
 
-      <div className="overflow-auto max-h-[60vh] rounded-lg border border-border bg-card">
+      <div className="overflow-auto max-h-[60vh] rounded-lg border border-border bg-card [&>div]:overflow-visible">
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm">
             <TableRow>

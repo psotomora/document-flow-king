@@ -209,9 +209,9 @@ function PaginaContratos() {
         ) : null}
       </div>
 
-      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card">
+      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-card">
+          <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
 
             <TableRow>
               <TableHead>Compañía</TableHead>
@@ -482,9 +482,9 @@ function ContratosDelMes() {
         ) : null}
       </div>
 
-      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card">
+      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible">
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-card">
+          <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
             <TableRow>
               <TableHead>Compañía</TableHead>
               <TableHead>Contrato</TableHead>
