@@ -72,9 +72,9 @@ export function totalPagado(factura: Factura, pagos: Pago[]): number {
     .reduce((suma, p) => suma + montoPagoEnMonedaFactura(p, factura.moneda), 0);
 }
 
-/** RF-004: saldo pendiente = monto facturado - total pagado. */
+/** RF-004: saldo pendiente = monto por cobrar (o saldo del ERP) - total pagado localmente. */
 export function saldoPendiente(factura: Factura, pagos: Pago[]): number {
-  return factura.monto - totalPagado(factura, pagos);
+  return montoPorCobrar(factura) - totalPagado(factura, pagos);
 }
 
 /** RF-004: estado derivado de la factura. */
@@ -98,7 +98,7 @@ export function calcularFactura(
   hoyIso: string,
 ): FacturaCalculada {
   const pagado = totalPagado(factura, pagos);
-  const saldo = factura.monto - pagado;
+  const saldo = montoPorCobrar(factura) - pagado;
   const estado = estadoFactura(factura, pagos, hoyIso);
   return {
     ...factura,
