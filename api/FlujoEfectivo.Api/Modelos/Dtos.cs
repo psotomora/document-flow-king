@@ -237,6 +237,7 @@ public record EstadoDto(
     IEnumerable<FacturaDto> Facturas,
     IEnumerable<PagoDto> Pagos,
     IEnumerable<ErogacionDto> Erogaciones,
+    IEnumerable<DocumentoPorPagarDto> DocumentosPorPagar,
     IEnumerable<ContratoDto> Contratos,
     IEnumerable<PedidoDto> Pedidos,
     IEnumerable<TipoCambioDto> TiposCambio,
