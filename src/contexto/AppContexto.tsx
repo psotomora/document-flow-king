@@ -65,6 +65,10 @@ export const FUENTES_PEDIDOS: { valor: string; etiqueta: string }[] = [
   { valor: "SoftlandERP", etiqueta: "SoftlandERP" },
 ];
 export const FUENTE_PEDIDOS_DEFECTO = "SoftlandERP";
+/** Preferencia que recuerda el último mes revisado de contratos por facturar. */
+export const PREF_CONTRATOS_MES_REVISADO = "contratosMesRevisado";
+/** Preferencias de los filtros de la subsección de contratos del mes. */
+export const PREF_CONTRATOS_MES_FILTROS = "contratosMesFiltros";
 const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
   [PARAM_FACTURAS_FUENTE_EXTERNA]: "0",
@@ -452,6 +456,45 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   }, [anotar, autenticado, cargando, contratos, hoy, pedidos, recargar]);
 
 
+  // Contratos activos que deben facturarse en el mes corriente (RF-011).
+  // Se calcula igual con datos locales o con origen externo (SoftlandERP),
+  // porque los contratos siempre viven en la base del sistema.
+  const contratosDelMes = useMemo(() => {
+    const documentos = [
+      ...pedidos
+        .filter((p) => p.estado !== "Anulado")
+        .map((p) => ({ numero: p.numero, fecha: p.fechaCreacion })),
+      ...facturas.map((f) => ({ numero: f.numero, fecha: f.fechaEmision })),
+    ];
+    return contratosPorFacturarDelMes(contratos, documentos, hoy.slice(0, 7));
+  }, [contratos, pedidos, facturas, hoy]);
+
+  // Al primer ingreso de cada mes se revisa la lista y se avisa al usuario.
+  const mesRevisado = useRef<string | null>(null);
+  useEffect(() => {
+    if (!autenticado || cargando) return;
+    const mes = hoy.slice(0, 7);
+    if (mesRevisado.current === mes) return;
+    if (preferencias[PREF_CONTRATOS_MES_REVISADO] === mes) {
+      mesRevisado.current = mes;
+      return;
+    }
+    mesRevisado.current = mes;
+    setPreferencias((prev) => ({ ...prev, [PREF_CONTRATOS_MES_REVISADO]: mes }));
+    if (hayApi())
+      void api(`/preferencias/${PREF_CONTRATOS_MES_REVISADO}`, {
+        metodo: "PUT",
+        cuerpo: { valor: mes },
+      }).catch(() => undefined);
+    const porFacturar = contratosDelMes.filter((c) => !c.yaDocumentado).length;
+    if (porFacturar > 0)
+      toast.info(
+        porFacturar === 1
+          ? "1 contrato debe facturarse este mes. Vea Contratos por facturar del mes."
+          : `${porFacturar} contratos deben facturarse este mes. Vea Contratos por facturar del mes.`,
+      );
+  }, [autenticado, cargando, hoy, preferencias, contratosDelMes]);
+
   const valor = useMemo<EstadoApp>(() => {
     const puedeEditar = usuario.perfil !== "consulta";
     const esAdministrador = usuario.perfil === "administrador";
@@ -783,6 +826,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     mutar,
     pagos,
     parametros,
+    preferencias,
+    contratosDelMes,
     pedidos,
     recargar,
     tipoCambio,
