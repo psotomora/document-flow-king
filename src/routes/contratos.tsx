@@ -82,6 +82,7 @@ function PaginaContratos() {
   } = useApp();
   const [estado, setEstado] = useState<EstadoContrato | "todos">("todos");
   const [abierto, setAbierto] = useState(false);
+  const [enEdicion, setEnEdicion] = useState<string | null>(null);
 
   const filtrados = filtrarPorCompania(contratos, companiaActiva).filter(
     (c) => estado === "todos" || c.estado === estado,
@@ -151,7 +152,7 @@ function PaginaContratos() {
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Facturado</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead className="w-12" />
+              <TableHead className="w-24 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -197,19 +198,31 @@ function PaginaContratos() {
                   </Select>
                 </TableCell>
                 <TableCell>
-                  {esAdministrador ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Eliminar contrato ${c.numero}`}
-                      onClick={() => {
-                        eliminarContrato(c.id);
-                        toast.success(`Contrato ${c.numero} eliminado`);
-                      }}
-                    >
-                      <Trash2 className="size-4 text-muted-foreground" />
-                    </Button>
-                  ) : null}
+                  <div className="flex justify-end gap-1">
+                    {puedeEditar ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Editar contrato ${c.numero}`}
+                        onClick={() => setEnEdicion(c.id)}
+                      >
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </Button>
+                    ) : null}
+                    {esAdministrador ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Eliminar contrato ${c.numero}`}
+                        onClick={() => {
+                          eliminarContrato(c.id);
+                          toast.success(`Contrato ${c.numero} eliminado`);
+                        }}
+                      >
+                        <Trash2 className="size-4 text-muted-foreground" />
+                      </Button>
+                    ) : null}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -223,6 +236,16 @@ function PaginaContratos() {
           </TableBody>
         </Table>
       </div>
+
+      <DialogoEditarContrato
+        contrato={contratos.find((c) => c.id === enEdicion) ?? null}
+        cerrar={() => setEnEdicion(null)}
+        guardar={(cambios) => {
+          if (enEdicion) actualizarContrato(enEdicion, cambios);
+          setEnEdicion(null);
+          toast.success("Contrato actualizado");
+        }}
+      />
 
       <ContratosDelMes />
     </div>
@@ -491,6 +514,7 @@ function DialogoEditarContrato({
   const [proximaFacturacion, setProxima] = useState("");
   const [moneda, setMoneda] = useState<Moneda>("USD");
   const [monto, setMonto] = useState("");
+  const [plazoDias, setPlazo] = useState("30");
 
   useEffect(() => {
     if (!contrato) return;
@@ -499,6 +523,7 @@ function DialogoEditarContrato({
     setProxima(contrato.proximaFacturacion.slice(0, 10));
     setMoneda(contrato.moneda);
     setMonto(String(contrato.monto));
+    setPlazo(String(contrato.plazoDias));
   }, [contrato]);
 
   return (
@@ -560,6 +585,15 @@ function DialogoEditarContrato({
               onChange={(e) => setMonto(e.target.value)}
             />
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="e-plazo">Plazo en días</Label>
+            <Input
+              id="e-plazo"
+              type="number"
+              value={plazoDias}
+              onChange={(e) => setPlazo(e.target.value)}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={cerrar}>
@@ -577,6 +611,7 @@ function DialogoEditarContrato({
                 proximaFacturacion,
                 moneda,
                 monto: Number(monto),
+                plazoDias: Number(plazoDias) || 0,
               });
             }}
           >
