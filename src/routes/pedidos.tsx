@@ -67,6 +67,11 @@ const ESTADOS: EstadoPedido[] = ["Pendiente", "Facturado", "Anulado"];
 
 function PaginaPedidos() {
   const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("pedidos");
+  const {
     pedidos,
     companias,
     companiaActiva,
