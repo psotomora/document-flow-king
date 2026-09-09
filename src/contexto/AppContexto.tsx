@@ -26,7 +26,11 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
-import { pedidosPendientesDeContratos } from "@/lib/contratos";
+import {
+  contratosPorFacturarDelMes,
+  pedidosPendientesDeContratos,
+  type ContratoDelMes,
+} from "@/lib/contratos";
 
 
 let contador = 0;
@@ -46,6 +50,7 @@ interface EstadoServidor {
   tiposCambio: TipoCambio[];
   bitacora: RegistroBitacora[];
   parametros?: Record<string, string>;
+  preferencias?: Record<string, string>;
   avisoFuenteExterna?: string | null;
 }
 
@@ -88,6 +93,11 @@ interface EstadoApp {
   tipoCambio: number;
   bitacora: RegistroBitacora[];
   parametros: Record<string, string>;
+  /** Preferencias personales del usuario (filtros recordados). */
+  preferencias: Record<string, string>;
+  actualizarPreferencia: (clave: string, valor: string) => void;
+  /** Contratos activos que deben facturarse en el mes corriente. */
+  contratosDelMes: ContratoDelMes[];
   pedidosFuenteExterna: boolean;
   facturasFuenteExterna: boolean;
   pedidosFuenteOrigen: string;
@@ -183,6 +193,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>(semilla.bitacoraInicial);
   const [parametros, setParametros] = useState<Record<string, string>>({ ...PARAMETROS_DEFECTO });
+  const [preferencias, setPreferencias] = useState<Record<string, string>>({});
   const [avisoFuenteExterna, setAvisoFuenteExterna] = useState<string | null>(null);
   const iniciado = useRef(false);
 
@@ -208,6 +219,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setTiposCambio(estado.tiposCambio);
     setBitacora(estado.bitacora);
     setParametros({ ...PARAMETROS_DEFECTO, ...(estado.parametros ?? {}) });
+    setPreferencias({ ...(estado.preferencias ?? {}) });
     setAvisoFuenteExterna(estado.avisoFuenteExterna ?? null);
   }, []);
 
@@ -466,6 +478,16 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       tipoCambio,
       bitacora,
       parametros,
+      preferencias,
+      actualizarPreferencia: (clave, nuevoValor) => {
+        setPreferencias((prev) => ({ ...prev, [clave]: nuevoValor }));
+        if (hayApi())
+          void api(`/preferencias/${encodeURIComponent(clave)}`, {
+            metodo: "PUT",
+            cuerpo: { valor: nuevoValor },
+          }).catch(() => undefined);
+      },
+      contratosDelMes,
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
       facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
       pedidosFuenteOrigen: parametros[PARAM_PEDIDOS_FUENTE_ORIGEN] || FUENTE_PEDIDOS_DEFECTO,
