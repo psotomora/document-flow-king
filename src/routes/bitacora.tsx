@@ -46,6 +46,11 @@ export const Route = createFileRoute("/bitacora")({
 });
 
 function PaginaBitacora() {
+  const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("bitacora");
   const { bitacora, usuario } = useApp();
   const [modulo, setModulo] = useState("todos");
   const [operacion, setOperacion] = useState("todas");
