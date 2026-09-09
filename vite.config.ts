@@ -6,10 +6,16 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// Despliegue propio (IIS/Windows): compile con NITRO_PRESET=node-server para
+// obtener un servidor Node autónomo. Sin la variable, se mantiene el destino por
+// defecto de Lovable.
+const presetLocal = process.env["NITRO_PRESET"];
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  ...(presetLocal ? { nitro: { preset: presetLocal } } : {}),
 });
