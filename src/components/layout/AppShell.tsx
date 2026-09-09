@@ -19,6 +19,7 @@ import {
 import type { ReactNode } from "react";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import { formatearFecha, formatearNumero } from "@/lib/formato";
+import { opcionDeRuta, puedeVer } from "@/lib/permisos";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -78,6 +79,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     cerrarSesion,
   } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Opciones ocultas para el usuario según sus permisos de visibilidad.
+  const rutaVisible = (item: { to: string }) => {
+    const opcion = opcionDeRuta(item.to);
+    return !opcion || puedeVer(usuario, opcion.clave);
+  };
+  const opcionActual = opcionDeRuta(pathname);
+  const accesoDenegado = !!opcionActual && !puedeVer(usuario, opcionActual.clave);
+
 
   return (
     <div className="flex min-h-screen bg-background">
