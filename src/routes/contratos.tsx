@@ -37,7 +37,7 @@ import {
   useApp,
   PREF_CONTRATOS_MES_FILTROS,
 } from "@/contexto/AppContexto";
-import type { EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
+import type { Contrato, EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 import { cn } from "@/lib/utils";
