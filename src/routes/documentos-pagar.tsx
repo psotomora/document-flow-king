@@ -76,7 +76,8 @@ function PaginaDocumentosPorPagar() {
     hoy,
   } = useApp();
 
-  const [busqueda, setBusqueda] = useState("");
+  const [proveedorBusqueda, setProveedorBusqueda] = useState("");
+  const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
   const [periodo, setPeriodo] = useState<"mes" | "todos" | "rango">("todos");
   const [fechaInicio, setFechaInicio] = useState("");
@@ -85,7 +86,8 @@ function PaginaDocumentosPorPagar() {
   const [enEdicion, setEnEdicion] = useState<DocumentoPorPagar | null>(null);
 
   const mesActual = hoy.slice(0, 7);
-  const texto = busqueda.trim().toLowerCase();
+  const proveedorTexto = proveedorBusqueda.trim().toLowerCase();
+  const numeroTexto = numeroBusqueda.trim().toLowerCase();
   const soloLectura = documentosPagoFuenteExterna;
 
   const filtrados = useMemo(
@@ -93,12 +95,9 @@ function PaginaDocumentosPorPagar() {
       filtrarPorCompania(documentosPorPagar, companiaActiva).filter((d) => {
         if (d.saldo <= 0) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
-        if (
-          texto &&
-          !d.proveedor.toLowerCase().includes(texto) &&
-          !d.numero.toLowerCase().includes(texto)
-        )
+        if (proveedorTexto && !d.proveedor.toLowerCase().includes(proveedorTexto))
           return false;
+        if (numeroTexto && !d.numero.toLowerCase().includes(numeroTexto)) return false;
         const fecha = d.fecha.slice(0, 10);
         if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
         if (periodo === "rango") {
@@ -111,7 +110,8 @@ function PaginaDocumentosPorPagar() {
       documentosPorPagar,
       companiaActiva,
       moneda,
-      texto,
+      proveedorTexto,
+      numeroTexto,
       periodo,
       fechaInicio,
       fechaFin,
@@ -171,13 +171,23 @@ function PaginaDocumentosPorPagar() {
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
-          <Label htmlFor="dp-buscar">Proveedor o documento</Label>
+          <Label htmlFor="dp-proveedor">Proveedor</Label>
           <Input
-            id="dp-buscar"
-            className="w-64"
-            placeholder="Buscar proveedor o n.º de documento…"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+            id="dp-proveedor"
+            className="w-56"
+            placeholder="Buscar proveedor…"
+            value={proveedorBusqueda}
+            onChange={(e) => setProveedorBusqueda(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="dp-numero">N.º de documento</Label>
+          <Input
+            id="dp-numero"
+            className="w-56"
+            placeholder="Buscar n.º de documento…"
+            value={numeroBusqueda}
+            onChange={(e) => setNumeroBusqueda(e.target.value)}
           />
         </div>
         <div className="space-y-1.5">
