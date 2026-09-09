@@ -331,7 +331,8 @@ export function calcularSaldoProyectado(
     consolidadoUSD,
     pedidosPendientesUSD,
     consolidadoConPedidosUSD: consolidadoUSD + pedidosPendientesUSD,
-    saldoProyectadoTotalUSD: consolidadoUSD + pedidosPendientesUSD,
+    contratosMesUSD,
+    saldoProyectadoTotalUSD: consolidadoUSD + pedidosPendientesUSD + contratosMesUSD,
   };
 }
 
