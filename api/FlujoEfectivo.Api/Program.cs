@@ -187,6 +187,34 @@ try
                 CONSTRAINT FK_PreferenciaUsuario_Usuario FOREIGN KEY (UsuarioId)
                     REFERENCES flujo.Usuario(UsuarioId) ON DELETE CASCADE
             );
+
+        -- Documentos por pagar internos (09_documentos_por_pagar.sql).
+        IF OBJECT_ID('flujo.DocumentoPorPagar', 'U') IS NULL
+            CREATE TABLE flujo.DocumentoPorPagar
+            (
+                DocumentoPorPagarId INT IDENTITY(1,1) PRIMARY KEY,
+                CompaniaId          INT           NOT NULL,
+                Proveedor           NVARCHAR(150) NOT NULL,
+                Numero              NVARCHAR(50)  NOT NULL,
+                Tipo                NVARCHAR(10)  NOT NULL CONSTRAINT DF_DocPorPagar_Tipo DEFAULT ('FAC'),
+                Fecha               DATE          NOT NULL,
+                FechaVence          DATE          NULL,
+                Moneda              CHAR(3)       NOT NULL,
+                Monto               DECIMAL(18,2) NOT NULL,
+                Saldo               DECIMAL(18,2) NOT NULL,
+                Anulado             BIT           NOT NULL CONSTRAINT DF_DocPorPagar_Anulado DEFAULT (0),
+                Notas               NVARCHAR(500) NULL,
+                CreadoEn            DATETIME2(0)  NOT NULL CONSTRAINT DF_DocPorPagar_Creado DEFAULT (SYSUTCDATETIME()),
+                CONSTRAINT UQ_DocumentoPorPagar UNIQUE (CompaniaId, Tipo, Numero)
+            );
+        IF COL_LENGTH('flujo.Erogacion', 'DocumentoPorPagarId') IS NULL
+            ALTER TABLE flujo.Erogacion ADD DocumentoPorPagarId INT NULL;
+        IF COL_LENGTH('flujo.Erogacion', 'DocumentoPagoNumero') IS NULL
+            ALTER TABLE flujo.Erogacion ADD DocumentoPagoNumero NVARCHAR(50) NULL;
+        IF NOT EXISTS (SELECT 1 FROM flujo.Parametro WHERE Clave = 'documentosPagoFuenteExterna')
+            INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
+            VALUES ('documentosPagoFuenteExterna', '0',
+                    'Usar datos de documentos pendientes de pago de fuente externa');
         """);
 }
 catch (Exception ex)
