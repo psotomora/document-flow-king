@@ -144,6 +144,12 @@ function PaginaContratos() {
         }
       />
 
+      <div className="grid gap-3 sm:grid-cols-3">
+        <TotalMes titulo="Por facturar en dólares" valor={formatearMoneda(totalUSD, "USD")} />
+        <TotalMes titulo="Por facturar en colones" valor={formatearMoneda(totalCRC, "CRC")} />
+        <TotalMes titulo="Total equivalente en USD" valor={formatearMoneda(totalEnUsd, "USD")} />
+      </div>
+
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
           <Label>Estado</Label>
@@ -158,11 +164,55 @@ function PaginaContratos() {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="ct-busca">Cliente o número de contrato</Label>
+          <Input
+            id="ct-busca"
+            value={busqueda}
+            placeholder="Buscar…"
+            className="w-64"
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="ct-ini">Fecha inicio</Label>
+          <Input
+            id="ct-ini"
+            type="date"
+            value={fechaInicio}
+            className="w-44"
+            onChange={(e) => setFechaInicio(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="ct-fin">Fecha fin</Label>
+          <Input
+            id="ct-fin"
+            type="date"
+            value={fechaFin}
+            className="w-44"
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
+        </div>
+        {busqueda || fechaInicio || fechaFin ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setBusqueda("");
+              setFechaInicio("");
+              setFechaFin("");
+            }}
+          >
+            Limpiar
+          </Button>
+        ) : null}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-card">
+
             <TableRow>
               <TableHead>Compañía</TableHead>
               <TableHead>Contrato</TableHead>
