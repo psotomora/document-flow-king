@@ -157,6 +157,16 @@ public static partial class Softland
         }
     }
 
+    /* --------------------------- Cuentas por cobrar --------------------------- */
+
+    /// <summary>Tipo de documento con el que las facturas se registran en cuentas por cobrar.</summary>
+    public const string TipoDocCxc = "FAC";
+
+    private static bool HayCuentasPorCobrar(IDbConnection cn, string esquema) =>
+        cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{esquema}.DOCUMENTOS_CC" }) == 1;
+
     /* -------------------------------- Pedidos -------------------------------- */
 
     public const string PrefijoId = "sl:";
