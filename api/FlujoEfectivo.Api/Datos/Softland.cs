@@ -321,13 +321,22 @@ public static partial class Softland
             var oc = Texto(d["OrdenCompra"]);
             if (pedido.Length > 0) notas.Add($"Pedido {pedido}");
             if (oc.Length > 0) notas.Add($"OC {oc}");
-            var cobrada = Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
+            // Saldo real de cuentas por cobrar: manda sobre el indicador COBRADA de la factura.
+            var anuladaCxc = Texto(d["AnuladaCxc"]).Equals("S", StringComparison.OrdinalIgnoreCase);
+            decimal? saldoErp = d["SaldoErp"] is null || d["SaldoErp"] is DBNull ? null : Numero(d["SaldoErp"]);
+            var fechaVence = Texto(d["FechaVence"]);
+            var cobrada = saldoErp.HasValue
+                ? anuladaCxc || saldoErp.Value <= 0.009m
+                : Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
             if (cobrada) notas.Add("Cobrada en ERP");
+            else if (saldoErp.HasValue && saldoErp.Value < Numero(d["Monto"]) - 0.009m)
+                notas.Add("Pago parcial en ERP");
             lista.Add(new FacturaDto(
                 PrefijoId + numero, companiaId, numero, Texto(d["Cliente"]), Texto(d["FechaEmision"]),
                 Entero(d["PlazoDias"]), MapearMoneda(Texto(d["Moneda"])), Numero(d["Monto"]),
                 notas.Count > 0 ? string.Join(" · ", notas) : null,
-                Fuente, Entero(d["Lineas"]), cobrada));
+                Fuente, Entero(d["Lineas"]), cobrada,
+                saldoErp, fechaVence.Length > 0 ? fechaVence : null));
         }
         return lista;
     }
