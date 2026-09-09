@@ -95,12 +95,9 @@ function PaginaDocumentosPorPagar() {
       filtrarPorCompania(documentosPorPagar, companiaActiva).filter((d) => {
         if (d.saldo <= 0) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
-        if (
-          texto &&
-          !d.proveedor.toLowerCase().includes(texto) &&
-          !d.numero.toLowerCase().includes(texto)
-        )
+        if (proveedorTexto && !d.proveedor.toLowerCase().includes(proveedorTexto))
           return false;
+        if (numeroTexto && !d.numero.toLowerCase().includes(numeroTexto)) return false;
         const fecha = d.fecha.slice(0, 10);
         if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
         if (periodo === "rango") {
@@ -113,7 +110,8 @@ function PaginaDocumentosPorPagar() {
       documentosPorPagar,
       companiaActiva,
       moneda,
-      texto,
+      proveedorTexto,
+      numeroTexto,
       periodo,
       fechaInicio,
       fechaFin,
