@@ -189,6 +189,19 @@ La salida queda en la carpeta `.output\`:
 - `.output\server\index.mjs` → servidor Node
 - `.output\public\` → archivos estáticos
 
+> **Verificación obligatoria.** Antes de copiar, confirme que la compilación
+> generó un servidor Node y no un paquete para la nube:
+>
+> ```powershell
+> Test-Path ".output\server\wrangler.json"   # debe ser False
+> node ".output\server\index.mjs"            # debe quedarse escuchando en el puerto 3000
+> ```
+>
+> Si `node` termina de inmediato con código 0 o existe `wrangler.json`, la
+> variable `NITRO_PRESET` no se aplicó: ciérrelo, borre `.output`, vuelva a
+> abrir PowerShell, ejecute otra vez `$env:NITRO_PRESET = "node-server"` y
+> `npm run build`.
+
 ### 3.2 Copiar al servidor
 
 ```powershell
