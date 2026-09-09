@@ -123,6 +123,7 @@ function PaginaUsuario() {
           perfil,
           activo,
           ...(contrasena ? { contrasena } : {}),
+          ...visibilidad,
         });
         toast.success("Usuario creado");
       } else {
@@ -133,6 +134,7 @@ function PaginaUsuario() {
           perfil,
           activo,
           ...(contrasena ? { contrasena } : {}),
+          ...visibilidad,
         });
         toast.success("Usuario actualizado");
       }
