@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
@@ -32,7 +32,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
+import {
+  filtrarPorCompania,
+  useApp,
+  PREF_CONTRATOS_MES_FILTROS,
+} from "@/contexto/AppContexto";
 import type { EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
@@ -219,6 +223,220 @@ function PaginaContratos() {
           </TableBody>
         </Table>
       </div>
+
+      <ContratosDelMes />
+    </div>
+  );
+}
+
+/** Subsección: contratos que deben facturarse en el mes corriente. */
+function ContratosDelMes() {
+  const {
+    contratosDelMes,
+    companias,
+    companiaActiva,
+    tipoCambio,
+    hoy,
+    usuario,
+    preferencias,
+    actualizarPreferencia,
+  } = useApp();
+
+  const guardados = useMemo(() => {
+    try {
+      const bruto = preferencias[PREF_CONTRATOS_MES_FILTROS];
+      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "" };
+      const p = JSON.parse(bruto) as Record<string, unknown>;
+      return {
+        busqueda: typeof p["busqueda"] === "string" ? p["busqueda"] : "",
+        fechaInicio: typeof p["fechaInicio"] === "string" ? p["fechaInicio"] : "",
+        fechaFin: typeof p["fechaFin"] === "string" ? p["fechaFin"] : "",
+      };
+    } catch {
+      return { busqueda: "", fechaInicio: "", fechaFin: "" };
+    }
+  }, [preferencias]);
+
+  const [busqueda, setBusqueda] = useState(guardados.busqueda);
+  const [fechaInicio, setFechaInicio] = useState(guardados.fechaInicio);
+  const [fechaFin, setFechaFin] = useState(guardados.fechaFin);
+  const [listo, setListo] = useState(false);
+
+  // Toma los filtros recordados cuando llegan del servidor.
+  useEffect(() => {
+    setBusqueda(guardados.busqueda);
+    setFechaInicio(guardados.fechaInicio);
+    setFechaFin(guardados.fechaFin);
+    setListo(true);
+  }, [guardados]);
+
+  // Guarda los filtros del usuario para la próxima vez que entre.
+  useEffect(() => {
+    if (!listo) return;
+    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin });
+    if (actual === JSON.stringify(guardados)) return;
+    const id = window.setTimeout(() => actualizarPreferencia(PREF_CONTRATOS_MES_FILTROS, actual), 600);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busqueda, fechaInicio, fechaFin, listo]);
+
+  const texto = busqueda.trim().toLowerCase();
+  const filtrados = filtrarPorCompania(contratosDelMes, companiaActiva).filter((c) => {
+    if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
+    if (fechaInicio && c.fecha < fechaInicio) return false;
+    if (fechaFin && c.fecha > fechaFin) return false;
+    return true;
+  });
+
+  const pendientes = filtrados.filter((c) => !c.yaDocumentado);
+  const totalUSD = pendientes
+    .filter((c) => c.moneda === "USD")
+    .reduce((s, c) => s + c.monto, 0);
+  const totalCRC = pendientes
+    .filter((c) => c.moneda === "CRC")
+    .reduce((s, c) => s + c.monto, 0);
+  const totalEnUsd = totalUSD + (tipoCambio > 0 ? totalCRC / tipoCambio : 0);
+
+  const exportar = () =>
+    exportarExcel(
+      "contratos-por-facturar-mes",
+      "Contratos por facturar del mes",
+      filtrados.map((c) => ({
+        Compañía: companias.find((x) => x.id === c.companiaId)?.codigo ?? "",
+        Contrato: c.numero,
+        Cliente: c.cliente,
+        Periodicidad: c.periodicidad,
+        "Fecha esperada": formatearFecha(c.fecha),
+        Moneda: c.moneda,
+        Monto: c.monto,
+        Documento: c.documento ?? "",
+        Situación: c.yaDocumentado ? "Ya facturado o con pedido" : "Por facturar",
+      })),
+      usuario.nombre,
+    );
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Contratos por facturar este mes</h2>
+          <p className="text-sm text-muted-foreground">
+            Lista de consulta generada al primer ingreso del mes ({hoy.slice(0, 7)}). Los contratos
+            que ya tienen pedido o factura se muestran marcados y no suman en el saldo proyectado.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
+          <FileDown className="size-4" /> Exportar Excel
+        </Button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <TotalMes titulo="Por facturar en dólares" valor={formatearMoneda(totalUSD, "USD")} />
+        <TotalMes titulo="Por facturar en colones" valor={formatearMoneda(totalCRC, "CRC")} />
+        <TotalMes titulo="Total equivalente en USD" valor={formatearMoneda(totalEnUsd, "USD")} />
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="cm-busca">Cliente o número de contrato</Label>
+          <Input
+            id="cm-busca"
+            value={busqueda}
+            placeholder="Buscar…"
+            className="w-64"
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="cm-ini">Fecha inicio</Label>
+          <Input
+            id="cm-ini"
+            type="date"
+            value={fechaInicio}
+            className="w-44"
+            onChange={(e) => setFechaInicio(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="cm-fin">Fecha fin</Label>
+          <Input
+            id="cm-fin"
+            type="date"
+            value={fechaFin}
+            className="w-44"
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
+        </div>
+        {busqueda || fechaInicio || fechaFin ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setBusqueda("");
+              setFechaInicio("");
+              setFechaFin("");
+            }}
+          >
+            Limpiar
+          </Button>
+        ) : null}
+      </div>
+
+      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader className="sticky top-0 z-10 bg-card">
+            <TableRow>
+              <TableHead>Compañía</TableHead>
+              <TableHead>Contrato</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Periodicidad</TableHead>
+              <TableHead>Fecha esperada</TableHead>
+              <TableHead className="text-right">Monto</TableHead>
+              <TableHead>Situación</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filtrados.map((c) => (
+              <TableRow
+                key={`${c.contratoId}-${c.fecha}`}
+                className={cn(c.yaDocumentado && "opacity-60")}
+              >
+                <TableCell className="text-xs text-muted-foreground">
+                  {companias.find((x) => x.id === c.companiaId)?.codigo}
+                </TableCell>
+                <TableCell className="font-medium">{c.numero}</TableCell>
+                <TableCell>{c.cliente}</TableCell>
+                <TableCell>{c.periodicidad}</TableCell>
+                <TableCell className="whitespace-nowrap">{formatearFecha(c.fecha)}</TableCell>
+                <TableCell className="text-right font-mono tabular-nums">
+                  {formatearMoneda(c.monto, c.moneda)}
+                </TableCell>
+                <TableCell className="text-xs">
+                  {c.yaDocumentado
+                    ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
+                    : "Por facturar"}
+                </TableCell>
+              </TableRow>
+            ))}
+            {filtrados.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                  No hay contratos por facturar este mes con los filtros aplicados.
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
+      </div>
+    </section>
+  );
+}
+
+function TotalMes({ titulo, valor }: { titulo: string; valor: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-4">
+      <p className="text-xs text-muted-foreground">{titulo}</p>
+      <p className="mt-1 font-mono text-lg font-semibold tabular-nums">{valor}</p>
     </div>
   );
 }
