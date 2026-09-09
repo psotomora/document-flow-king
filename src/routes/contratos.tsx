@@ -522,6 +522,7 @@ function DialogoEditarContrato({
     setProxima(contrato.proximaFacturacion.slice(0, 10));
     setMoneda(contrato.moneda);
     setMonto(String(contrato.monto));
+    setPlazo(String(contrato.plazoDias));
   }, [contrato]);
 
   return (
