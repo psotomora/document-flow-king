@@ -73,6 +73,11 @@ const PERIODICIDADES: Periodicidad[] = [
 
 function PaginaContratos() {
   const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("contratos");
+  const {
     contratos,
     companias,
     companiaActiva,
