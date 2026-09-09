@@ -198,19 +198,31 @@ function PaginaContratos() {
                   </Select>
                 </TableCell>
                 <TableCell>
-                  {esAdministrador ? (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label={`Eliminar contrato ${c.numero}`}
-                      onClick={() => {
-                        eliminarContrato(c.id);
-                        toast.success(`Contrato ${c.numero} eliminado`);
-                      }}
-                    >
-                      <Trash2 className="size-4 text-muted-foreground" />
-                    </Button>
-                  ) : null}
+                  <div className="flex justify-end gap-1">
+                    {puedeEditar ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Editar contrato ${c.numero}`}
+                        onClick={() => setEnEdicion(c.id)}
+                      >
+                        <Pencil className="size-4 text-muted-foreground" />
+                      </Button>
+                    ) : null}
+                    {esAdministrador ? (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Eliminar contrato ${c.numero}`}
+                        onClick={() => {
+                          eliminarContrato(c.id);
+                          toast.success(`Contrato ${c.numero} eliminado`);
+                        }}
+                      >
+                        <Trash2 className="size-4 text-muted-foreground" />
+                      </Button>
+                    ) : null}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
