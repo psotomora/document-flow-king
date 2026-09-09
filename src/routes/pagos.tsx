@@ -178,6 +178,17 @@ function PaginaPagos() {
           </Select>
         </div>
         <div className="space-y-1.5">
+          <Label htmlFor="p-busca">Cliente o número de factura</Label>
+          <Input
+            id="p-busca"
+            className="w-64"
+            placeholder="Buscar…"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+
           <Label htmlFor="p-fecha-inicio">Fecha inicio</Label>
           <Input
             id="p-fecha-inicio"
