@@ -142,6 +142,13 @@ public static partial class Softland
                 msg += $" {nf} factura(s) vigente(s).";
             }
             else msg += " No se encontraron las tablas FACTURA / FACTURA_LINEA.";
+            if (HayCuentasPorCobrar(cn, c.Esquema))
+            {
+                var ncc = cn.ExecuteScalar<int>(
+                    $"SELECT COUNT(1) FROM [{c.Esquema}].[DOCUMENTOS_CC] WHERE TIPO = '{TipoDocCxc}' AND FECHA_ANUL IS NULL AND SALDO > 0");
+                msg += $" {ncc} documento(s) de cuentas por cobrar con saldo pendiente.";
+            }
+            else msg += " No se encontró la tabla DOCUMENTOS_CC (cuentas por cobrar).";
             return (true, msg, n);
         }
         catch (Exception ex)
@@ -149,6 +156,16 @@ public static partial class Softland
             return (false, "No fue posible conectar con SoftlandERP: " + ex.Message, 0);
         }
     }
+
+    /* --------------------------- Cuentas por cobrar --------------------------- */
+
+    /// <summary>Tipo de documento con el que las facturas se registran en cuentas por cobrar.</summary>
+    public const string TipoDocCxc = "FAC";
+
+    private static bool HayCuentasPorCobrar(IDbConnection cn, string esquema) =>
+        cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{esquema}.DOCUMENTOS_CC" }) == 1;
 
     /* -------------------------------- Pedidos -------------------------------- */
 
@@ -278,6 +295,19 @@ public static partial class Softland
             ? $"ISNULL((SELECT TOP 1 cp.DIAS_NETO FROM [{e}].[CONDICION_PAGO] cp WHERE cp.CONDICION_PAGO = f.CONDICION_PAGO), 0)"
             : "0";
 
+        // Cuentas por cobrar: el saldo real de cada factura vive en DOCUMENTOS_CC.
+        // Si el módulo no existe en la compañía, se conserva el comportamiento anterior.
+        var tieneCxc = HayCuentasPorCobrar(cn, e);
+        var seleccionCxc = tieneCxc
+            ? """
+              , cc.SALDO AS SaldoErp, CONVERT(CHAR(10), cc.FECHA_VENCE, 23) AS FechaVence,
+                CASE WHEN cc.FECHA_ANUL IS NULL THEN 'N' ELSE 'S' END AS AnuladaCxc
+              """
+            : ", CAST(NULL AS DECIMAL(28,8)) AS SaldoErp, CAST(NULL AS CHAR(10)) AS FechaVence, 'N' AS AnuladaCxc";
+        var joinCxc = tieneCxc
+            ? $"LEFT JOIN [{e}].[DOCUMENTOS_CC] cc ON cc.DOCUMENTO = f.FACTURA AND cc.TIPO = '{TipoDocCxc}'"
+            : "";
+
         var filas = cn.Query(
             $"""
             SELECT f.FACTURA AS Numero,
@@ -291,7 +321,9 @@ public static partial class Softland
                    f.COBRADA AS Cobrada,
                    (SELECT COUNT(1) FROM [{e}].[FACTURA_LINEA] l
                      WHERE l.FACTURA = f.FACTURA AND l.TIPO_DOCUMENTO = f.TIPO_DOCUMENTO) AS Lineas
+                   {seleccionCxc}
             FROM [{e}].[FACTURA] f
+            {joinCxc}
             WHERE f.TIPO_DOCUMENTO = 'F' AND ISNULL(f.ANULADA, 'N') <> 'S'
             ORDER BY f.FECHA DESC, f.FACTURA DESC
             """);
@@ -306,13 +338,22 @@ public static partial class Softland
             var oc = Texto(d["OrdenCompra"]);
             if (pedido.Length > 0) notas.Add($"Pedido {pedido}");
             if (oc.Length > 0) notas.Add($"OC {oc}");
-            var cobrada = Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
+            // Saldo real de cuentas por cobrar: manda sobre el indicador COBRADA de la factura.
+            var anuladaCxc = Texto(d["AnuladaCxc"]).Equals("S", StringComparison.OrdinalIgnoreCase);
+            decimal? saldoErp = d["SaldoErp"] is null || d["SaldoErp"] is DBNull ? null : Numero(d["SaldoErp"]);
+            var fechaVence = Texto(d["FechaVence"]);
+            var cobrada = saldoErp.HasValue
+                ? anuladaCxc || saldoErp.Value <= 0.009m
+                : Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
             if (cobrada) notas.Add("Cobrada en ERP");
+            else if (saldoErp.HasValue && saldoErp.Value < Numero(d["Monto"]) - 0.009m)
+                notas.Add("Pago parcial en ERP");
             lista.Add(new FacturaDto(
                 PrefijoId + numero, companiaId, numero, Texto(d["Cliente"]), Texto(d["FechaEmision"]),
                 Entero(d["PlazoDias"]), MapearMoneda(Texto(d["Moneda"])), Numero(d["Monto"]),
                 notas.Count > 0 ? string.Join(" · ", notas) : null,
-                Fuente, Entero(d["Lineas"]), cobrada));
+                Fuente, Entero(d["Lineas"]), cobrada,
+                saldoErp, fechaVence.Length > 0 ? fechaVence : null));
         }
         return lista;
     }

@@ -48,9 +48,13 @@ public class FacturaDto
         string? notas,
         string? origen = null,
         int? lineas = null,
-        bool cobrada = false)
+        bool cobrada = false,
+        decimal? saldoErp = null,
+        string? fechaVence = null)
     {
         Cobrada = cobrada;
+        SaldoErp = saldoErp;
+        FechaVence = fechaVence;
         Id = id;
         CompaniaId = companiaId;
         Numero = numero;
@@ -77,6 +81,10 @@ public class FacturaDto
     public int? Lineas { get; set; }
     /// <summary>Verdadero cuando la factura ya está cobrada en el ERP de origen.</summary>
     public bool Cobrada { get; set; }
+    /// <summary>Saldo pendiente según cuentas por cobrar del ERP (DOCUMENTOS_CC.SALDO).</summary>
+    public decimal? SaldoErp { get; set; }
+    /// <summary>Fecha de vencimiento registrada en cuentas por cobrar del ERP.</summary>
+    public string? FechaVence { get; set; }
 }
 
 public class LineaFacturaDto

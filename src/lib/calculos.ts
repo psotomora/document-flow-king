@@ -32,9 +32,21 @@ export function diferenciaDias(desdeIso: string, hastaIso: string): number {
   return Math.round((aFecha(hastaIso).getTime() - aFecha(desdeIso).getTime()) / MS_DIA);
 }
 
-/** RF-003: fecha de vencimiento = fecha de emisión + plazo en días. */
+/**
+ * RF-003: fecha de vencimiento = fecha de emisión + plazo en días.
+ * Si el sistema de origen ya la registró en cuentas por cobrar, se usa esa fecha.
+ */
 export function fechaVencimiento(factura: Factura): string {
+  if (factura.fechaVence) return factura.fechaVence;
   return sumarDias(factura.fechaEmision, factura.plazoDias);
+}
+
+/**
+ * Monto que queda por cobrar según el sistema de origen. Cuando la factura viene
+ * de cuentas por cobrar del ERP, ese saldo manda sobre el total facturado.
+ */
+export function montoPorCobrar(factura: Factura): number {
+  return typeof factura.saldoErp === "number" ? Math.max(factura.saldoErp, 0) : factura.monto;
 }
 
 /** RF-003: días para vencer = fecha de vencimiento - fecha actual. */
@@ -60,9 +72,9 @@ export function totalPagado(factura: Factura, pagos: Pago[]): number {
     .reduce((suma, p) => suma + montoPagoEnMonedaFactura(p, factura.moneda), 0);
 }
 
-/** RF-004: saldo pendiente = monto facturado - total pagado. */
+/** RF-004: saldo pendiente = monto por cobrar (o saldo del ERP) - total pagado localmente. */
 export function saldoPendiente(factura: Factura, pagos: Pago[]): number {
-  return factura.monto - totalPagado(factura, pagos);
+  return montoPorCobrar(factura) - totalPagado(factura, pagos);
 }
 
 /** RF-004: estado derivado de la factura. */
@@ -86,7 +98,7 @@ export function calcularFactura(
   hoyIso: string,
 ): FacturaCalculada {
   const pagado = totalPagado(factura, pagos);
-  const saldo = factura.monto - pagado;
+  const saldo = montoPorCobrar(factura) - pagado;
   const estado = estadoFactura(factura, pagos, hoyIso);
   return {
     ...factura,
