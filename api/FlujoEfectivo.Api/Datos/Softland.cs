@@ -278,6 +278,19 @@ public static partial class Softland
             ? $"ISNULL((SELECT TOP 1 cp.DIAS_NETO FROM [{e}].[CONDICION_PAGO] cp WHERE cp.CONDICION_PAGO = f.CONDICION_PAGO), 0)"
             : "0";
 
+        // Cuentas por cobrar: el saldo real de cada factura vive en DOCUMENTOS_CC.
+        // Si el módulo no existe en la compañía, se conserva el comportamiento anterior.
+        var tieneCxc = HayCuentasPorCobrar(cn, e);
+        var seleccionCxc = tieneCxc
+            ? """
+              , cc.SALDO AS SaldoErp, CONVERT(CHAR(10), cc.FECHA_VENCE, 23) AS FechaVence,
+                CASE WHEN cc.FECHA_ANUL IS NULL THEN 'N' ELSE 'S' END AS AnuladaCxc
+              """
+            : ", CAST(NULL AS DECIMAL(28,8)) AS SaldoErp, CAST(NULL AS CHAR(10)) AS FechaVence, 'N' AS AnuladaCxc";
+        var joinCxc = tieneCxc
+            ? $"LEFT JOIN [{e}].[DOCUMENTOS_CC] cc ON cc.DOCUMENTO = f.FACTURA AND cc.TIPO = '{TipoDocCxc}'"
+            : "";
+
         var filas = cn.Query(
             $"""
             SELECT f.FACTURA AS Numero,
@@ -291,7 +304,9 @@ public static partial class Softland
                    f.COBRADA AS Cobrada,
                    (SELECT COUNT(1) FROM [{e}].[FACTURA_LINEA] l
                      WHERE l.FACTURA = f.FACTURA AND l.TIPO_DOCUMENTO = f.TIPO_DOCUMENTO) AS Lineas
+                   {seleccionCxc}
             FROM [{e}].[FACTURA] f
+            {joinCxc}
             WHERE f.TIPO_DOCUMENTO = 'F' AND ISNULL(f.ANULADA, 'N') <> 'S'
             ORDER BY f.FECHA DESC, f.FACTURA DESC
             """);
