@@ -171,13 +171,23 @@ function PaginaDocumentosPorPagar() {
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
-          <Label htmlFor="dp-buscar">Proveedor o documento</Label>
+          <Label htmlFor="dp-proveedor">Proveedor</Label>
           <Input
-            id="dp-buscar"
-            className="w-64"
-            placeholder="Buscar proveedor o n.º de documento…"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+            id="dp-proveedor"
+            className="w-56"
+            placeholder="Buscar proveedor…"
+            value={proveedorBusqueda}
+            onChange={(e) => setProveedorBusqueda(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="dp-numero">N.º de documento</Label>
+          <Input
+            id="dp-numero"
+            className="w-56"
+            placeholder="Buscar n.º de documento…"
+            value={numeroBusqueda}
+            onChange={(e) => setNumeroBusqueda(e.target.value)}
           />
         </div>
         <div className="space-y-1.5">
