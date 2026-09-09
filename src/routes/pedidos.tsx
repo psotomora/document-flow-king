@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { SelectorFilas } from "@/components/comunes/SelectorFilas";
+import { useFilasVisibles } from "@/lib/preferencias";
 import { DialogoLineasPedido } from "@/components/pedidos/DialogoLineasPedido";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,6 +68,11 @@ export const Route = createFileRoute("/pedidos")({
 const ESTADOS: EstadoPedido[] = ["Pendiente", "Facturado", "Anulado"];
 
 function PaginaPedidos() {
+  const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("pedidos");
   const {
     pedidos,
     companias,
@@ -223,7 +230,14 @@ function PaginaPedidos() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-card [&>div]:max-h-[60vh] [&>div]:overflow-auto">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-pedidos" filas={filasVisibles} onCambio={establecerFilas} />
+      </div>
+
+      <div
+        style={estiloTabla}
+        className="rounded-lg border border-border bg-card [&>div]:max-h-[var(--alto-tabla)] [&>div]:overflow-auto"
+      >
         <Table>
           <TableHeader className="[&_th]:sticky [&_th]:top-0 [&_th]:z-20 [&_th]:bg-card [&_th]:shadow-[inset_0_-1px_0_hsl(var(--border))]">
             <TableRow>

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { SelectorFilas } from "@/components/comunes/SelectorFilas";
+import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +72,11 @@ const PERIODICIDADES: Periodicidad[] = [
 ];
 
 function PaginaContratos() {
+  const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("contratos");
   const {
     contratos,
     companias,
@@ -209,7 +216,14 @@ function PaginaContratos() {
         ) : null}
       </div>
 
-      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-contratos" filas={filasVisibles} onCambio={establecerFilas} />
+      </div>
+
+      <div
+        style={estiloTabla}
+        className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
+      >
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
 
@@ -325,6 +339,11 @@ function PaginaContratos() {
 
 /** Subsección: contratos que deben facturarse en el mes corriente. */
 function ContratosDelMes() {
+  const {
+    filas: filasMes,
+    estiloTabla: estiloTablaMes,
+    establecer: establecerFilasMes,
+  } = useFilasVisibles("contratosMes");
   const {
     contratosDelMes,
     contratos,
@@ -482,7 +501,14 @@ function ContratosDelMes() {
         ) : null}
       </div>
 
-      <div className="max-h-[26rem] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-contratos-mes" filas={filasMes} onCambio={establecerFilasMes} />
+      </div>
+
+      <div
+        style={estiloTablaMes}
+        className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
+      >
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
             <TableRow>

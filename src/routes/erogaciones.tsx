@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { SelectorFilas } from "@/components/comunes/SelectorFilas";
+import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +59,11 @@ export const Route = createFileRoute("/erogaciones")({
 });
 
 function PaginaErogaciones() {
+  const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("erogaciones");
   const { erogaciones, bancos, companias, companiaActiva, puedeEditar, esAdministrador, eliminarErogacion, usuario, hoy } =
     useApp();
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
@@ -202,7 +209,14 @@ function PaginaErogaciones() {
         </div>
       </div>
 
-      <div className="max-h-[46rem] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-erogaciones" filas={filasVisibles} onCambio={establecerFilas} />
+      </div>
+
+      <div
+        style={estiloTabla}
+        className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
+      >
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
 

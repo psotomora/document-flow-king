@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import { Check, ChevronsUpDown, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { SelectorFilas } from "@/components/comunes/SelectorFilas";
+import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +72,11 @@ export const Route = createFileRoute("/pagos")({
 });
 
 function PaginaPagos() {
+  const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("pagos");
   const {
     pagos,
     facturasCalculadas,
@@ -223,7 +230,14 @@ function PaginaPagos() {
         ))}
       </div>
 
-      <div className="overflow-auto max-h-[60vh] rounded-lg border border-border bg-card [&>div]:overflow-visible">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-pagos" filas={filasVisibles} onCambio={establecerFilas} />
+      </div>
+
+      <div
+        style={estiloTabla}
+        className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
+      >
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm">
             <TableRow>

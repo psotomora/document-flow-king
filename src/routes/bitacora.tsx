@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { FileDown } from "lucide-react";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { SelectorFilas } from "@/components/comunes/SelectorFilas";
+import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +46,11 @@ export const Route = createFileRoute("/bitacora")({
 });
 
 function PaginaBitacora() {
+  const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("bitacora");
   const { bitacora, usuario } = useApp();
   const [modulo, setModulo] = useState("todos");
   const [operacion, setOperacion] = useState("todas");
@@ -133,9 +140,16 @@ function PaginaBitacora() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-bitacora" filas={filasVisibles} onCambio={establecerFilas} />
+      </div>
+
+      <div
+        style={estiloTabla}
+        className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
+      >
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
             <TableRow>
               <TableHead>Fecha y hora</TableHead>
               <TableHead>Usuario</TableHead>
