@@ -73,6 +73,11 @@ export const Route = createFileRoute("/pagos")({
 
 function PaginaPagos() {
   const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("pagos");
+  const {
     pagos,
     facturasCalculadas,
     bancos,
