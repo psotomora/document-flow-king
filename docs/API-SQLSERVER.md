@@ -94,6 +94,21 @@ con datos en memoria.
 Todas las operaciones quedan registradas en `flujo.Bitacora` con usuario,
 fecha, módulo y valores anterior/nuevo.
 
+### Documentos por pagar
+
+- Script: `database/09_documentos_por_pagar.sql` crea `flujo.DocumentoPorPagar`
+  y agrega `DocumentoPorPagarId` / `DocumentoPagoNumero` a `flujo.Erogacion`.
+  La API aplica la misma migración automáticamente al iniciar.
+- Parámetro `documentosPagoFuenteExterna` (solo administrador). Cuando está en
+  `1`, `/api/estado` lee los documentos desde la conexión externa configurada
+  para pedidos y facturas, consultando `DOCUMENTOS_CP` con
+  `SALDO > 0`, `FECHA_ANUL IS NULL` y `ISNULL(ANULADO,'N') <> 'S'`; el nombre
+  del proveedor se resuelve contra `PROVEEDOR` cuando la tabla existe.
+- Con fuente externa los documentos son de solo lectura: no se crean, editan
+  ni eliminan, y nunca se escribe en la base del ERP.
+- Con datos locales, al registrar una erogación enlazada se descuenta su monto
+  del saldo del documento.
+
 ## 6. Seguridad
 
 - Contraseñas con PBKDF2-SHA256, 120 000 iteraciones y sal por usuario.
