@@ -168,6 +168,26 @@ function PaginaPagos() {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="p-fecha-inicio">Fecha inicio</Label>
+          <Input
+            id="p-fecha-inicio"
+            type="date"
+            className="w-44"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="p-fecha-fin">Fecha fin</Label>
+          <Input
+            id="p-fecha-fin"
+            type="date"
+            className="w-44"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
