@@ -336,6 +336,8 @@ function DialogoErogacion({
       moneda,
       monto: Number(monto),
       notas,
+      documentoPagoId: documentoElegido ? documentoElegido.id : null,
+      documentoPagoNumero: documentoElegido ? documentoElegido.numero : null,
     });
     toast.success("Erogación registrada");
     setAbierto(false);
@@ -343,6 +345,7 @@ function DialogoErogacion({
     setProveedor("");
     setMonto("");
     setNotas("");
+    setDocumentoPagoId("sin");
   };
 
   return (
