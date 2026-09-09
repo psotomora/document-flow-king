@@ -399,6 +399,7 @@ function ContratosDelMes() {
               <TableHead>Fecha esperada</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Situación</TableHead>
+              <TableHead className="w-24 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
