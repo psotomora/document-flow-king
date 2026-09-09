@@ -84,9 +84,12 @@ function PaginaPagos() {
   const facturasVisibles = filtrarPorCompania(facturasCalculadas, companiaActiva);
   const idsVisibles = new Set(facturasVisibles.map((f) => f.id));
   const [banco, setBanco] = useState("todos");
+  const [busqueda, setBusqueda] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
+
+  const texto = busqueda.trim().toLowerCase();
 
   const filas = useMemo(
     () =>
@@ -105,10 +108,16 @@ function PaginaPagos() {
             factura,
             aplicado: factura ? montoPagoEnMonedaFactura(p, factura.moneda) : 0,
           };
-        }),
+        })
+        .filter(({ factura }) =>
+          texto
+            ? `${factura?.numero ?? ""} ${factura?.cliente ?? ""}`.toLowerCase().includes(texto)
+            : true,
+        ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pagos, facturasCalculadas, companiaActiva, banco, fechaInicio, fechaFin],
+    [pagos, facturasCalculadas, companiaActiva, banco, texto, fechaInicio, fechaFin],
   );
+
 
   const totales = useMemo(() => {
     const total = (m: Moneda) =>
