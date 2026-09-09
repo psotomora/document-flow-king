@@ -57,18 +57,34 @@ export const Route = createFileRoute("/erogaciones")({
 });
 
 function PaginaErogaciones() {
-  const { erogaciones, bancos, companias, companiaActiva, puedeEditar, esAdministrador, eliminarErogacion, usuario } =
+  const { erogaciones, bancos, companias, companiaActiva, puedeEditar, esAdministrador, eliminarErogacion, usuario, hoy } =
     useApp();
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
+  const [proveedor, setProveedor] = useState("");
+  const [periodo, setPeriodo] = useState<"mes" | "todos" | "rango">("mes");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
+
+  const mesActual = hoy.slice(0, 7);
+  const textoProveedor = proveedor.trim().toLowerCase();
 
   const filtradas = useMemo(
     () =>
-      filtrarPorCompania(erogaciones, companiaActiva).filter(
-        (e) => moneda === "todas" || e.moneda === moneda,
-      ),
-    [erogaciones, companiaActiva, moneda],
+      filtrarPorCompania(erogaciones, companiaActiva).filter((e) => {
+        if (moneda !== "todas" && e.moneda !== moneda) return false;
+        if (textoProveedor && !e.proveedor.toLowerCase().includes(textoProveedor)) return false;
+        const fecha = e.fecha.slice(0, 10);
+        if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
+        if (periodo === "rango") {
+          if (fechaInicio && fecha < fechaInicio) return false;
+          if (fechaFin && fecha > fechaFin) return false;
+        }
+        return true;
+      }),
+    [erogaciones, companiaActiva, moneda, textoProveedor, periodo, fechaInicio, fechaFin, mesActual],
   );
+
 
   const totalUSD = filtradas.filter((e) => e.moneda === "USD").reduce((s, e) => s + e.monto, 0);
   const totalCRC = filtradas.filter((e) => e.moneda === "CRC").reduce((s, e) => s + e.monto, 0);
@@ -120,6 +136,56 @@ function PaginaErogaciones() {
             </SelectContent>
           </Select>
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="f-prov">Proveedor</Label>
+          <Input
+            id="f-prov"
+            className="w-56"
+            placeholder="Buscar proveedor…"
+            value={proveedor}
+            onChange={(e) => setProveedor(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Periodo</Label>
+          <Select
+            value={periodo}
+            onValueChange={(v) => setPeriodo(v as "mes" | "todos" | "rango")}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mes">Este mes</SelectItem>
+              <SelectItem value="todos">Todos los registros</SelectItem>
+              <SelectItem value="rango">Rango de fechas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {periodo === "rango" ? (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="f-ini">Fecha inicio</Label>
+              <Input
+                id="f-ini"
+                type="date"
+                className="w-44"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="f-fin">Fecha fin</Label>
+              <Input
+                id="f-fin"
+                type="date"
+                className="w-44"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+              />
+            </div>
+          </>
+        ) : null}
         <div className="ml-auto flex gap-6 text-right">
           <div>
             <p className="text-xs text-muted-foreground">Total USD</p>
@@ -136,9 +202,10 @@ function PaginaErogaciones() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <div className="max-h-[46rem] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
+
             <TableRow>
               <TableHead>Compañía</TableHead>
               <TableHead>N.º transferencia</TableHead>
