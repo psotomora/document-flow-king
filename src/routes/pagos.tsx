@@ -230,7 +230,14 @@ function PaginaPagos() {
         ))}
       </div>
 
-      <div className="overflow-auto max-h-[60vh] rounded-lg border border-border bg-card [&>div]:overflow-visible">
+      <div className="flex justify-end">
+        <SelectorFilas id="filas-pagos" filas={filasVisibles} onCambio={establecerFilas} />
+      </div>
+
+      <div
+        style={estiloTabla}
+        className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
+      >
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm">
             <TableRow>
