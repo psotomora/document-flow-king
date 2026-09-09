@@ -83,7 +83,8 @@ con datos en memoria.
 | POST   | `/api/facturas`             | Registrar factura                         |
 | DELETE | `/api/facturas/{id}`        | Eliminar factura y sus pagos              |
 | POST   | `/api/pagos`                | Registrar pago (permite moneda cruzada)   |
-| POST   | `/api/erogaciones`          | Registrar erogación                       |
+| POST   | `/api/erogaciones`          | Registrar erogación (puede referenciar un documento por pagar) |
+| POST/PUT/DELETE | `/api/documentos-pagar` | Documentos por pagar locales (eliminar: solo administrador) |
 | POST/PUT/DELETE | `/api/contratos`   | Gestión de contratos                      |
 | POST/PUT/DELETE | `/api/pedidos`     | Gestión de pedidos                        |
 | POST/PUT | `/api/bancos`             | Catálogo de cuentas (solo administrador)  |
