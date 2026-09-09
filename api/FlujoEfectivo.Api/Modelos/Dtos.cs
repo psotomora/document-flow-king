@@ -13,6 +13,10 @@ public class UsuarioAdminDto
     public string? Correo { get; set; }
     public string Perfil { get; set; } = "";
     public bool Activo { get; set; }
+    public bool VerBancos { get; set; } = true;
+    public bool VerConsolidado { get; set; } = true;
+    public bool VerErogaciones { get; set; } = true;
+    public bool VerProyeccion { get; set; } = true;
 }
 
 public class CompaniaDto
@@ -231,7 +235,11 @@ public record NuevoUsuario(
     string? Correo,
     string Perfil,
     bool Activo,
-    string? Contrasena);
+    string? Contrasena,
+    bool? VerBancos = null,
+    bool? VerConsolidado = null,
+    bool? VerErogaciones = null,
+    bool? VerProyeccion = null);
 
 public record CambioUsuario(
     string? Nombre,
@@ -239,7 +247,11 @@ public record CambioUsuario(
     string? Correo,
     string? Perfil,
     bool? Activo,
-    string? Contrasena);
+    string? Contrasena,
+    bool? VerBancos = null,
+    bool? VerConsolidado = null,
+    bool? VerErogaciones = null,
+    bool? VerProyeccion = null);
 
 public record LoginResponse(string Token, UsuarioDto Usuario, DateTime Expira);
 
