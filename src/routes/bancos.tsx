@@ -139,18 +139,28 @@ function PaginaBancos() {
                 <h2 className="text-base font-semibold text-foreground">
                   {moneda === "USD" ? "Dólares (USD)" : "Colones (CRC)"}
                 </h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => exportar(moneda)}
-                >
-                  <FileDown className="size-4" /> Exportar Excel
-                </Button>
+                <div className="flex items-center gap-3">
+                  <SelectorFilas
+                    id={`filas-bancos-${moneda}`}
+                    filas={filasVisibles}
+                    onCambio={establecerFilas}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => exportar(moneda)}
+                  >
+                    <FileDown className="size-4" /> Exportar Excel
+                  </Button>
+                </div>
               </div>
-              <div className="overflow-x-auto rounded-lg border border-border bg-card">
+              <div
+                style={estiloTabla}
+                className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
+              >
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
                     <TableRow>
                       <TableHead>Banco</TableHead>
                       <TableHead>Compañía</TableHead>
