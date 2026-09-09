@@ -82,6 +82,7 @@ function PaginaContratos() {
   } = useApp();
   const [estado, setEstado] = useState<EstadoContrato | "todos">("todos");
   const [abierto, setAbierto] = useState(false);
+  const [enEdicion, setEnEdicion] = useState<string | null>(null);
 
   const filtrados = filtrarPorCompania(contratos, companiaActiva).filter(
     (c) => estado === "todos" || c.estado === estado,
