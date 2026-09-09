@@ -59,6 +59,11 @@ export const Route = createFileRoute("/erogaciones")({
 });
 
 function PaginaErogaciones() {
+  const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("erogaciones");
   const { erogaciones, bancos, companias, companiaActiva, puedeEditar, esAdministrador, eliminarErogacion, usuario, hoy } =
     useApp();
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
