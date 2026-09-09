@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.18.2";
-export const APP_FECHA_VERSION = "2026-09-08";
+export const APP_VERSION = "1.19.0";
+export const APP_FECHA_VERSION = "2026-09-09";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,16 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.19.0",
+    fecha: "2026-09-09",
+    cambios: [
+      "Las facturas de SoftlandERP muestran el saldo real de cuentas por cobrar (DOCUMENTOS_CC), incluidos los pagos parciales.",
+      "Una factura se considera cobrada cuando su saldo en cuentas por cobrar es cero o el documento está anulado.",
+      "La fecha de vencimiento se toma de cuentas por cobrar cuando el ERP la registra.",
+      "Probar conexión informa cuántos documentos de cuentas por cobrar tienen saldo pendiente.",
+    ],
+  },
   {
     version: "1.18.2",
     fecha: "2026-09-08",
