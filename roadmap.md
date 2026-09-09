@@ -1,3 +1,5 @@
 # Roadmap
 
-- [x] Pedidos desde SoftlandERP: credenciales de conexión, lectura de capa.PEDIDO/PEDIDO_LINEA cuando el toggle esté activo y la fuente sea SoftlandERP, mostrar en la app, cambio de estado N→F al facturar.
+- [x] Documentos por pagar (v1.20.0): nueva sección en Operación, parámetro de fuente externa
+      (DOCUMENTOS_CP de SoftlandERP), filtros por proveedor/documento y por periodo, y
+      erogaciones enlazadas opcionalmente a un documento por pagar.

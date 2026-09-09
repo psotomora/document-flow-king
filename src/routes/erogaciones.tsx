@@ -285,7 +285,8 @@ function DialogoErogacion({
   abierto: boolean;
   setAbierto: (v: boolean) => void;
 }) {
-  const { companias, bancos, agregarErogacion, erogaciones, hoy } = useApp();
+  const { companias, bancos, agregarErogacion, erogaciones, documentosPorPagar, hoy } = useApp();
+  const [documentoPagoId, setDocumentoPagoId] = useState("sin");
   const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
   useCompaniaValida(companias, companiaId, setCompaniaId);
   const [numeroTransferencia, setNumero] = useState("");
@@ -297,6 +298,21 @@ function DialogoErogacion({
   const [notas, setNotas] = useState("");
 
   const bancosCompania = bancos.filter((b) => b.companiaId === companiaId);
+  const documentosCompania = documentosPorPagar.filter(
+    (d) => d.companiaId === companiaId && d.saldo > 0,
+  );
+  const documentoElegido = documentosCompania.find((d) => d.id === documentoPagoId);
+
+  /** Al elegir un documento, se precargan proveedor, moneda y saldo pendiente. */
+  const elegirDocumento = (valor: string) => {
+    setDocumentoPagoId(valor);
+    const doc = documentosCompania.find((d) => d.id === valor);
+    if (doc) {
+      setProveedor(doc.proveedor);
+      setMoneda(doc.moneda);
+      setMonto(String(doc.saldo));
+    }
+  };
 
   const guardar = () => {
     if (!numeroTransferencia || !proveedor || !bancoId) {

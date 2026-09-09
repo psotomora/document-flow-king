@@ -14,6 +14,7 @@ import type {
   Banco,
   Compania,
   Contrato,
+  DocumentoPorPagar,
   Erogacion,
   Factura,
   OperacionBitacora,
@@ -45,6 +46,7 @@ interface EstadoServidor {
   facturas: Factura[];
   pagos: Pago[];
   erogaciones: Erogacion[];
+  documentosPorPagar?: DocumentoPorPagar[];
   contratos: Contrato[];
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
@@ -58,6 +60,8 @@ interface EstadoServidor {
 export const PARAM_PEDIDOS_FUENTE_EXTERNA = "pedidosFuenteExterna";
 /** Clave del parámetro que indica si las facturas se leen de una fuente externa. */
 export const PARAM_FACTURAS_FUENTE_EXTERNA = "facturasFuenteExterna";
+/** Clave del parámetro que indica si los documentos por pagar se leen de una fuente externa. */
+export const PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA = "documentosPagoFuenteExterna";
 /** Clave del subparámetro que indica cuál es la fuente externa (compartida por pedidos y facturas). */
 export const PARAM_PEDIDOS_FUENTE_ORIGEN = "pedidosFuenteOrigen";
 /** Fuentes externas de pedidos disponibles. */
@@ -72,6 +76,7 @@ export const PREF_CONTRATOS_MES_FILTROS = "contratosMesFiltros";
 const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
   [PARAM_FACTURAS_FUENTE_EXTERNA]: "0",
+  [PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA]: "0",
   [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
 };
 
@@ -91,6 +96,7 @@ interface EstadoApp {
   facturas: Factura[];
   pagos: Pago[];
   erogaciones: Erogacion[];
+  documentosPorPagar: DocumentoPorPagar[];
   contratos: Contrato[];
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
@@ -104,6 +110,7 @@ interface EstadoApp {
   contratosDelMes: ContratoDelMes[];
   pedidosFuenteExterna: boolean;
   facturasFuenteExterna: boolean;
+  documentosPagoFuenteExterna: boolean;
   pedidosFuenteOrigen: string;
   /** Mensaje del servidor cuando la fuente externa está activa pero no pudo leerse. */
   avisoFuenteExterna: string | null;
@@ -157,6 +164,9 @@ interface EstadoApp {
   eliminarPago: (id: string) => void;
   agregarErogacion: (e: Omit<Erogacion, "id">) => void;
   eliminarErogacion: (id: string) => void;
+  agregarDocumentoPorPagar: (d: Omit<DocumentoPorPagar, "id">) => void;
+  actualizarDocumentoPorPagar: (id: string, cambios: Partial<DocumentoPorPagar>) => void;
+  eliminarDocumentoPorPagar: (id: string) => void;
   agregarContrato: (c: Omit<Contrato, "id">) => void;
   actualizarContrato: (id: string, cambios: Partial<Contrato>) => void;
   eliminarContrato: (id: string) => void;
@@ -192,6 +202,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [facturas, setFacturas] = useState<Factura[]>(semilla.facturas);
   const [pagos, setPagos] = useState<Pago[]>(semilla.pagos);
   const [erogaciones, setErogaciones] = useState<Erogacion[]>(semilla.erogaciones);
+  const [documentosPorPagar, setDocumentosPorPagar] = useState<DocumentoPorPagar[]>(
+    semilla.documentosPorPagar,
+  );
   const [contratos, setContratos] = useState<Contrato[]>(semilla.contratos);
   const [pedidos, setPedidos] = useState<Pedido[]>(semilla.pedidos);
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
@@ -218,6 +231,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setFacturas(estado.facturas);
     setPagos(estado.pagos);
     setErogaciones(estado.erogaciones);
+    setDocumentosPorPagar(estado.documentosPorPagar ?? []);
     setContratos(estado.contratos);
     setPedidos(estado.pedidos);
     setTiposCambio(estado.tiposCambio);
@@ -515,6 +529,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       facturas,
       pagos,
       erogaciones,
+      documentosPorPagar,
       contratos,
       pedidos,
       tiposCambio,
@@ -533,6 +548,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       contratosDelMes,
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
       facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
+      documentosPagoFuenteExterna: parametros[PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA] === "1",
       pedidosFuenteOrigen: parametros[PARAM_PEDIDOS_FUENTE_ORIGEN] || FUENTE_PEDIDOS_DEFECTO,
       avisoFuenteExterna,
       actualizarParametro: (clave, nuevoValor) =>
@@ -691,7 +707,36 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       agregarErogacion: (e) =>
         mutar("/erogaciones", "POST", e, () => {
           setErogaciones((prev) => [{ ...e, id: nuevoId("e") }, ...prev]);
+          // Si la erogación se aplica a un documento por pagar interno, baja su saldo.
+          if (e.documentoPagoId)
+            setDocumentosPorPagar((prev) =>
+              prev.map((d) =>
+                d.id === e.documentoPagoId
+                  ? { ...d, saldo: Math.max(0, Number((d.saldo - e.monto).toFixed(2))) }
+                  : d,
+              ),
+            );
           anotar("Erogaciones", e.numeroTransferencia, "Creación", `Monto: ${e.monto}`);
+        }),
+      agregarDocumentoPorPagar: (d) =>
+        mutar("/documentos-pagar", "POST", d, () => {
+          setDocumentosPorPagar((prev) => [{ ...d, id: nuevoId("dp") }, ...prev]);
+          anotar("Documentos por pagar", d.numero, "Creación", `${d.moneda} ${d.monto}`);
+        }),
+      actualizarDocumentoPorPagar: (id, cambios) =>
+        mutar(`/documentos-pagar/${id}`, "PUT", cambios, () => {
+          setDocumentosPorPagar((prev) =>
+            prev.map((d) => (d.id === id ? { ...d, ...cambios } : d)),
+          );
+          const d = documentosPorPagar.find((x) => x.id === id);
+          if (d)
+            anotar("Documentos por pagar", d.numero, "Modificación", JSON.stringify(cambios));
+        }),
+      eliminarDocumentoPorPagar: (id) =>
+        mutar(`/documentos-pagar/${id}`, "DELETE", undefined, () => {
+          const d = documentosPorPagar.find((x) => x.id === id);
+          setDocumentosPorPagar((prev) => prev.filter((x) => x.id !== id));
+          if (d) anotar("Documentos por pagar", d.numero, "Eliminación");
         }),
       eliminarErogacion: (id) =>
         mutar(`/erogaciones/${id}`, "DELETE", undefined, () => {
@@ -798,6 +843,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setFacturas(semilla.facturas);
         setPagos(semilla.pagos);
         setErogaciones(semilla.erogaciones);
+        setDocumentosPorPagar(semilla.documentosPorPagar);
         setContratos(semilla.contratos);
         setPedidos(semilla.pedidos);
         setTiposCambio(semilla.tiposCambio);
@@ -818,6 +864,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     companias,
     contratos,
     erogaciones,
+    documentosPorPagar,
     errorApi,
     facturas,
     facturasCalculadas,

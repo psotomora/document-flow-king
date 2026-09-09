@@ -16,6 +16,7 @@ import { Route as BitacoraRouteImport } from './routes/bitacora'
 import { Route as CatalogosRouteImport } from './routes/catalogos'
 import { Route as ConsolidadoRouteImport } from './routes/consolidado'
 import { Route as ContratosRouteImport } from './routes/contratos'
+import { Route as DocumentosPagarRouteImport } from './routes/documentos-pagar'
 import { Route as ErogacionesRouteImport } from './routes/erogaciones'
 import { Route as FacturasRouteImport } from './routes/facturas'
 import { Route as ImportarRouteImport } from './routes/importar'
@@ -58,6 +59,11 @@ const ConsolidadoRoute = ConsolidadoRouteImport.update({
 const ContratosRoute = ContratosRouteImport.update({
   id: '/contratos',
   path: '/contratos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentosPagarRoute = DocumentosPagarRouteImport.update({
+  id: '/documentos-pagar',
+  path: '/documentos-pagar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ErogacionesRoute = ErogacionesRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/catalogos': typeof CatalogosRoute
   '/consolidado': typeof ConsolidadoRoute
   '/contratos': typeof ContratosRoute
+  '/documentos-pagar': typeof DocumentosPagarRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/importar': typeof ImportarRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/catalogos': typeof CatalogosRoute
   '/consolidado': typeof ConsolidadoRoute
   '/contratos': typeof ContratosRoute
+  '/documentos-pagar': typeof DocumentosPagarRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/importar': typeof ImportarRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/catalogos': typeof CatalogosRoute
   '/consolidado': typeof ConsolidadoRoute
   '/contratos': typeof ContratosRoute
+  '/documentos-pagar': typeof DocumentosPagarRoute
   '/erogaciones': typeof ErogacionesRoute
   '/facturas': typeof FacturasRoute
   '/importar': typeof ImportarRoute
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/catalogos'
     | '/consolidado'
     | '/contratos'
+    | '/documentos-pagar'
     | '/erogaciones'
     | '/facturas'
     | '/importar'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/catalogos'
     | '/consolidado'
     | '/contratos'
+    | '/documentos-pagar'
     | '/erogaciones'
     | '/facturas'
     | '/importar'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/catalogos'
     | '/consolidado'
     | '/contratos'
+    | '/documentos-pagar'
     | '/erogaciones'
     | '/facturas'
     | '/importar'
@@ -215,6 +227,7 @@ export interface RootRouteChildren {
   CatalogosRoute: typeof CatalogosRoute
   ConsolidadoRoute: typeof ConsolidadoRoute
   ContratosRoute: typeof ContratosRoute
+  DocumentosPagarRoute: typeof DocumentosPagarRoute
   ErogacionesRoute: typeof ErogacionesRoute
   FacturasRoute: typeof FacturasRoute
   ImportarRoute: typeof ImportarRoute
@@ -274,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/contratos'
       fullPath: '/contratos'
       preLoaderRoute: typeof ContratosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documentos-pagar': {
+      id: '/documentos-pagar'
+      path: '/documentos-pagar'
+      fullPath: '/documentos-pagar'
+      preLoaderRoute: typeof DocumentosPagarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/erogaciones': {
@@ -343,6 +363,7 @@ const rootRouteChildren: RootRouteChildren = {
   CatalogosRoute: CatalogosRoute,
   ConsolidadoRoute: ConsolidadoRoute,
   ContratosRoute: ContratosRoute,
+  DocumentosPagarRoute: DocumentosPagarRoute,
   ErogacionesRoute: ErogacionesRoute,
   FacturasRoute: FacturasRoute,
   ImportarRoute: ImportarRoute,

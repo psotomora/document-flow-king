@@ -31,6 +31,7 @@ import {
   PARAM_PEDIDOS_FUENTE_EXTERNA,
   PARAM_PEDIDOS_FUENTE_ORIGEN,
   PARAM_FACTURAS_FUENTE_EXTERNA,
+  PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA,
   useApp,
 } from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
@@ -69,6 +70,7 @@ function PaginaParametros() {
     modoApi,
     pedidosFuenteExterna,
     facturasFuenteExterna,
+    documentosPagoFuenteExterna,
     pedidosFuenteOrigen,
     parametros,
     actualizarParametro,
@@ -101,7 +103,20 @@ function PaginaParametros() {
     );
   };
 
-  const algunaFuenteExterna = pedidosFuenteExterna || facturasFuenteExterna;
+  const cambiarDocumentosPagoExternos = (activo: boolean) => {
+    actualizarParametro(PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA, activo ? "1" : "0");
+    if (activo && !parametros[PARAM_PEDIDOS_FUENTE_ORIGEN]) {
+      actualizarParametro(PARAM_PEDIDOS_FUENTE_ORIGEN, FUENTE_PEDIDOS_DEFECTO);
+    }
+    toast.success(
+      activo
+        ? "Los documentos por pagar se tomarán de la fuente externa (SoftlandERP)."
+        : "Los documentos por pagar se tomarán del registro interno.",
+    );
+  };
+
+  const algunaFuenteExterna =
+    pedidosFuenteExterna || facturasFuenteExterna || documentosPagoFuenteExterna;
 
   const guardar = () => {
     const numero = Number(valor);
@@ -184,6 +199,28 @@ function PaginaParametros() {
               id="facturas-externas"
               checked={facturasFuenteExterna}
               onCheckedChange={cambiarFacturasExternas}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="documentos-pago-externos">
+              Usar datos de documentos pendientes de pago de fuente externa
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Los documentos por pagar se leen de la tabla DOCUMENTOS_CP del sistema externo, con la
+              misma conexión de pedidos y facturas.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {documentosPagoFuenteExterna ? "Sí" : "No"}
+            </span>
+            <Switch
+              id="documentos-pago-externos"
+              checked={documentosPagoFuenteExterna}
+              onCheckedChange={cambiarDocumentosPagoExternos}
               disabled={!esAdministrador}
             />
           </div>

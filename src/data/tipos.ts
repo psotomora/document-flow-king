@@ -76,6 +76,29 @@ export interface Erogacion {
   moneda: Moneda;
   monto: number;
   notas?: string | undefined;
+  /** Documento por pagar aplicado (opcional). */
+  documentoPagoId?: string | null;
+  /** Número del documento por pagar aplicado (opcional). */
+  documentoPagoNumero?: string | null;
+}
+
+/** Documento pendiente de pago a un proveedor (cuentas por pagar). */
+export interface DocumentoPorPagar {
+  id: string;
+  companiaId: string;
+  proveedor: string;
+  numero: string;
+  /** Tipo de documento del sistema de origen (FAC, ND, etc.). */
+  tipo: string;
+  fecha: string;
+  fechaVence: string;
+  moneda: Moneda;
+  monto: number;
+  /** Saldo pendiente de pago. */
+  saldo: number;
+  /** Sistema del que proviene; ausente = registro interno. */
+  origen?: string | null;
+  notas?: string | null;
 }
 
 export type Periodicidad = "Mensual" | "Bimestral" | "Trimestral" | "Semestral" | "Anual";
