@@ -65,6 +65,11 @@ export const Route = createFileRoute("/facturas")({
 
 function PaginaFacturas() {
   const {
+    filas: filasVisibles,
+    estiloTabla,
+    establecer: establecerFilas,
+  } = useFilasVisibles("facturas");
+  const {
     facturasCalculadas,
     companias,
     companiaActiva,
