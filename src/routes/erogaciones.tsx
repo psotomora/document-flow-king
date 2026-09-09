@@ -57,18 +57,34 @@ export const Route = createFileRoute("/erogaciones")({
 });
 
 function PaginaErogaciones() {
-  const { erogaciones, bancos, companias, companiaActiva, puedeEditar, esAdministrador, eliminarErogacion, usuario } =
+  const { erogaciones, bancos, companias, companiaActiva, puedeEditar, esAdministrador, eliminarErogacion, usuario, hoy } =
     useApp();
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
+  const [proveedor, setProveedor] = useState("");
+  const [periodo, setPeriodo] = useState<"mes" | "todos" | "rango">("mes");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
+
+  const mesActual = hoy.slice(0, 7);
+  const textoProveedor = proveedor.trim().toLowerCase();
 
   const filtradas = useMemo(
     () =>
-      filtrarPorCompania(erogaciones, companiaActiva).filter(
-        (e) => moneda === "todas" || e.moneda === moneda,
-      ),
-    [erogaciones, companiaActiva, moneda],
+      filtrarPorCompania(erogaciones, companiaActiva).filter((e) => {
+        if (moneda !== "todas" && e.moneda !== moneda) return false;
+        if (textoProveedor && !e.proveedor.toLowerCase().includes(textoProveedor)) return false;
+        const fecha = e.fecha.slice(0, 10);
+        if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
+        if (periodo === "rango") {
+          if (fechaInicio && fecha < fechaInicio) return false;
+          if (fechaFin && fecha > fechaFin) return false;
+        }
+        return true;
+      }),
+    [erogaciones, companiaActiva, moneda, textoProveedor, periodo, fechaInicio, fechaFin, mesActual],
   );
+
 
   const totalUSD = filtradas.filter((e) => e.moneda === "USD").reduce((s, e) => s + e.monto, 0);
   const totalCRC = filtradas.filter((e) => e.moneda === "CRC").reduce((s, e) => s + e.monto, 0);
