@@ -35,6 +35,10 @@ export interface Factura {
   lineas?: number | null;
   /** Verdadero cuando la factura ya está cobrada en el sistema de origen. */
   cobrada?: boolean | null;
+  /** Saldo pendiente según cuentas por cobrar del sistema de origen. */
+  saldoErp?: number | null;
+  /** Fecha de vencimiento registrada en cuentas por cobrar del sistema de origen. */
+  fechaVence?: string | null;
 }
 
 export interface LineaFactura {
