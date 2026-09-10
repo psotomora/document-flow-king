@@ -286,13 +286,20 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     }
   }, [aplicarEstado, sesionExpirada]);
 
-  // Arranque: la aplicación siempre pide el inicio de sesión, aun en modo demostración.
+  // Arranque: si hay una sesión guardada y sigue vigente, se restaura sin pedir el login.
   useEffect(() => {
     if (iniciado.current) return;
     iniciado.current = true;
-    setModoApi(hayApi());
+    const conApi = hayApi();
+    setModoApi(conApi);
+    if (conApi && obtenerToken()) {
+      void recargar();
+      return;
+    }
     guardarToken(null);
     setAutenticado(false);
+    // Solo debe ejecutarse una vez al montar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
