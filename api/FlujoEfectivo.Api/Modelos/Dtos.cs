@@ -180,6 +180,23 @@ public class DocumentoPorPagarDto
     public string? Notas { get; set; }
 }
 
+/// <summary>Documento de cuentas por cobrar del cliente (FAC o DEV), cobrado o pendiente.</summary>
+public class DocumentoPorCobrarDto
+{
+    public string Id { get; set; } = "";
+    public string CompaniaId { get; set; } = "";
+    public string Cliente { get; set; } = "";
+    public string Numero { get; set; } = "";
+    public string Tipo { get; set; } = "";
+    public string Fecha { get; set; } = "";
+    public string? FechaVence { get; set; }
+    public string Moneda { get; set; } = "";
+    public decimal Monto { get; set; }
+    public decimal Saldo { get; set; }
+    public string? Origen { get; set; }
+    public string? Notas { get; set; }
+}
+
 public class ContratoDto
 {
     public string Id { get; set; } = "";
@@ -244,6 +261,7 @@ public record EstadoDto(
     IEnumerable<PagoDto> Pagos,
     IEnumerable<ErogacionDto> Erogaciones,
     IEnumerable<DocumentoPorPagarDto> DocumentosPorPagar,
+    IEnumerable<DocumentoPorCobrarDto> DocumentosPorCobrar,
     IEnumerable<ContratoDto> Contratos,
     IEnumerable<PedidoDto> Pedidos,
     IEnumerable<TipoCambioDto> TiposCambio,
