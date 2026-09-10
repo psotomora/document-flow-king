@@ -450,6 +450,25 @@ function ContratosDelMes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busqueda, fechaInicio, fechaFin, listo]);
 
+  // Marcas de "pagado": solo histórico, no generan facturas ni afectan la proyección.
+  const pagados = useMemo(() => {
+    try {
+      const bruto = preferencias[PREF_CONTRATOS_MES_PAGADOS];
+      const lista = bruto ? (JSON.parse(bruto) as unknown) : [];
+      return new Set(Array.isArray(lista) ? lista.filter((x): x is string => typeof x === "string") : []);
+    } catch {
+      return new Set<string>();
+    }
+  }, [preferencias]);
+
+  const marcarPagado = (clave: string, valor: boolean) => {
+    const siguiente = new Set(pagados);
+    if (valor) siguiente.add(clave);
+    else siguiente.delete(clave);
+    actualizarPreferencia(PREF_CONTRATOS_MES_PAGADOS, JSON.stringify([...siguiente]));
+  };
+
+
   const texto = busqueda.trim().toLowerCase();
   const filtrados = filtrarPorCompania(contratosDelMes, companiaActiva).filter((c) => {
     if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
