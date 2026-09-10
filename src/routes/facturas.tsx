@@ -144,6 +144,7 @@ function PaginaFacturas() {
         Factura: f.numero,
         Cliente: f.cliente,
         Emisión: formatearFecha(f.fechaEmision),
+        Creación: formatearFecha(f.fechaCreacion ?? f.fechaEmision),
         "Plazo (días)": f.plazoDias,
         Vencimiento: formatearFecha(f.fechaVencimiento),
         "Días para vencer": f.diasParaVencer ?? "",
@@ -280,6 +281,7 @@ function PaginaFacturas() {
               <TableHead>Factura</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Emisión</TableHead>
+              <TableHead>Creación</TableHead>
               <TableHead className="text-right">Plazo</TableHead>
               <TableHead>Vencimiento</TableHead>
               <TableHead className="text-right">Días</TableHead>
@@ -313,6 +315,9 @@ function PaginaFacturas() {
                 </TableCell>
                 <TableCell>{f.cliente}</TableCell>
                 <TableCell className="whitespace-nowrap">{formatearFecha(f.fechaEmision)}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {formatearFecha(f.fechaCreacion ?? f.fechaEmision)}
+                </TableCell>
                 <TableCell className="text-right tabular-nums">{f.plazoDias}</TableCell>
                 <TableCell className="whitespace-nowrap">
                   {formatearFecha(f.fechaVencimiento)}
@@ -353,7 +358,7 @@ function PaginaFacturas() {
             ))}
             {filtradas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={12} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={13} className="py-10 text-center text-muted-foreground">
                   No hay facturas para los filtros aplicados.
                 </TableCell>
               </TableRow>

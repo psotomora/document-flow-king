@@ -91,6 +91,8 @@ export interface ContratoDelMes {
   fecha: string;
   moneda: Contrato["moneda"];
   monto: number;
+  /** Fecha en que se creó el contrato en el sistema. */
+  fechaCreacion: string;
   /** Verdadero si ya existe un pedido o factura asociado a esa facturación. */
   yaDocumentado: boolean;
   /** Número del pedido o factura encontrado, si existe. */
@@ -150,6 +152,7 @@ export function contratosPorFacturarDelMes(
         fecha,
         moneda: c.moneda,
         monto: c.monto,
+        fechaCreacion: c.fechaCreacion ?? c.proximaFacturacion,
         yaDocumentado: doc !== undefined,
         ...(doc ? { documento: doc.numero } : {}),
       });

@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.20.3";
+export const APP_VERSION = "1.20.4";
 export const APP_FECHA_VERSION = "2026-09-09";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.20.4",
+    fecha: "2026-09-09",
+    cambios: [
+      "Facturas por cobrar: nueva columna 'Creación' con la fecha en que se registró la factura.",
+      "Contratos por facturar este mes: nueva columna 'Creación' con la fecha en que se creó el contrato.",
+      "Base de datos: la tabla flujo.Contrato ahora guarda la fecha de creación (CreadoEn); la API la agrega automáticamente en bases existentes.",
+    ],
+  },
   {
     version: "1.20.3",
     fecha: "2026-09-09",
