@@ -35,7 +35,7 @@ import type { DocumentoPorCobrar, Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
-type Periodo = "mes-anterior" | "acumulado-anterior" | "rango";
+type Periodo = "mes-actual" | "anio-a-hoy" | "rango";
 interface Rango {
   desde: string;
   hasta: string;
