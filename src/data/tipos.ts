@@ -39,6 +39,8 @@ export interface Factura {
   saldoErp?: number | null;
   /** Fecha de vencimiento registrada en cuentas por cobrar del sistema de origen. */
   fechaVence?: string | null;
+  /** Fecha en que se creó el registro en el sistema. */
+  fechaCreacion?: string | null;
 }
 
 export interface LineaFactura {
@@ -118,6 +120,8 @@ export interface Contrato {
   facturado: boolean;
   estado: EstadoContrato;
   notas?: string | undefined;
+  /** Fecha en que se creó el contrato en el sistema. */
+  fechaCreacion?: string;
 }
 
 export type EstadoPedido = "Pendiente" | "Facturado" | "Anulado";
