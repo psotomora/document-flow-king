@@ -40,6 +40,7 @@ import {
   filtrarPorCompania,
   useApp,
   PREF_CONTRATOS_MES_FILTROS,
+  PREF_CONTRATOS_MES_PAGADOS,
 } from "@/contexto/AppContexto";
 import type { Contrato, EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
