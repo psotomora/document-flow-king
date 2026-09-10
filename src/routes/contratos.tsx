@@ -9,6 +9,7 @@ import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -415,21 +416,25 @@ function ContratosDelMes() {
   const guardados = useMemo(() => {
     try {
       const bruto = preferencias[PREF_CONTRATOS_MES_FILTROS];
-      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "" };
+      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true };
       const p = JSON.parse(bruto) as Record<string, unknown>;
       return {
         busqueda: typeof p["busqueda"] === "string" ? p["busqueda"] : "",
         fechaInicio: typeof p["fechaInicio"] === "string" ? p["fechaInicio"] : "",
         fechaFin: typeof p["fechaFin"] === "string" ? p["fechaFin"] : "",
+        verPagados: typeof p["verPagados"] === "boolean" ? p["verPagados"] : true,
+        verPendientes: typeof p["verPendientes"] === "boolean" ? p["verPendientes"] : true,
       };
     } catch {
-      return { busqueda: "", fechaInicio: "", fechaFin: "" };
+      return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true };
     }
   }, [preferencias]);
 
   const [busqueda, setBusqueda] = useState(guardados.busqueda);
   const [fechaInicio, setFechaInicio] = useState(guardados.fechaInicio);
   const [fechaFin, setFechaFin] = useState(guardados.fechaFin);
+  const [verPagados, setVerPagados] = useState(guardados.verPagados);
+  const [verPendientes, setVerPendientes] = useState(guardados.verPendientes);
   const [listo, setListo] = useState(false);
 
   // Toma los filtros recordados cuando llegan del servidor.
@@ -437,18 +442,20 @@ function ContratosDelMes() {
     setBusqueda(guardados.busqueda);
     setFechaInicio(guardados.fechaInicio);
     setFechaFin(guardados.fechaFin);
+    setVerPagados(guardados.verPagados);
+    setVerPendientes(guardados.verPendientes);
     setListo(true);
   }, [guardados]);
 
   // Guarda los filtros del usuario para la próxima vez que entre.
   useEffect(() => {
     if (!listo) return;
-    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin });
+    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin, verPagados, verPendientes });
     if (actual === JSON.stringify(guardados)) return;
     const id = window.setTimeout(() => actualizarPreferencia(PREF_CONTRATOS_MES_FILTROS, actual), 600);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busqueda, fechaInicio, fechaFin, listo]);
+  }, [busqueda, fechaInicio, fechaFin, verPagados, verPendientes, listo]);
 
   // Marcas de "pagado": solo histórico, no generan facturas ni afectan la proyección.
   const pagados = useMemo(() => {
@@ -474,6 +481,9 @@ function ContratosDelMes() {
     if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
     if (fechaInicio && c.fecha < fechaInicio) return false;
     if (fechaFin && c.fecha > fechaFin) return false;
+    const estaPagado = pagados.has(`${c.contratoId}|${c.fecha}`);
+    if (!verPagados && estaPagado) return false;
+    if (!verPendientes && !estaPagado) return false;
     return true;
   });
 
@@ -558,7 +568,29 @@ function ContratosDelMes() {
             onChange={(e) => setFechaFin(e.target.value)}
           />
         </div>
-        {busqueda || fechaInicio || fechaFin ? (
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="cm-pagados"
+              checked={verPagados}
+              onCheckedChange={(v) => setVerPagados(v === true)}
+            />
+            <Label htmlFor="cm-pagados" className="text-sm font-normal">
+              Pagados
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="cm-pendientes"
+              checked={verPendientes}
+              onCheckedChange={(v) => setVerPendientes(v === true)}
+            />
+            <Label htmlFor="cm-pendientes" className="text-sm font-normal">
+              Pendientes
+            </Label>
+          </div>
+        </div>
+        {busqueda || fechaInicio || fechaFin || !verPagados || !verPendientes ? (
           <Button
             variant="ghost"
             size="sm"
@@ -566,6 +598,8 @@ function ContratosDelMes() {
               setBusqueda("");
               setFechaInicio("");
               setFechaFin("");
+              setVerPagados(true);
+              setVerPendientes(true);
             }}
           >
             Limpiar
