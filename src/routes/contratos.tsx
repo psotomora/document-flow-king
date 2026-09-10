@@ -620,6 +620,14 @@ function ContratosDelMes() {
                     ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
                     : "Por facturar"}
                 </TableCell>
+                <TableCell className="text-center">
+                  <Switch
+                    checked={pagados.has(`${c.contratoId}|${c.fecha}`)}
+                    disabled={!puedeEditar}
+                    aria-label={`Marcar contrato ${c.numero} como pagado`}
+                    onCheckedChange={(v) => marcarPagado(`${c.contratoId}|${c.fecha}`, v)}
+                  />
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
                     {puedeEditar && !soloLectura ? (
