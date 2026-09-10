@@ -430,8 +430,8 @@ function DialogoErogacion({
               <SelectContent>
                 <SelectItem value="sin">Sin documento</SelectItem>
                 {documentoOriginalAusente ? (
-                  <SelectItem value={erogacion.documentoPagoId ?? "sin"}>
-                    {erogacion.documentoPagoNumero ?? "Documento asociado"}
+                  <SelectItem value={erogacion?.documentoPagoId ?? "sin"}>
+                    {erogacion?.documentoPagoNumero ?? "Documento asociado"}
                   </SelectItem>
                 ) : null}
                 {documentosCompania.map((d) => (
