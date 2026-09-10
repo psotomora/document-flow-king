@@ -80,7 +80,7 @@ export function VistaComparativa() {
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV">("todos");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<Periodo>("mes-anterior");
+  const [periodo, setPeriodo] = useState<Periodo>("anio-a-hoy");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
 
