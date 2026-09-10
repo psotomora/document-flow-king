@@ -352,95 +352,11 @@ export function VistaComparativa({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="dcc-cliente">Cliente</Label>
-          <Input
-            id="dcc-cliente"
-            className="w-56"
-            placeholder="Buscar cliente…"
-            value={cliente}
-            onChange={(e) => setCliente(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="dcc-numero">N.º de documento</Label>
-          <Input
-            id="dcc-numero"
-            className="w-56"
-            placeholder="Buscar n.º de documento…"
-            value={numeroBusqueda}
-            onChange={(e) => setNumeroBusqueda(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Tipo</Label>
-          <Select value={tipo} onValueChange={(v) => setTipo(v as "todos" | "FAC" | "DEV" | "NC")}>
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="FAC">FAC</SelectItem>
-              <SelectItem value="DEV">DEV</SelectItem>
-              <SelectItem value="NC">NC</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Moneda</Label>
-          <Select value={moneda} onValueChange={(v) => setMoneda(v as Moneda | "todas")}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas</SelectItem>
-              <SelectItem value="USD">USD</SelectItem>
-              <SelectItem value="CRC">CRC</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Periodo</Label>
-          <Select value={periodo} onValueChange={(v) => setPeriodo(v as Periodo)}>
-            <SelectTrigger className="w-72">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mes-actual">
-                Mes en curso a hoy vs mismo periodo del año anterior
-              </SelectItem>
-              <SelectItem value="anio-a-hoy">
-                Año en curso a hoy vs mismo periodo del año anterior
-              </SelectItem>
-              <SelectItem value="rango">Rango de fechas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {periodo === "rango" ? (
-          <>
-            <div className="space-y-1.5">
-              <Label htmlFor="dcc-desde">Fecha inicio</Label>
-              <Input
-                id="dcc-desde"
-                type="date"
-                className="w-44"
-                value={desde}
-                onChange={(e) => setDesde(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="dcc-hasta">Fecha fin</Label>
-              <Input
-                id="dcc-hasta"
-                type="date"
-                className="w-44"
-                value={hasta}
-                onChange={(e) => setHasta(e.target.value)}
-              />
-            </div>
-          </>
-        ) : null}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
+        <p className="text-xs text-muted-foreground">
+          Se aplican los mismos filtros de la pestaña Documentos. El detalle muestra el año
+          anterior: {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
+        </p>
         <div className="ml-auto flex items-end gap-3">
           <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
             <FileDown className="size-4" /> Exportar Excel
