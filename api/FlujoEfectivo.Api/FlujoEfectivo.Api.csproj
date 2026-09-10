@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>FlujoEfectivo.Api</RootNamespace>
     <InvariantGlobalization>false</InvariantGlobalization>
-    <Version>1.22.9</Version>
-    <AssemblyVersion>1.22.9.0</AssemblyVersion>
-    <FileVersion>1.22.9.0</FileVersion>
+    <Version>1.22.10</Version>
+    <AssemblyVersion>1.22.10.0</AssemblyVersion>
+    <FileVersion>1.22.10.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +16,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.11" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+  </ItemGroup>
+
+  <!-- La configuración productiva contiene llaves propias del servidor.
+       Nunca debe ser sobrescrita por una publicación desde Git. -->
+  <ItemGroup>
+    <Content Update="appsettings.Production.json" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
 </Project>

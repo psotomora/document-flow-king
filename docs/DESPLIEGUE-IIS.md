@@ -107,6 +107,7 @@ dotnet publish -c Release -o C:\inetpub\FlujoEfectivoApi
 ```
 
 Debe quedar en `C:\inetpub\FlujoEfectivoApi` el archivo `FlujoEfectivo.Api.dll`, `web.config` y `appsettings.Production.json`.
+La publicación no copia `appsettings.Production.json`: esto evita sobrescribir accidentalmente la llave y las conexiones propias del servidor. En la primera instalación, créelo manualmente en esa carpeta con el contenido del apartado 2.2. En actualizaciones posteriores, conserve exactamente el archivo existente.
 
 ### 2.4 Crear el grupo de aplicaciones
 

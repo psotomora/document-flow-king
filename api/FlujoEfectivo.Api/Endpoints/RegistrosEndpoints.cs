@@ -651,6 +651,21 @@ public static class RegistrosEndpoints
             using var cn = db.Abrir();
             var actual = Softland.Leer(cn);
             var nuevo = Combinar(actual, f, config["Jwt:Llave"] ?? "");
+            try
+            {
+                // Evita confirmar una configuración que conserva una clave cifrada
+                // con una llave anterior. Al escribir una clave nueva, también
+                // comprueba que el valor recién cifrado pueda recuperarse.
+                if (!string.IsNullOrEmpty(nuevo.Usuario) && !string.IsNullOrEmpty(nuevo.ClaveCifrada))
+                    _ = Softland.Descifrar(nuevo.ClaveCifrada, config["Jwt:Llave"] ?? "");
+            }
+            catch (InvalidOperationException)
+            {
+                return Results.BadRequest(new
+                {
+                    mensaje = "La contraseña guardada pertenece a otra llave de seguridad. Escriba nuevamente la contraseña SQL de SoftlandERP antes de guardar."
+                });
+            }
             Softland.Guardar(cn, nuevo, ctx.User.UsuarioId());
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "Conexión SoftlandERP",
                 "Modificación",
