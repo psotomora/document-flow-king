@@ -178,9 +178,12 @@ En la máquina de compilación (con Node.js 20+):
 ```powershell
 cd C:\document-flow-king
 npm install
-$env:NITRO_PRESET = "node-server"
-npm run build
+npm run build:node
 ```
+
+> No hace falta definir `NITRO_PRESET`: el proyecto ya compila siempre como
+> servidor Node fuera del entorno de Lovable, y `build:node` verifica el
+> resultado automáticamente. Si la verificación falla, borre `.output` y repita.
 
 > Si PowerShell bloquea `npm`: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`.
 
@@ -189,18 +192,12 @@ La salida queda en la carpeta `.output\`:
 - `.output\server\index.mjs` → servidor Node
 - `.output\public\` → archivos estáticos
 
-> **Verificación obligatoria.** Antes de copiar, confirme que la compilación
-> generó un servidor Node y no un paquete para la nube:
+> Comprobación manual opcional:
 >
 > ```powershell
-> Test-Path ".output\server\wrangler.json"   # debe ser False
-> node ".output\server\index.mjs"            # debe quedarse escuchando en el puerto 3000
+> node ".output\server\index.mjs"   # debe quedarse escuchando en el puerto 3000
 > ```
->
-> Si `node` termina de inmediato con código 0 o existe `wrangler.json`, la
-> variable `NITRO_PRESET` no se aplicó: ciérrelo, borre `.output`, vuelva a
-> abrir PowerShell, ejecute otra vez `$env:NITRO_PRESET = "node-server"` y
-> `npm run build`.
+
 
 ### 3.2 Copiar al servidor
 
