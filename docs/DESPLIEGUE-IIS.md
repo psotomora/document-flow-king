@@ -277,8 +277,7 @@ dotnet publish -c Release -o C:\inetpub\FlujoEfectivoApi
 ```powershell
 cd C:\document-flow-king
 npm install
-$env:NITRO_PRESET = "node-server"
-npm run build
+npm run build:node
 nssm stop FlujoEfectivoWeb
 xcopy .output C:\inetpub\FlujoEfectivoWeb /E /I /Y
 nssm start FlujoEfectivoWeb
