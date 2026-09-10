@@ -405,7 +405,10 @@ function ContratosDelMes() {
     eliminarContrato,
     preferencias,
     actualizarPreferencia,
+    contratosFuenteExterna,
+    modoApi,
   } = useApp();
+  const soloLectura = modoApi && contratosFuenteExterna;
   const [enEdicion, setEnEdicion] = useState<string | null>(null);
 
   const guardados = useMemo(() => {
@@ -597,7 +600,7 @@ function ContratosDelMes() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
-                    {puedeEditar ? (
+                    {puedeEditar && !soloLectura ? (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -607,7 +610,7 @@ function ContratosDelMes() {
                         <Pencil className="size-4 text-muted-foreground" />
                       </Button>
                     ) : null}
-                    {esAdministrador ? (
+                    {esAdministrador && !soloLectura ? (
                       <Button
                         variant="ghost"
                         size="icon"

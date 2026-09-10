@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.22.10";
+export const APP_VERSION = "1.30.0";
 export const APP_FECHA_VERSION = "2026-09-10";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,16 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.30.0",
+    fecha: "2026-09-10",
+    cambios: [
+      "Nuevo parámetro de administrador: «Usar datos de contratos de fuente externa», con la misma conexión de pedidos y facturas.",
+      "Con la fuente externa activa, los contratos recurrentes se leen de SoftlandERP y cada línea permite ver su detalle (artículos, cantidades y montos).",
+      "Se conservan los datos locales, el modo demostración, los filtros, los totales y la exportación a Excel.",
+      "Nuevo botón «Actualizar» en Contratos para releer la información sin recargar la página.",
+    ],
+  },
   {
     version: "1.22.10",
     fecha: "2026-09-10",
