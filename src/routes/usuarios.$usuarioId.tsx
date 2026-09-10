@@ -233,6 +233,16 @@ function PaginaUsuario() {
             </div>
           </div>
 
+          <div className="flex items-center justify-between rounded-md border border-border p-3">
+            <div>
+              <p className="text-sm font-medium">Usuario activo</p>
+              <p className="text-xs text-muted-foreground">
+                Un usuario inactivo conserva su historial pero no puede iniciar sesión.
+              </p>
+            </div>
+            <Switch checked={activo} onCheckedChange={setActivo} />
+          </div>
+
           <div className="space-y-3 rounded-md border border-border p-3">
             <div>
               <p className="text-sm font-medium">Privilegios de operación</p>
@@ -253,16 +263,6 @@ function PaginaUsuario() {
                 onCheckedChange={setEditarErogaciones}
               />
             </div>
-          </div>
-
-          <div className="flex items-center justify-between rounded-md border border-border p-3">
-            <div>
-              <p className="text-sm font-medium">Usuario activo</p>
-              <p className="text-xs text-muted-foreground">
-                Un usuario inactivo conserva su historial pero no puede iniciar sesión.
-              </p>
-            </div>
-            <Switch checked={activo} onCheckedChange={setActivo} />
           </div>
 
           <div className="space-y-3 rounded-md border border-border p-3">

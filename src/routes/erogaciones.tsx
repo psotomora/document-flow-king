@@ -328,9 +328,11 @@ function DialogoErogacion({
     (d) => d.companiaId === companiaId && d.saldo > 0,
   );
   const documentoElegido = documentosCompania.find((d) => d.id === documentoPagoId);
-  const documentoOriginalAusente = erogacion?.documentoPagoId
-    && erogacion.documentoPagoId === documentoPagoId
-    && !documentoElegido;
+  const documentoOriginalAusente = Boolean(
+    erogacion?.documentoPagoId
+      && erogacion.documentoPagoId === documentoPagoId
+      && !documentoElegido,
+  );
 
   /** Al elegir un documento, se precargan proveedor, moneda y saldo pendiente. */
   const elegirDocumento = (valor: string) => {
@@ -356,7 +358,11 @@ function DialogoErogacion({
       toast.error("El número de transferencia ya fue registrado.");
       return;
     }
-    const datos = {
+    const documentoPagoIdFinal: string | null = documentoElegido?.id
+      ?? (documentoOriginalAusente ? erogacion?.documentoPagoId ?? null : null);
+    const documentoPagoNumeroFinal: string | null = documentoElegido?.numero
+      ?? (documentoOriginalAusente ? erogacion?.documentoPagoNumero ?? null : null);
+    const datos: Omit<Erogacion, "id"> = {
       companiaId,
       bancoId,
       numeroTransferencia,
@@ -365,8 +371,8 @@ function DialogoErogacion({
       moneda,
       monto: Number(monto),
       notas,
-      documentoPagoId: documentoElegido?.id ?? (documentoOriginalAusente ? erogacion.documentoPagoId : null),
-      documentoPagoNumero: documentoElegido?.numero ?? (documentoOriginalAusente ? erogacion.documentoPagoNumero : null),
+      documentoPagoId: documentoPagoIdFinal,
+      documentoPagoNumero: documentoPagoNumeroFinal,
     };
     if (erogacion) actualizarErogacion(erogacion.id, datos);
     else agregarErogacion(datos);
