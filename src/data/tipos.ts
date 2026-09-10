@@ -103,6 +103,28 @@ export interface DocumentoPorPagar {
   notas?: string | null;
 }
 
+/**
+ * Documento de cuentas por cobrar del cliente (facturas FAC y devoluciones DEV).
+ * Vista de consulta: incluye documentos cobrados y pendientes, sin los anulados.
+ */
+export interface DocumentoPorCobrar {
+  id: string;
+  companiaId: string;
+  cliente: string;
+  numero: string;
+  /** Tipo de documento del sistema de origen (FAC o DEV). */
+  tipo: string;
+  fecha: string;
+  fechaVence?: string | null;
+  moneda: Moneda;
+  monto: number;
+  /** Saldo pendiente de cobro. */
+  saldo: number;
+  /** Sistema del que proviene; ausente = registro interno. */
+  origen?: string | null;
+  notas?: string | null;
+}
+
 export type Periodicidad = "Mensual" | "Bimestral" | "Trimestral" | "Semestral" | "Anual";
 
 export type EstadoContrato = "Activo" | "Cancelado";
