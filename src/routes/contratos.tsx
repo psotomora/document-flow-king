@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
 import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { BotonActualizar } from "@/components/comunes/BotonActualizar";
+import { DialogoLineasContrato } from "@/components/contratos/DialogoLineasContrato";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
@@ -87,7 +89,11 @@ function PaginaContratos() {
     actualizarContrato,
     eliminarContrato,
     usuario,
+    contratosFuenteExterna,
+    modoApi,
   } = useApp();
+  // Con la fuente externa activa los contratos son de solo lectura.
+  const soloLectura = modoApi && contratosFuenteExterna;
 
   const [estado, setEstado] = useState<EstadoContrato | "todos">("todos");
   const [busqueda, setBusqueda] = useState("");
@@ -154,13 +160,18 @@ function PaginaContratos() {
       <EncabezadoPagina
         titulo="Contratos recurrentes"
         requerimiento="RF-011"
-        descripcion="Los contratos son ingresos recurrentes y se administran en un módulo propio: no son pedidos ni se clasifican como tales. Cada contrato tiene estado Activo o Cancelado."
+        descripcion={soloLectura
+          ? "Los contratos se están leyendo del sistema externo (SoftlandERP): la lista es de consulta y cada línea permite ver su detalle."
+          : "Los contratos son ingresos recurrentes y se administran en un módulo propio: no son pedidos ni se clasifican como tales. Cada contrato tiene estado Activo o Cancelado."}
         acciones={
           <>
+            <BotonActualizar />
             <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
               <FileDown className="size-4" /> Exportar Excel
             </Button>
-            {puedeEditar ? <DialogoContrato abierto={abierto} setAbierto={setAbierto} /> : null}
+            {puedeEditar && !soloLectura ? (
+              <DialogoContrato abierto={abierto} setAbierto={setAbierto} />
+            ) : null}
           </>
         }
       />
@@ -294,7 +305,7 @@ function PaginaContratos() {
                 <TableCell>
                   <Switch
                     checked={c.facturado}
-                    disabled={!puedeEditar || c.estado === "Cancelado"}
+                    disabled={!puedeEditar || soloLectura || c.estado === "Cancelado"}
                     aria-label={`Marcar contrato ${c.numero} como facturado`}
                     onCheckedChange={(v) => actualizarContrato(c.id, { facturado: v })}
                   />
@@ -302,7 +313,7 @@ function PaginaContratos() {
                 <TableCell>
                   <Select
                     value={c.estado}
-                    disabled={!puedeEditar}
+                    disabled={!puedeEditar || soloLectura}
                     onValueChange={(v) => {
                       actualizarContrato(c.id, { estado: v as EstadoContrato });
                       toast.success(`Contrato ${c.numero}: ${v}`);
@@ -319,7 +330,8 @@ function PaginaContratos() {
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-1">
-                    {puedeEditar ? (
+                    {c.origen ? <DialogoLineasContrato contrato={c} /> : null}
+                    {puedeEditar && !soloLectura ? (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -329,7 +341,7 @@ function PaginaContratos() {
                         <Pencil className="size-4 text-muted-foreground" />
                       </Button>
                     ) : null}
-                    {esAdministrador ? (
+                    {esAdministrador && !soloLectura ? (
                       <Button
                         variant="ghost"
                         size="icon"
