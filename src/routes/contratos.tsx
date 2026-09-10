@@ -568,7 +568,29 @@ function ContratosDelMes() {
             onChange={(e) => setFechaFin(e.target.value)}
           />
         </div>
-        {busqueda || fechaInicio || fechaFin ? (
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="cm-pagados"
+              checked={verPagados}
+              onCheckedChange={(v) => setVerPagados(v === true)}
+            />
+            <Label htmlFor="cm-pagados" className="text-sm font-normal">
+              Pagados
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="cm-pendientes"
+              checked={verPendientes}
+              onCheckedChange={(v) => setVerPendientes(v === true)}
+            />
+            <Label htmlFor="cm-pendientes" className="text-sm font-normal">
+              Pendientes
+            </Label>
+          </div>
+        </div>
+        {busqueda || fechaInicio || fechaFin || !verPagados || !verPendientes ? (
           <Button
             variant="ghost"
             size="sm"
@@ -576,6 +598,8 @@ function ContratosDelMes() {
               setBusqueda("");
               setFechaInicio("");
               setFechaFin("");
+              setVerPagados(true);
+              setVerPendientes(true);
             }}
           >
             Limpiar
