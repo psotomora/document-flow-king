@@ -46,7 +46,6 @@ const restarAnio = (iso: string) => `${Number(iso.slice(0, 4)) - 1}${iso.slice(4
 function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: string) {
   const anio = hoyIso.slice(0, 4);
   const mes = hoyIso.slice(5, 7);
-  const ultimoDia = new Date(Number(anio), Number(mes), 0).getDate();
   if (periodo === "mes-actual") {
     const actual: Rango = {
       desde: `${anio}-${mes}-01`,
