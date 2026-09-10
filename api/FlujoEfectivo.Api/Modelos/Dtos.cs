@@ -55,11 +55,13 @@ public class FacturaDto
         int? lineas = null,
         bool cobrada = false,
         decimal? saldoErp = null,
-        string? fechaVence = null)
+        string? fechaVence = null,
+        string? fechaCreacion = null)
     {
         Cobrada = cobrada;
         SaldoErp = saldoErp;
         FechaVence = fechaVence;
+        FechaCreacion = fechaCreacion;
         Id = id;
         CompaniaId = companiaId;
         Numero = numero;
@@ -90,6 +92,8 @@ public class FacturaDto
     public decimal? SaldoErp { get; set; }
     /// <summary>Fecha de vencimiento registrada en cuentas por cobrar del ERP.</summary>
     public string? FechaVence { get; set; }
+    /// <summary>Fecha en que se creó el registro en el sistema.</summary>
+    public string? FechaCreacion { get; set; }
 }
 
 public class LineaFacturaDto
@@ -184,12 +188,14 @@ public class ContratoDto
     public string Cliente { get; set; } = "";
     public string Periodicidad { get; set; } = "";
     public string ProximaFacturacion { get; set; } = "";
-    public int PlazoDias { get; set; }
+    public int PlazoDias { get;; set; }
     public string Moneda { get; set; } = "";
     public decimal Monto { get; set; }
     public bool Facturado { get; set; }
     public string Estado { get; set; } = "";
     public string? Notas { get; set; }
+    /// <summary>Fecha en que se creó el contrato en el sistema.</summary>
+    public string? FechaCreacion { get; set; }
 }
 
 public class PedidoDto
