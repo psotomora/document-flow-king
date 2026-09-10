@@ -174,6 +174,12 @@ try
             ALTER TABLE flujo.Usuario ADD VerCatalogos BIT NOT NULL
                 CONSTRAINT DF_Usuario_VerCatalogos DEFAULT 1;
 
+        -- Fecha de creación en contratos (v1.20.4).
+        IF OBJECT_ID('flujo.Contrato', 'U') IS NOT NULL
+           AND COL_LENGTH('flujo.Contrato', 'CreadoEn') IS NULL
+            ALTER TABLE flujo.Contrato ADD CreadoEn DATETIME2(0) NOT NULL
+                CONSTRAINT DF_Contrato_CreadoEn DEFAULT SYSUTCDATETIME();
+
         -- Preferencias personales por usuario (08_preferencias_usuario.sql).
         IF OBJECT_ID('flujo.PreferenciaUsuario', 'U') IS NULL
             CREATE TABLE flujo.PreferenciaUsuario
