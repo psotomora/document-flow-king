@@ -66,7 +66,8 @@ public static class EstadoEndpoints
                        CAST(k.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
                        k.Numero, c.Nombre AS Cliente, k.Periodicidad,
                        CONVERT(CHAR(10), k.ProximaFacturacion, 23) AS ProximaFacturacion,
-                       k.PlazoDias, k.Moneda, k.Monto, k.Facturado, k.Estado, k.Notas
+                       k.PlazoDias, k.Moneda, k.Monto, k.Facturado, k.Estado, k.Notas,
+                       CONVERT(CHAR(10), k.CreadoEn, 23) AS FechaCreacion
                 FROM flujo.Contrato k
                 INNER JOIN flujo.Cliente c ON c.ClienteId = k.ClienteId
                 ORDER BY k.ProximaFacturacion
@@ -152,7 +153,8 @@ public static class EstadoEndpoints
                        CAST(f.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
                        f.Numero, c.Nombre AS Cliente,
                        CONVERT(CHAR(10), f.FechaEmision, 23) AS FechaEmision,
-                       f.PlazoDias, f.Moneda, f.Monto, f.Notas
+                       f.PlazoDias, f.Moneda, f.Monto, f.Notas,
+                       CONVERT(CHAR(10), f.CreadoEn, 23) AS FechaCreacion
                 FROM flujo.Factura f
                 INNER JOIN flujo.Cliente c ON c.ClienteId = f.ClienteId
                 WHERE f.Anulada = 0
