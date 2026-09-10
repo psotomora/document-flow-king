@@ -432,6 +432,67 @@ public static partial class Softland
         return lista;
     }
 
+    /* ------------------------- Documentos por cobrar ------------------------- */
+
+    /// <summary>
+    /// Documentos de cuentas por cobrar (tabla DOCUMENTOS_CC) de tipo FAC y DEV que no estén
+    /// anulados. Incluye los ya cobrados (saldo cero) porque es una vista de consulta.
+    /// El nombre del cliente se resuelve contra la tabla CLIENTE cuando existe.
+    /// </summary>
+    public static IEnumerable<DocumentoPorCobrarDto> DocumentosPorCobrar(
+        ConfigSoftland c, string secreto, string companiaId)
+    {
+        using var cn = Abrir(c, secreto);
+        var e = c.Esquema;
+        var tieneCliente = cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{e}.CLIENTE" }) == 1;
+        var nombre = tieneCliente
+            ? $"ISNULL((SELECT TOP 1 cl.NOMBRE FROM [{e}].[CLIENTE] cl WHERE cl.CLIENTE = d.CLIENTE), d.CLIENTE)"
+            : "d.CLIENTE";
+
+        var filas = cn.Query(
+            $"""
+            SELECT d.CLIENTE AS Codigo,
+                   {nombre} AS Cliente,
+                   d.DOCUMENTO AS Numero,
+                   d.TIPO AS Tipo,
+                   CONVERT(CHAR(10), ISNULL(d.FECHA_DOCUMENTO, d.FECHA), 23) AS Fecha,
+                   CONVERT(CHAR(10), d.FECHA_VENCE, 23) AS FechaVence,
+                   d.MONEDA AS Moneda,
+                   d.MONTO AS Monto,
+                   d.SALDO AS Saldo
+            FROM [{e}].[DOCUMENTOS_CC] d
+            WHERE d.TIPO IN ('FAC', 'DEV')
+              AND d.FECHA_ANUL IS NULL
+            ORDER BY ISNULL(d.FECHA_DOCUMENTO, d.FECHA) DESC, d.DOCUMENTO DESC
+            """);
+
+        var lista = new List<DocumentoPorCobrarDto>();
+        foreach (var fila in filas)
+        {
+            var d = (IDictionary<string, object?>)fila;
+            var numero = Texto(d["Numero"]);
+            var tipo = Texto(d["Tipo"]);
+            lista.Add(new DocumentoPorCobrarDto
+            {
+                Id = PrefijoId + "cc-" + tipo + "-" + numero,
+                CompaniaId = companiaId,
+                Cliente = Texto(d["Cliente"]),
+                Numero = numero,
+                Tipo = tipo.Length > 0 ? tipo : "FAC",
+                Fecha = Texto(d["Fecha"]),
+                FechaVence = Texto(d["FechaVence"]) is { Length: > 0 } fv ? fv : null,
+                Moneda = MapearMoneda(Texto(d["Moneda"])),
+                Monto = Numero(d["Monto"]),
+                Saldo = Numero(d["Saldo"]),
+                Origen = Fuente,
+                Notas = Texto(d["Codigo"]) is { Length: > 0 } cod ? $"Cliente {cod}" : null,
+            });
+        }
+        return lista;
+    }
+
     /// <summary>Moneda (CRC/USD) de una factura vigente de Softland, o null si no existe.</summary>
     public static string? MonedaFactura(ConfigSoftland c, string secreto, string numero)
     {
