@@ -450,12 +450,12 @@ function ContratosDelMes() {
   // Guarda los filtros del usuario para la próxima vez que entre.
   useEffect(() => {
     if (!listo) return;
-    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin });
+    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin, verPagados, verPendientes });
     if (actual === JSON.stringify(guardados)) return;
     const id = window.setTimeout(() => actualizarPreferencia(PREF_CONTRATOS_MES_FILTROS, actual), 600);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busqueda, fechaInicio, fechaFin, listo]);
+  }, [busqueda, fechaInicio, fechaFin, verPagados, verPendientes, listo]);
 
   // Marcas de "pagado": solo histórico, no generan facturas ni afectan la proyección.
   const pagados = useMemo(() => {
