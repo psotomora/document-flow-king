@@ -41,6 +41,11 @@ interface Rango {
   hasta: string;
 }
 
+/** Normaliza el tipo del documento (NC y N/C se tratan igual). */
+const normalizarTipo = (t: string) => t.toUpperCase().replace("/", "").trim();
+/** Devoluciones y notas de crédito restan del monto neto. */
+const esCredito = (t: string) => normalizarTipo(t) === "DEV" || normalizarTipo(t) === "NC";
+
 const restarAnio = (iso: string) => `${Number(iso.slice(0, 4)) - 1}${iso.slice(4)}`;
 
 function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: string) {
@@ -79,7 +84,7 @@ export function VistaComparativa() {
 
   const [cliente, setCliente] = useState("");
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
-  const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV">("todos");
+  const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV" | "NC">("todos");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
   const [periodo, setPeriodo] = useState<Periodo>("anio-a-hoy");
   const [desde, setDesde] = useState("");
@@ -101,7 +106,7 @@ export function VistaComparativa() {
       filtrarPorCompania(documentosPorCobrar, companiaActiva).filter((d) => {
         if (clienteTexto && !d.cliente.toLowerCase().includes(clienteTexto)) return false;
         if (numeroTexto && !d.numero.toLowerCase().includes(numeroTexto)) return false;
-        if (tipo !== "todos" && d.tipo.toUpperCase() !== tipo) return false;
+        if (tipo !== "todos" && normalizarTipo(d.tipo) !== tipo) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
         return true;
       }),
@@ -123,7 +128,7 @@ export function VistaComparativa() {
   const netoPorMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
     lista
       .filter((d) => d.moneda === m)
-      .reduce((s, d) => s + (d.tipo.toUpperCase() === "DEV" ? -d.monto : d.monto), 0);
+      .reduce((s, d) => s + (esCredito(d.tipo) ? -d.monto : d.monto), 0);
 
   const consolidado = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
@@ -134,7 +139,7 @@ export function VistaComparativa() {
   const consolidadoNeto = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
       (s, d) => {
-        const factor = d.tipo.toUpperCase() === "DEV" ? -1 : 1;
+        const factor = esCredito(d.tipo) ? -1 : 1;
         const valor = d.moneda === "USD" ? d[campo] : tipoCambio > 0 ? d[campo] / tipoCambio : 0;
         return s + factor * valor;
       },
@@ -163,7 +168,7 @@ export function VistaComparativa() {
 
   const porTipo = (lista: DocumentoPorCobrar[], t: string) =>
     consolidado(
-      lista.filter((d) => d.tipo.toUpperCase() === t),
+      lista.filter((d) => normalizarTipo(d.tipo) === t),
       "monto",
     );
 
@@ -179,18 +184,21 @@ export function VistaComparativa() {
       "Año actual": porTipo(docsActual, "DEV"),
       "Año anterior": porTipo(docsAnterior, "DEV"),
     },
+    {
+      tipo: "NC",
+      "Año actual": porTipo(docsActual, "NC"),
+      "Año anterior": porTipo(docsAnterior, "NC"),
+    },
   ];
 
-  const docsActualConPeriodo = docsActual.map((d) => ({ ...d, periodo: "Año actual" as const }));
-  const docsAnteriorConPeriodo = docsAnterior.map((d) => ({ ...d, periodo: "Año anterior" as const }));
-  const docsCombinados = [...docsActualConPeriodo, ...docsAnteriorConPeriodo];
+  // El grid muestra el detalle del año anterior según el filtro seleccionado.
+  const docsGrid = docsAnterior;
 
   const exportar = () =>
     exportarExcel(
       "reporte-documentos-comparativo",
       "Comparativo de documentos",
-      docsCombinados.map((d) => ({
-        Periodo: d.periodo,
+      docsGrid.map((d) => ({
         Compañía: companias.find((c) => c.id === d.companiaId)?.codigo ?? "",
         Cliente: d.cliente,
         Documento: d.numero,
@@ -217,7 +225,8 @@ export function VistaComparativa() {
           <div className="mt-2 flex items-start gap-2 rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
             <Info className="mt-0.5 size-3.5 shrink-0" />
             <span>
-              Los totales comparativos representan el monto neto: suma de facturas (FAC) menos suma de devoluciones (DEV).
+              Los totales comparativos representan el monto neto: suma de facturas (FAC) menos las
+              devoluciones (DEV) y notas de crédito (NC).
             </span>
           </div>
 
@@ -362,7 +371,7 @@ export function VistaComparativa() {
         </div>
         <div className="space-y-1.5">
           <Label>Tipo</Label>
-          <Select value={tipo} onValueChange={(v) => setTipo(v as "todos" | "FAC" | "DEV")}>
+          <Select value={tipo} onValueChange={(v) => setTipo(v as "todos" | "FAC" | "DEV" | "NC")}>
             <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
@@ -370,6 +379,7 @@ export function VistaComparativa() {
               <SelectItem value="todos">Todos</SelectItem>
               <SelectItem value="FAC">FAC</SelectItem>
               <SelectItem value="DEV">DEV</SelectItem>
+              <SelectItem value="NC">NC</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -446,7 +456,6 @@ export function VistaComparativa() {
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
             <TableRow>
-              <TableHead>Periodo</TableHead>
               <TableHead>Compañía</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Documento</TableHead>
@@ -459,9 +468,8 @@ export function VistaComparativa() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {docsCombinados.map((d) => (
-              <TableRow key={`${d.periodo}-${d.id}`}>
-                <TableCell className="text-xs font-medium text-muted-foreground">{d.periodo}</TableCell>
+            {docsGrid.map((d) => (
+              <TableRow key={d.id}>
                 <TableCell className="text-xs text-muted-foreground">
                   {companias.find((c) => c.id === d.companiaId)?.codigo}
                 </TableCell>
@@ -483,10 +491,10 @@ export function VistaComparativa() {
                 </TableCell>
               </TableRow>
             ))}
-            {docsCombinados.length === 0 ? (
+            {docsGrid.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
-                  No hay documentos para los filtros aplicados.
+                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                  No hay documentos del año anterior para los filtros aplicados.
                 </TableCell>
               </TableRow>
             ) : null}
