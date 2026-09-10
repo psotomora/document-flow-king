@@ -42,13 +42,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/documentos-cobrar")({
   head: () => ({
     meta: [
-      { title: "Documentos por cobrar | Aplix Cash Flow Insights" },
+      { title: "Reporte de documentos | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Vista de consulta de los documentos de cuentas por cobrar tipo FAC y DEV, con monto, saldo y filtros por cliente, moneda y fechas.",
       },
-      { property: "og:title", content: "Documentos por cobrar | Aplix Cash Flow Insights" },
+      { property: "og:title", content: "Reporte de documentos | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content:
@@ -84,6 +84,7 @@ function PaginaDocumentosPorCobrar() {
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV">("todos");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
+  const [periodo, setPeriodo] = useState<"mes" | "anio" | "rango">("mes");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [nuevo, setNuevo] = useState(false);
@@ -93,6 +94,10 @@ function PaginaDocumentosPorCobrar() {
   const numeroTexto = numeroBusqueda.trim().toLowerCase();
   const soloLectura = modoApi && documentosCobroFuenteExterna;
 
+  const hoyIso = new Date().toISOString().slice(0, 10);
+  const mesActual = hoyIso.slice(0, 7);
+  const anioActual = hoyIso.slice(0, 4);
+
   const filtrados = useMemo(
     () =>
       filtrarPorCompania(documentosPorCobrar, companiaActiva).filter((d) => {
@@ -101,11 +106,28 @@ function PaginaDocumentosPorCobrar() {
         if (tipo !== "todos" && d.tipo.toUpperCase() !== tipo) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
         const fecha = d.fecha.slice(0, 10);
-        if (desde && fecha < desde) return false;
-        if (hasta && fecha > hasta) return false;
+        if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
+        if (periodo === "anio" && (fecha.slice(0, 4) !== anioActual || fecha > hoyIso)) return false;
+        if (periodo === "rango") {
+          if (desde && fecha < desde) return false;
+          if (hasta && fecha > hasta) return false;
+        }
         return true;
       }),
-    [documentosPorCobrar, companiaActiva, clienteTexto, numeroTexto, tipo, moneda, desde, hasta],
+    [
+      documentosPorCobrar,
+      companiaActiva,
+      clienteTexto,
+      numeroTexto,
+      tipo,
+      moneda,
+      periodo,
+      desde,
+      hasta,
+      mesActual,
+      anioActual,
+      hoyIso,
+    ],
   );
 
   const sumar = (m: Moneda, campo: "monto" | "saldo") =>
@@ -138,7 +160,7 @@ function PaginaDocumentosPorCobrar() {
   return (
     <div className="space-y-6">
       <EncabezadoPagina
-        titulo="Documentos por cobrar"
+        titulo="Reporte de documentos"
         requerimiento="RF-006"
         descripcion="Vista de consulta de los documentos de cuentas por cobrar de tipo FAC (facturas) y DEV (devoluciones). Se muestran los cobrados y los pendientes; los anulados quedan fuera."
         acciones={
@@ -211,25 +233,42 @@ function PaginaDocumentosPorCobrar() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="dc-desde">Fecha inicio</Label>
-          <Input
-            id="dc-desde"
-            type="date"
-            className="w-44"
-            value={desde}
-            onChange={(e) => setDesde(e.target.value)}
-          />
+          <Label>Periodo</Label>
+          <Select value={periodo} onValueChange={(v) => setPeriodo(v as "mes" | "anio" | "rango")}>
+            <SelectTrigger className="w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mes">Este mes</SelectItem>
+              <SelectItem value="anio">Acumulado del año a la fecha</SelectItem>
+              <SelectItem value="rango">Rango de fechas</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="dc-hasta">Fecha fin</Label>
-          <Input
-            id="dc-hasta"
-            type="date"
-            className="w-44"
-            value={hasta}
-            onChange={(e) => setHasta(e.target.value)}
-          />
-        </div>
+        {periodo === "rango" ? (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="dc-desde">Fecha inicio</Label>
+              <Input
+                id="dc-desde"
+                type="date"
+                className="w-44"
+                value={desde}
+                onChange={(e) => setDesde(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="dc-hasta">Fecha fin</Label>
+              <Input
+                id="dc-hasta"
+                type="date"
+                className="w-44"
+                value={hasta}
+                onChange={(e) => setHasta(e.target.value)}
+              />
+            </div>
+          </>
+        ) : null}
         <div className="ml-auto flex flex-wrap gap-6 text-right">
           <div>
             <p className="text-xs text-muted-foreground">Monto USD</p>
