@@ -189,7 +189,15 @@ function PaginaDocumentosPorCobrar() {
           <TabsTrigger value="comparativo">Comparativo anual</TabsTrigger>
         </TabsList>
         <TabsContent value="comparativo" className="space-y-6">
-          <VistaComparativa />
+          <VistaComparativa
+            cliente={cliente}
+            numeroBusqueda={numeroBusqueda}
+            tipo={tipo}
+            moneda={moneda}
+            periodo={periodo}
+            desde={desde}
+            hasta={hasta}
+          />
         </TabsContent>
         <TabsContent value="documentos" className="space-y-6">
       {soloLectura ? (
