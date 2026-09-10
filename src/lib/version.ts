@@ -13,6 +13,15 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.22.9",
+    fecha: "2026-09-10",
+    cambios: [
+      "Reporte de documentos: los filtros (cliente, número, tipo, moneda y periodo) ahora son compartidos entre la pestaña Documentos y el Comparativo anual.",
+      "Comparativo anual: el periodo anterior es exactamente el mismo rango del filtro vigente, restándole un año (con ajuste para el 29 de febrero).",
+      "El periodo «Acumulado del año a la fecha» se limita hasta hoy para que la comparación sea equivalente.",
+    ],
+  },
+  {
     version: "1.22.8",
     fecha: "2026-09-10",
     cambios: [
