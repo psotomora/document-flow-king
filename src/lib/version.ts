@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.22.6",
+    fecha: "2026-09-10",
+    cambios: [
+      "Comparativo anual: la tarjeta muestra el comparativo en moneda local (CRC), en dólares (USD) y un consolidado con selector de moneda al tipo de cambio vigente.",
+    ],
+  },
+  {
     version: "1.22.5",
     fecha: "2026-09-10",
     cambios: [
