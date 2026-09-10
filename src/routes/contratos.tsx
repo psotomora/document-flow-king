@@ -416,15 +416,17 @@ function ContratosDelMes() {
   const guardados = useMemo(() => {
     try {
       const bruto = preferencias[PREF_CONTRATOS_MES_FILTROS];
-      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "" };
+      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true };
       const p = JSON.parse(bruto) as Record<string, unknown>;
       return {
         busqueda: typeof p["busqueda"] === "string" ? p["busqueda"] : "",
         fechaInicio: typeof p["fechaInicio"] === "string" ? p["fechaInicio"] : "",
         fechaFin: typeof p["fechaFin"] === "string" ? p["fechaFin"] : "",
+        verPagados: typeof p["verPagados"] === "boolean" ? p["verPagados"] : true,
+        verPendientes: typeof p["verPendientes"] === "boolean" ? p["verPendientes"] : true,
       };
     } catch {
-      return { busqueda: "", fechaInicio: "", fechaFin: "" };
+      return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true };
     }
   }, [preferencias]);
 
