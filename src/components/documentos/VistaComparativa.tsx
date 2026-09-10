@@ -57,12 +57,14 @@ function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: 
     const actual: Rango = { desde: `${anio}-01-01`, hasta: hoyIso };
     return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
   }
-  const actual: Rango = { desde: desde || "0000-01-01", hasta: hasta || "9999-12-31" };
+  // Rango de fechas: el periodo actual es el que el usuario eligió;
+  // el periodo anterior es exactamente el mismo rango pero del año anterior.
+  const actual: Rango = { desde: desde || hoyIso, hasta: hasta || hoyIso };
   return {
     actual,
     anterior: {
-      desde: desde ? restarAnio(desde) : "0000-01-01",
-      hasta: hasta ? restarAnio(hasta) : "9999-12-31",
+      desde: restarAnio(actual.desde),
+      hasta: restarAnio(actual.hasta),
     },
   };
 }
