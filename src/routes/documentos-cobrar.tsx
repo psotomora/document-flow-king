@@ -84,6 +84,7 @@ function PaginaDocumentosPorCobrar() {
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV">("todos");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
+  const [periodo, setPeriodo] = useState<"mes" | "anio" | "rango">("mes");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [nuevo, setNuevo] = useState(false);
