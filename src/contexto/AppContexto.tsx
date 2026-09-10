@@ -317,28 +317,33 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     };
   }, [modoApi, autenticado, recargar]);
 
-  // Vigilancia de la conexión: si el servidor deja de responder se cierra la sesión.
+  // Vigilancia de la conexión: solo se cierra la sesión tras varios fallos seguidos,
+  // para que un corte momentáneo no expulse al usuario.
   useEffect(() => {
     if (!modoApi || !autenticado) return;
     let vivo = true;
+    let fallos = 0;
     const revisar = async () => {
       try {
         await api<{ estado?: string }>("/salud", { sinToken: true });
+        fallos = 0;
       } catch (e) {
         if (!vivo) return;
         const estado = e instanceof ErrorApi ? e.estado : null;
-        if (estado === 0 || estado === 502 || estado === 503 || estado === 504)
+        const caido = estado === 0 || estado === 502 || estado === 503 || estado === 504;
+        if (!caido) {
+          fallos = 0;
+          return;
+        }
+        fallos += 1;
+        if (fallos >= 3)
           forzarLogin("Se perdió la conexión con el servidor. Inicie sesión nuevamente.");
       }
     };
     const id = window.setInterval(() => void revisar(), 20000);
-    const alPerderRed = () =>
-      forzarLogin("Se perdió la conexión de red. Inicie sesión nuevamente.");
-    window.addEventListener("offline", alPerderRed);
     return () => {
       vivo = false;
       window.clearInterval(id);
-      window.removeEventListener("offline", alPerderRed);
     };
   }, [modoApi, autenticado, forzarLogin]);
 
