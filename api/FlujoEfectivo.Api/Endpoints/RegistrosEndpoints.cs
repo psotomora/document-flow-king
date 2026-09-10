@@ -597,6 +597,24 @@ public static class RegistrosEndpoints
             }
         });
 
+        g.MapGet("/contratos/{id}/lineas", (string id, Db db, IConfiguration config) =>
+        {
+            const string prefijo = Softland.PrefijoId + "ct-";
+            if (!id.StartsWith(prefijo, StringComparison.Ordinal))
+                return Results.Ok(Array.Empty<LineaContratoDto>());
+            using var cn = db.Abrir();
+            var cfg = Softland.Leer(cn);
+            if (cfg is null) return Results.BadRequest(new { mensaje = "No hay credenciales de SoftlandERP registradas." });
+            try
+            {
+                return Results.Ok(Softland.LineasContrato(cfg, config["Jwt:Llave"] ?? "", id[prefijo.Length..]));
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { mensaje = "SoftlandERP: " + ex.Message }, statusCode: 502);
+            }
+        });
+
         g.MapGet("/facturas/{id}/lineas", (string id, Db db, IConfiguration config) =>
         {
             if (!id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
