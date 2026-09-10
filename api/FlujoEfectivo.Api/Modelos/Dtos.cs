@@ -188,7 +188,7 @@ public class ContratoDto
     public string Cliente { get; set; } = "";
     public string Periodicidad { get; set; } = "";
     public string ProximaFacturacion { get; set; } = "";
-    public int PlazoDias { get;; set; }
+    public int PlazoDias { get; set; }
     public string Moneda { get; set; } = "";
     public decimal Monto { get; set; }
     public bool Facturado { get; set; }
