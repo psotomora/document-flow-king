@@ -85,14 +85,23 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
 
   const guardar = async () => {
     setGuardando(true);
+    setResultado(null);
     try {
-      await api("/fuentes-externas/softland", { metodo: "PUT", cuerpo: cuerpo() });
-      toast.success("Conexión a SoftlandERP guardada.");
+      const solicitud = cuerpo();
+      const prueba = await api<{ mensaje: string; pedidos: number }>(
+        "/fuentes-externas/softland/probar",
+        { metodo: "POST", cuerpo: solicitud },
+      );
+      await api("/fuentes-externas/softland", { metodo: "PUT", cuerpo: solicitud });
+      setResultado({ ok: true, mensaje: prueba.mensaje });
+      toast.success("Conexión comprobada y guardada.");
       setClave("");
       setDatos((d) => ({ ...d, tieneClave: d.tieneClave || clave.length > 0 }));
       await recargar();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo guardar la conexión");
+      const mensaje = e instanceof Error ? e.message : "No se pudo guardar la conexión";
+      setResultado({ ok: false, mensaje });
+      toast.error(mensaje);
     } finally {
       setGuardando(false);
     }
@@ -221,7 +230,7 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
             disabled={bloqueado || cargando || guardando || incompleta}
           >
             {guardando ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            Guardar
+            Probar y guardar
           </Button>
         </div>
       </div>
