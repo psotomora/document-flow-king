@@ -1,3 +1,3 @@
-- [ ] Agregar privilegio por usuario para editar erogaciones
-- [ ] Implementar edición auditada de erogaciones
-- [ ] Aumentar versiones y verificar
+- [x] Agregar privilegio por usuario para editar erogaciones
+- [x] Implementar edición auditada de erogaciones
+- [x] Aumentar versiones y verificar
