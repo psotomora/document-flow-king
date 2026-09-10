@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useMemo, useState } from "react";
-import { FileDown, Plus, Trash2 } from "lucide-react";
+import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
@@ -35,7 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
-import type { Moneda } from "@/data/tipos";
+import type { Erogacion, Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
@@ -72,6 +72,8 @@ function PaginaErogaciones() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
+  const [editando, setEditando] = useState<Erogacion | null>(null);
+  const puedeEditarErogaciones = esAdministrador || (puedeEditar && usuario.editarErogaciones !== false);
 
   const mesActual = hoy.slice(0, 7);
   const textoProveedor = proveedor.trim().toLowerCase();
@@ -228,7 +230,7 @@ function PaginaErogaciones() {
               <TableHead>Banco</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Notas</TableHead>
-              <TableHead />
+              <TableHead className="w-24" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -248,6 +250,17 @@ function PaginaErogaciones() {
                   {e.notas ?? "—"}
                 </TableCell>
                 <TableCell>
+                  <div className="flex justify-end">
+                  {puedeEditarErogaciones ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Editar erogación"
+                      onClick={() => setEditando(e)}
+                    >
+                      <Pencil className="size-4 text-muted-foreground" />
+                    </Button>
+                  ) : null}
                   {esAdministrador ? (
                     <Button
                       variant="ghost"
@@ -261,6 +274,7 @@ function PaginaErogaciones() {
                       <Trash2 className="size-4 text-muted-foreground" />
                     </Button>
                   ) : null}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -274,6 +288,16 @@ function PaginaErogaciones() {
           </TableBody>
         </Table>
       </div>
+      {editando ? (
+        <DialogoErogacion
+          key={editando.id}
+          abierto={true}
+          setAbierto={(valor) => {
+            if (!valor) setEditando(null);
+          }}
+          erogacion={editando}
+        />
+      ) : null}
     </div>
   );
 }
@@ -281,27 +305,34 @@ function PaginaErogaciones() {
 function DialogoErogacion({
   abierto,
   setAbierto,
+  erogacion,
 }: {
   abierto: boolean;
   setAbierto: (v: boolean) => void;
+  erogacion?: Erogacion;
 }) {
-  const { companias, bancos, agregarErogacion, erogaciones, documentosPorPagar, hoy } = useApp();
-  const [documentoPagoId, setDocumentoPagoId] = useState("sin");
-  const [companiaId, setCompaniaId] = useState(companias[0]?.id ?? "");
+  const { companias, bancos, agregarErogacion, actualizarErogacion, erogaciones, documentosPorPagar, hoy } = useApp();
+  const [documentoPagoId, setDocumentoPagoId] = useState(erogacion?.documentoPagoId ?? "sin");
+  const [companiaId, setCompaniaId] = useState(erogacion?.companiaId ?? companias[0]?.id ?? "");
   useCompaniaValida(companias, companiaId, setCompaniaId);
-  const [numeroTransferencia, setNumero] = useState("");
-  const [proveedor, setProveedor] = useState("");
-  const [fecha, setFecha] = useState(hoy);
-  const [bancoId, setBancoId] = useState(bancos[0]?.id ?? "");
-  const [moneda, setMoneda] = useState<Moneda>("USD");
-  const [monto, setMonto] = useState("");
-  const [notas, setNotas] = useState("");
+  const [numeroTransferencia, setNumero] = useState(erogacion?.numeroTransferencia ?? "");
+  const [proveedor, setProveedor] = useState(erogacion?.proveedor ?? "");
+  const [fecha, setFecha] = useState(erogacion?.fecha ?? hoy);
+  const [bancoId, setBancoId] = useState(erogacion?.bancoId ?? bancos[0]?.id ?? "");
+  const [moneda, setMoneda] = useState<Moneda>(erogacion?.moneda ?? "USD");
+  const [monto, setMonto] = useState(erogacion ? String(erogacion.monto) : "");
+  const [notas, setNotas] = useState(erogacion?.notas ?? "");
 
   const bancosCompania = bancos.filter((b) => b.companiaId === companiaId);
   const documentosCompania = documentosPorPagar.filter(
     (d) => d.companiaId === companiaId && d.saldo > 0,
   );
   const documentoElegido = documentosCompania.find((d) => d.id === documentoPagoId);
+  const documentoOriginalAusente = Boolean(
+    erogacion?.documentoPagoId
+      && erogacion.documentoPagoId === documentoPagoId
+      && !documentoElegido,
+  );
 
   /** Al elegir un documento, se precargan proveedor, moneda y saldo pendiente. */
   const elegirDocumento = (valor: string) => {
@@ -323,11 +354,15 @@ function DialogoErogacion({
       toast.error("El monto debe ser mayor que cero.");
       return;
     }
-    if (erogaciones.some((e) => e.numeroTransferencia === numeroTransferencia)) {
+    if (erogaciones.some((e) => e.id !== erogacion?.id && e.numeroTransferencia === numeroTransferencia)) {
       toast.error("El número de transferencia ya fue registrado.");
       return;
     }
-    agregarErogacion({
+    const documentoPagoIdFinal: string | null = documentoElegido?.id
+      ?? (documentoOriginalAusente ? erogacion?.documentoPagoId ?? null : null);
+    const documentoPagoNumeroFinal: string | null = documentoElegido?.numero
+      ?? (documentoOriginalAusente ? erogacion?.documentoPagoNumero ?? null : null);
+    const datos: Omit<Erogacion, "id"> = {
       companiaId,
       bancoId,
       numeroTransferencia,
@@ -336,10 +371,12 @@ function DialogoErogacion({
       moneda,
       monto: Number(monto),
       notas,
-      documentoPagoId: documentoElegido ? documentoElegido.id : null,
-      documentoPagoNumero: documentoElegido ? documentoElegido.numero : null,
-    });
-    toast.success("Erogación registrada");
+      documentoPagoId: documentoPagoIdFinal,
+      documentoPagoNumero: documentoPagoNumeroFinal,
+    };
+    if (erogacion) actualizarErogacion(erogacion.id, datos);
+    else agregarErogacion(datos);
+    toast.success(erogacion ? "Erogación actualizada" : "Erogación registrada");
     setAbierto(false);
     setNumero("");
     setProveedor("");
@@ -350,14 +387,14 @@ function DialogoErogacion({
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
-      <DialogTrigger asChild>
+      {!erogacion ? <DialogTrigger asChild>
         <Button size="sm" className="gap-1.5">
           <Plus className="size-4" /> Nueva erogación
         </Button>
-      </DialogTrigger>
+      </DialogTrigger> : null}
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Registrar erogación</DialogTitle>
+          <DialogTitle>{erogacion ? "Editar erogación" : "Registrar erogación"}</DialogTitle>
           <DialogDescription>
             Se descontará del saldo del banco seleccionado en la moneda indicada.
           </DialogDescription>
@@ -392,6 +429,11 @@ function DialogoErogacion({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="sin">Sin documento</SelectItem>
+                {documentoOriginalAusente ? (
+                  <SelectItem value={erogacion?.documentoPagoId ?? "sin"}>
+                    {erogacion?.documentoPagoNumero ?? "Documento asociado"}
+                  </SelectItem>
+                ) : null}
                 {documentosCompania.map((d) => (
                   <SelectItem key={d.id} value={d.id}>
                     {d.numero} — {d.proveedor} ({d.moneda} {d.saldo.toLocaleString("es-CR")})
@@ -466,7 +508,7 @@ function DialogoErogacion({
           <Button variant="outline" onClick={() => setAbierto(false)}>
             Cancelar
           </Button>
-          <Button onClick={guardar}>Guardar erogación</Button>
+          <Button onClick={guardar}>{erogacion ? "Guardar cambios" : "Guardar erogación"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

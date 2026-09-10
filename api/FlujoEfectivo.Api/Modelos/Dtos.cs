@@ -18,6 +18,7 @@ public class UsuarioAdminDto
     public bool VerErogaciones { get; set; } = true;
     public bool VerProyeccion { get; set; } = true;
     public bool VerCatalogos { get; set; } = true;
+    public bool EditarErogaciones { get; set; } = true;
 }
 
 public class CompaniaDto
@@ -324,7 +325,8 @@ public record NuevoUsuario(
     bool? VerConsolidado = null,
     bool? VerErogaciones = null,
     bool? VerProyeccion = null,
-    bool? VerCatalogos = null);
+    bool? VerCatalogos = null,
+    bool? EditarErogaciones = null);
 
 public record CambioUsuario(
     string? Nombre,
@@ -337,7 +339,8 @@ public record CambioUsuario(
     bool? VerConsolidado = null,
     bool? VerErogaciones = null,
     bool? VerProyeccion = null,
-    bool? VerCatalogos = null);
+    bool? VerCatalogos = null,
+    bool? EditarErogaciones = null);
 
 public record LoginResponse(string Token, UsuarioDto Usuario, DateTime Expira);
 

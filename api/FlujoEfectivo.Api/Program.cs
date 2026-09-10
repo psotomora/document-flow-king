@@ -173,6 +173,9 @@ try
         IF COL_LENGTH('flujo.Usuario', 'VerCatalogos') IS NULL
             ALTER TABLE flujo.Usuario ADD VerCatalogos BIT NOT NULL
                 CONSTRAINT DF_Usuario_VerCatalogos DEFAULT 1;
+        IF COL_LENGTH('flujo.Usuario', 'EditarErogaciones') IS NULL
+            ALTER TABLE flujo.Usuario ADD EditarErogaciones BIT NOT NULL
+                CONSTRAINT DF_Usuario_EditarErogaciones DEFAULT 1;
 
         -- Fecha de creación en contratos (v1.20.4).
         IF OBJECT_ID('flujo.Contrato', 'U') IS NOT NULL

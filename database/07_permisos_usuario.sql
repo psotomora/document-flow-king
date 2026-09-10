@@ -31,3 +31,8 @@ IF COL_LENGTH('flujo.Usuario', 'VerCatalogos') IS NULL
     ALTER TABLE flujo.Usuario ADD VerCatalogos BIT NOT NULL
         CONSTRAINT DF_Usuario_VerCatalogos DEFAULT 1;
 GO
+
+IF COL_LENGTH('flujo.Usuario', 'EditarErogaciones') IS NULL
+    ALTER TABLE flujo.Usuario ADD EditarErogaciones BIT NOT NULL
+        CONSTRAINT DF_Usuario_EditarErogaciones DEFAULT 1;
+GO

@@ -16,6 +16,14 @@ public static class RegistrosEndpoints
         public string Moneda { get; set; } = "";
     }
 
+    private sealed class FilaErogacion
+    {
+        public string NumeroTransferencia { get; set; } = "";
+        public int? DocumentoPorPagarId { get; set; }
+        public decimal Monto { get; set; }
+        public string Moneda { get; set; } = "";
+    }
+
     private static IResult SinPermiso() =>
         Results.Json(new { mensaje = "Su perfil no permite modificar información." }, statusCode: 403);
 
@@ -188,6 +196,65 @@ public static class RegistrosEndpoints
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Erogaciones",
                 e.NumeroTransferencia, "Creación", valorNuevo: $"{e.Moneda} {e.Monto}");
             return Results.Ok(new { id = id.ToString() });
+        });
+
+        g.MapPut("/erogaciones/{id}", (string id, NuevaErogacion e, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            using var cn = db.Abrir();
+            var puedeEditarErogaciones = ctx.User.EsAdministrador() || cn.ExecuteScalar<bool>(
+                "SELECT ISNULL(EditarErogaciones, 0) FROM flujo.Usuario WHERE UsuarioId=@id",
+                new { id = ctx.User.UsuarioId() });
+            if (!puedeEditarErogaciones)
+                return Results.Json(new { mensaje = "No tiene el privilegio para editar erogaciones." }, statusCode: 403);
+
+            var erogacionId = Id(id);
+            var anterior = cn.QueryFirstOrDefault<FilaErogacion>(
+                "SELECT NumeroTransferencia, DocumentoPorPagarId, Monto, Moneda FROM flujo.Erogacion WHERE ErogacionId=@id",
+                new { id = erogacionId });
+            if (anterior is null) return Results.NotFound(new { mensaje = "Erogación inexistente." });
+            if (cn.ExecuteScalar<int>(
+                    "SELECT COUNT(1) FROM flujo.Erogacion WHERE CompaniaId=@c AND NumeroTransferencia=@t AND ErogacionId<>@id",
+                    new { c = Id(e.CompaniaId), t = e.NumeroTransferencia, id = erogacionId }) > 0)
+                return Results.BadRequest(new { mensaje = "El número de transferencia ya fue registrado." });
+
+            var proveedorId = Db.ObtenerProveedor(cn, e.Proveedor);
+            int? documentoId = int.TryParse(e.DocumentoPagoId, out var docId) ? docId : null;
+            using var tx = cn.BeginTransaction();
+            if (anterior.DocumentoPorPagarId is not null)
+                cn.Execute(
+                    "UPDATE flujo.DocumentoPorPagar SET Saldo = CASE WHEN Saldo + @monto > Monto THEN Monto ELSE Saldo + @monto END WHERE DocumentoPorPagarId=@id",
+                    new { monto = anterior.Monto, id = anterior.DocumentoPorPagarId }, tx);
+
+            var filas = cn.Execute(
+                """
+                UPDATE flujo.Erogacion SET
+                    CompaniaId=@CompaniaId, CuentaBancariaId=@BancoId,
+                    NumeroTransferencia=@NumeroTransferencia, ProveedorId=@ProveedorId,
+                    Fecha=@Fecha, Moneda=@Moneda, Monto=@Monto, Notas=@Notas,
+                    DocumentoPorPagarId=@DocumentoId, DocumentoPagoNumero=@DocumentoNumero
+                WHERE ErogacionId=@Id
+                """,
+                new
+                {
+                    Id = erogacionId, CompaniaId = Id(e.CompaniaId), BancoId = Id(e.BancoId),
+                    e.NumeroTransferencia, ProveedorId = proveedorId, Fecha = DateTime.Parse(e.Fecha),
+                    e.Moneda, e.Monto, e.Notas, DocumentoId = documentoId,
+                    DocumentoNumero = e.DocumentoPagoNumero,
+                }, tx);
+            if (filas == 0) return Results.NotFound(new { mensaje = "Erogación inexistente." });
+
+            if (documentoId is not null)
+                cn.Execute(
+                    "UPDATE flujo.DocumentoPorPagar SET Saldo = CASE WHEN Saldo - @monto < 0 THEN 0 ELSE Saldo - @monto END WHERE DocumentoPorPagarId=@id",
+                    new { monto = e.Monto, id = documentoId }, tx);
+
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Erogaciones",
+                e.NumeroTransferencia, "Modificación",
+                valorAnterior: $"{anterior.NumeroTransferencia}; {anterior.Moneda} {anterior.Monto}",
+                valorNuevo: $"{e.NumeroTransferencia}; {e.Moneda} {e.Monto}", tx: tx);
+            tx.Commit();
+            return Results.Ok(new { mensaje = "Erogación actualizada." });
         });
 
         g.MapDelete("/erogaciones/{id}", (string id, HttpContext ctx, Db db) =>

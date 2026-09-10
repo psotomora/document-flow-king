@@ -77,6 +77,9 @@ function PaginaUsuario() {
     verProyeccion: actual?.verProyeccion ?? true,
     verCatalogos: actual?.verCatalogos ?? true,
   }));
+  const [editarErogaciones, setEditarErogaciones] = useState(
+    actual?.editarErogaciones ?? true,
+  );
 
   const volver = () => void navigate({ to: "/acceso" });
 
@@ -125,6 +128,7 @@ function PaginaUsuario() {
           activo,
           ...(contrasena ? { contrasena } : {}),
           ...visibilidad,
+          editarErogaciones,
         });
         toast.success("Usuario creado");
       } else {
@@ -136,6 +140,7 @@ function PaginaUsuario() {
           activo,
           ...(contrasena ? { contrasena } : {}),
           ...visibilidad,
+          editarErogaciones,
         });
         toast.success("Usuario actualizado");
       }
@@ -236,6 +241,28 @@ function PaginaUsuario() {
               </p>
             </div>
             <Switch checked={activo} onCheckedChange={setActivo} />
+          </div>
+
+          <div className="space-y-3 rounded-md border border-border p-3">
+            <div>
+              <p className="text-sm font-medium">Privilegios de operación</p>
+              <p className="text-xs text-muted-foreground">
+                Controlan acciones específicas sobre los registros existentes.
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md bg-muted/40 p-2.5">
+              <div>
+                <p className="text-sm font-medium">Editar erogaciones</p>
+                <p className="text-xs text-muted-foreground">
+                  Permite modificar los datos de una erogación ya registrada.
+                </p>
+              </div>
+              <Switch
+                checked={perfil === "administrador" ? true : editarErogaciones}
+                disabled={perfil === "administrador"}
+                onCheckedChange={setEditarErogaciones}
+              />
+            </div>
           </div>
 
           <div className="space-y-3 rounded-md border border-border p-3">
