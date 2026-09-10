@@ -334,6 +334,18 @@ public record NuevaErogacion(
     string? DocumentoPagoId = null,
     string? DocumentoPagoNumero = null);
 
+public record NuevoDocumentoPorCobrar(
+    string CompaniaId,
+    string Cliente,
+    string Numero,
+    string Tipo,
+    string Fecha,
+    string? FechaVence,
+    string Moneda,
+    decimal Monto,
+    decimal Saldo,
+    string? Notas);
+
 public record NuevoDocumentoPorPagar(
     string CompaniaId,
     string Proveedor,

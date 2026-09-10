@@ -205,6 +205,49 @@ public static class EstadoEndpoints
                 ORDER BY d.Fecha DESC, d.DocumentoPorPagarId DESC
                 """);
 
+            // Documentos por cobrar (FAC y DEV): registro interno o fuente externa (DOCUMENTOS_CC).
+            IEnumerable<DocumentoPorCobrarDto> documentosPorCobrar;
+            var ccSoftland = parametros.GetValueOrDefault("documentosCobroFuenteExterna") == "1"
+                && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
+                    Softland.Fuente, StringComparison.OrdinalIgnoreCase);
+            if (ccSoftland)
+            {
+                var cfg = Softland.Leer(cn);
+                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                {
+                    documentosPorCobrar = [];
+                    avisoFuente ??= "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
+                }
+                else
+                {
+                    try
+                    {
+                        var companiaId = cfg.CompaniaId?.ToString()
+                            ?? companias.FirstOrDefault()?.Id ?? "0";
+                        documentosPorCobrar = Softland.DocumentosPorCobrar(cfg, secreto, companiaId).ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        documentosPorCobrar = [];
+                        avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
+                            + "No fue posible leer los documentos por cobrar de SoftlandERP: " + Detalle(ex);
+                    }
+                }
+            }
+            else
+            documentosPorCobrar = cn.Query<DocumentoPorCobrarDto>(
+                """
+                SELECT CAST(d.DocumentoPorCobrarId AS NVARCHAR(20)) AS Id,
+                       CAST(d.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
+                       d.Cliente, d.Numero, d.Tipo,
+                       CONVERT(CHAR(10), d.Fecha, 23) AS Fecha,
+                       CONVERT(CHAR(10), d.FechaVence, 23) AS FechaVence,
+                       d.Moneda, d.Monto, d.Saldo, d.Notas
+                FROM flujo.DocumentoPorCobrar d
+                WHERE d.Anulado = 0
+                ORDER BY d.Fecha DESC, d.DocumentoPorCobrarId DESC
+                """);
+
             var tiposCambio = cn.Query<TipoCambioDto>(
                 """
                 SELECT CAST(t.TipoCambioId AS NVARCHAR(20)) AS Id, t.Valor,
@@ -257,8 +300,8 @@ public static class EstadoEndpoints
             }
 
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
-                erogaciones, documentosPorPagar, contratos, pedidos, tiposCambio, bitacora,
-                parametros, avisoFuente, preferencias));
+                erogaciones, documentosPorPagar, documentosPorCobrar, contratos, pedidos,
+                tiposCambio, bitacora, parametros, avisoFuente, preferencias));
         }).RequireAuthorization();
     }
 }
