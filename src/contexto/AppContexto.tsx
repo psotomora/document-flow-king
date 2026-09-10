@@ -102,6 +102,7 @@ interface EstadoApp {
   pagos: Pago[];
   erogaciones: Erogacion[];
   documentosPorPagar: DocumentoPorPagar[];
+  documentosPorCobrar: DocumentoPorCobrar[];
   contratos: Contrato[];
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
@@ -116,6 +117,7 @@ interface EstadoApp {
   pedidosFuenteExterna: boolean;
   facturasFuenteExterna: boolean;
   documentosPagoFuenteExterna: boolean;
+  documentosCobroFuenteExterna: boolean;
   pedidosFuenteOrigen: string;
   /** Mensaje del servidor cuando la fuente externa está activa pero no pudo leerse. */
   avisoFuenteExterna: string | null;
@@ -172,6 +174,9 @@ interface EstadoApp {
   agregarDocumentoPorPagar: (d: Omit<DocumentoPorPagar, "id">) => void;
   actualizarDocumentoPorPagar: (id: string, cambios: Partial<DocumentoPorPagar>) => void;
   eliminarDocumentoPorPagar: (id: string) => void;
+  agregarDocumentoPorCobrar: (d: Omit<DocumentoPorCobrar, "id">) => void;
+  actualizarDocumentoPorCobrar: (id: string, cambios: Partial<DocumentoPorCobrar>) => void;
+  eliminarDocumentoPorCobrar: (id: string) => void;
   agregarContrato: (c: Omit<Contrato, "id">) => void;
   actualizarContrato: (id: string, cambios: Partial<Contrato>) => void;
   eliminarContrato: (id: string) => void;
@@ -210,6 +215,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [documentosPorPagar, setDocumentosPorPagar] = useState<DocumentoPorPagar[]>(
     semilla.documentosPorPagar,
   );
+  const [documentosPorCobrar, setDocumentosPorCobrar] = useState<DocumentoPorCobrar[]>(
+    semilla.documentosPorCobrar,
+  );
   const [contratos, setContratos] = useState<Contrato[]>(semilla.contratos);
   const [pedidos, setPedidos] = useState<Pedido[]>(semilla.pedidos);
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
@@ -237,6 +245,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setPagos(estado.pagos);
     setErogaciones(estado.erogaciones);
     setDocumentosPorPagar(estado.documentosPorPagar ?? []);
+    setDocumentosPorCobrar(estado.documentosPorCobrar ?? []);
     setContratos(estado.contratos);
     setPedidos(estado.pedidos);
     setTiposCambio(estado.tiposCambio);
@@ -547,6 +556,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       pagos,
       erogaciones,
       documentosPorPagar,
+      documentosPorCobrar,
       contratos,
       pedidos,
       tiposCambio,
@@ -566,6 +576,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
       facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
       documentosPagoFuenteExterna: parametros[PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA] === "1",
+      documentosCobroFuenteExterna: parametros[PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA] === "1",
       pedidosFuenteOrigen: parametros[PARAM_PEDIDOS_FUENTE_ORIGEN] || FUENTE_PEDIDOS_DEFECTO,
       avisoFuenteExterna,
       actualizarParametro: (clave, nuevoValor) =>
@@ -749,6 +760,25 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           if (d)
             anotar("Documentos por pagar", d.numero, "Modificación", JSON.stringify(cambios));
         }),
+      agregarDocumentoPorCobrar: (d) =>
+        mutar("/documentos-cobrar", "POST", d, () => {
+          setDocumentosPorCobrar((prev) => [{ ...d, id: nuevoId("dc") }, ...prev]);
+          anotar("Documentos por cobrar", d.numero, "Creación", `${d.moneda} ${d.monto}`);
+        }),
+      actualizarDocumentoPorCobrar: (id, cambios) =>
+        mutar(`/documentos-cobrar/${id}`, "PUT", cambios, () => {
+          setDocumentosPorCobrar((prev) =>
+            prev.map((d) => (d.id === id ? { ...d, ...cambios } : d)),
+          );
+          const d = documentosPorCobrar.find((x) => x.id === id);
+          if (d) anotar("Documentos por cobrar", d.numero, "Modificación", JSON.stringify(cambios));
+        }),
+      eliminarDocumentoPorCobrar: (id) =>
+        mutar(`/documentos-cobrar/${id}`, "DELETE", undefined, () => {
+          const d = documentosPorCobrar.find((x) => x.id === id);
+          setDocumentosPorCobrar((prev) => prev.filter((x) => x.id !== id));
+          if (d) anotar("Documentos por cobrar", d.numero, "Eliminación");
+        }),
       eliminarDocumentoPorPagar: (id) =>
         mutar(`/documentos-pagar/${id}`, "DELETE", undefined, () => {
           const d = documentosPorPagar.find((x) => x.id === id);
@@ -861,6 +891,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setPagos(semilla.pagos);
         setErogaciones(semilla.erogaciones);
         setDocumentosPorPagar(semilla.documentosPorPagar);
+        setDocumentosPorCobrar(semilla.documentosPorCobrar);
         setContratos(semilla.contratos);
         setPedidos(semilla.pedidos);
         setTiposCambio(semilla.tiposCambio);
@@ -882,6 +913,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     contratos,
     erogaciones,
     documentosPorPagar,
+    documentosPorCobrar,
     errorApi,
     facturas,
     facturasCalculadas,
