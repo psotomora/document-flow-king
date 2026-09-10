@@ -121,6 +121,15 @@ export const documentosPorPagar: DocumentoPorPagar[] = [
   { id: "dp6", companiaId: "ax", proveedor: "CCSS", numero: "CCSS-0826", tipo: "FAC", fecha: "2026-08-31", fechaVence: "2026-09-15", moneda: "CRC", monto: 2980000, saldo: 2980000, notas: "Cargas sociales agosto" },
 ];
 
+export const documentosPorCobrar: DocumentoPorCobrar[] = [
+  { id: "dc1", companiaId: "tx", cliente: "Grupo Ferretero CR", numero: "TX-1006", tipo: "FAC", fecha: "2026-08-14", fechaVence: "2026-09-13", moneda: "USD", monto: 12800, saldo: 12800, notas: "Pendiente de cobro" },
+  { id: "dc2", companiaId: "tx", cliente: "Distribuidora del Valle", numero: "TX-1007", tipo: "FAC", fecha: "2026-07-20", fechaVence: "2026-08-19", moneda: "CRC", monto: 3450000, saldo: 0, notas: "Cobrada" },
+  { id: "dc3", companiaId: "tx", cliente: "Grupo Ferretero CR", numero: "TX-D-014", tipo: "DEV", fecha: "2026-08-18", fechaVence: "2026-08-18", moneda: "USD", monto: 950, saldo: 950, notas: "Devolución de mercadería" },
+  { id: "dc4", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-2006", tipo: "FAC", fecha: "2026-08-27", fechaVence: "2026-09-26", moneda: "USD", monto: 22300, saldo: 18300, notas: "Abono parcial" },
+  { id: "dc5", companiaId: "ax", cliente: "Hotelera Guanacaste", numero: "AX-2007", tipo: "FAC", fecha: "2026-06-30", fechaVence: "2026-07-30", moneda: "CRC", monto: 1600000, saldo: 0, notas: "Cobrada" },
+  { id: "dc6", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-D-002", tipo: "DEV", fecha: "2026-08-29", fechaVence: "2026-08-29", moneda: "CRC", monto: 320000, saldo: 320000, notas: "Nota de crédito por diferencia de precio" },
+];
+
 export const contratos: Contrato[] = [
   { id: "c1", companiaId: "tx", numero: "CT-101", cliente: "Grupo Ferretero CR", periodicidad: "Mensual", proximaFacturacion: "2026-09-01", plazoDias: 30, moneda: "USD", monto: 3200, facturado: false, estado: "Activo", notas: "Soporte mensual", fechaCreacion: "2026-08-01" },
   { id: "c2", companiaId: "tx", numero: "CT-102", cliente: "Distribuidora del Valle", periodicidad: "Trimestral", proximaFacturacion: "2026-10-01", plazoDias: 45, moneda: "CRC", monto: 2850000, facturado: false, estado: "Activo", fechaCreacion: "2026-07-01" },
