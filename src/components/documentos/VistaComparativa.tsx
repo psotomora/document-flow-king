@@ -84,6 +84,8 @@ export function VistaComparativa() {
   const [periodo, setPeriodo] = useState<Periodo>("anio-a-hoy");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
+  const [monedaConsolidado, setMonedaConsolidado] = useState<Moneda>("USD");
+
 
   const clienteTexto = cliente.trim().toLowerCase();
   const numeroTexto = numeroBusqueda.trim().toLowerCase();
