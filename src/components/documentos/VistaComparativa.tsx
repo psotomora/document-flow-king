@@ -283,9 +283,11 @@ export function VistaComparativa() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="mes-anterior">Mes (periodo anterior)</SelectItem>
-              <SelectItem value="acumulado-anterior">
-                Acumulado a la fecha de hoy (periodo anterior)
+              <SelectItem value="mes-actual">
+                Mes en curso a hoy vs mismo periodo del año anterior
+              </SelectItem>
+              <SelectItem value="anio-a-hoy">
+                Año en curso a hoy vs mismo periodo del año anterior
               </SelectItem>
               <SelectItem value="rango">Rango de fechas</SelectItem>
             </SelectContent>
