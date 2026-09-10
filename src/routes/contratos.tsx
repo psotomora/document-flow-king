@@ -433,6 +433,8 @@ function ContratosDelMes() {
   const [busqueda, setBusqueda] = useState(guardados.busqueda);
   const [fechaInicio, setFechaInicio] = useState(guardados.fechaInicio);
   const [fechaFin, setFechaFin] = useState(guardados.fechaFin);
+  const [verPagados, setVerPagados] = useState(guardados.verPagados);
+  const [verPendientes, setVerPendientes] = useState(guardados.verPendientes);
   const [listo, setListo] = useState(false);
 
   // Toma los filtros recordados cuando llegan del servidor.
@@ -440,6 +442,8 @@ function ContratosDelMes() {
     setBusqueda(guardados.busqueda);
     setFechaInicio(guardados.fechaInicio);
     setFechaFin(guardados.fechaFin);
+    setVerPagados(guardados.verPagados);
+    setVerPendientes(guardados.verPendientes);
     setListo(true);
   }, [guardados]);
 
