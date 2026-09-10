@@ -35,7 +35,7 @@ import type { DocumentoPorCobrar, Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
-type Periodo = "mes-anterior" | "acumulado-anterior" | "rango";
+type Periodo = "mes-actual" | "anio-a-hoy" | "rango";
 interface Rango {
   desde: string;
   hasta: string;
@@ -46,15 +46,14 @@ const restarAnio = (iso: string) => `${Number(iso.slice(0, 4)) - 1}${iso.slice(4
 function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: string) {
   const anio = hoyIso.slice(0, 4);
   const mes = hoyIso.slice(5, 7);
-  const ultimoDia = new Date(Number(anio), Number(mes), 0).getDate();
-  if (periodo === "mes-anterior") {
+  if (periodo === "mes-actual") {
     const actual: Rango = {
       desde: `${anio}-${mes}-01`,
-      hasta: `${anio}-${mes}-${String(ultimoDia).padStart(2, "0")}`,
+      hasta: hoyIso,
     };
     return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
   }
-  if (periodo === "acumulado-anterior") {
+  if (periodo === "anio-a-hoy") {
     const actual: Rango = { desde: `${anio}-01-01`, hasta: hoyIso };
     return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
   }
@@ -80,7 +79,7 @@ export function VistaComparativa() {
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV">("todos");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<Periodo>("mes-anterior");
+  const [periodo, setPeriodo] = useState<Periodo>("anio-a-hoy");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
 
@@ -283,9 +282,11 @@ export function VistaComparativa() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="mes-anterior">Mes (periodo anterior)</SelectItem>
-              <SelectItem value="acumulado-anterior">
-                Acumulado a la fecha de hoy (periodo anterior)
+              <SelectItem value="mes-actual">
+                Mes en curso a hoy vs mismo periodo del año anterior
+              </SelectItem>
+              <SelectItem value="anio-a-hoy">
+                Año en curso a hoy vs mismo periodo del año anterior
               </SelectItem>
               <SelectItem value="rango">Rango de fechas</SelectItem>
             </SelectContent>
