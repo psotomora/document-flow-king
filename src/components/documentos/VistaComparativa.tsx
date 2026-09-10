@@ -50,7 +50,7 @@ function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: 
   if (periodo === "mes-actual") {
     const actual: Rango = {
       desde: `${anio}-${mes}-01`,
-      hasta: `${anio}-${mes}-${String(ultimoDia).padStart(2, "0")}`,
+      hasta: hoyIso,
     };
     return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
   }
