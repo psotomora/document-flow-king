@@ -501,6 +501,7 @@ function ContratosDelMes() {
         Monto: c.monto,
         Documento: c.documento ?? "",
         Situación: c.yaDocumentado ? "Ya facturado o con pedido" : "Por facturar",
+        Pagado: pagados.has(`${c.contratoId}|${c.fecha}`) ? "Sí" : "No",
       })),
       usuario.nombre,
     );
