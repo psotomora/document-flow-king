@@ -541,8 +541,18 @@ public static partial class Softland
     private static decimal Numero(object? v) => v is null || v is DBNull ? 0m : Convert.ToDecimal(v);
     private static int Entero(object? v) => v is null || v is DBNull ? 0 : Convert.ToInt32(v);
 
-    private static string MapearMoneda(string? m) =>
-        string.Equals(m?.Trim(), "D", StringComparison.OrdinalIgnoreCase) ? "USD" : "CRC";
+    /// <summary>
+    /// Normaliza los códigos de moneda que usa SoftlandERP en sus distintas tablas:
+    /// 'D', 'DOL', 'USD', '$' o '2' son dólares; 'L', 'C', 'COL', 'CRC' o '1' son colones.
+    /// </summary>
+    private static string MapearMoneda(string? m)
+    {
+        var v = (m ?? "").Trim().ToUpperInvariant();
+        if (v.Length == 0) return "CRC";
+        if (v is "D" or "DOL" or "USD" or "US$" or "$" or "2" or "DOLARES" or "DÓLARES") return "USD";
+        if (v is "L" or "C" or "COL" or "CRC" or "1" or "COLONES") return "CRC";
+        return v.StartsWith('D') || v.Contains("USD") || v.Contains('$') ? "USD" : "CRC";
+    }
 
     private static string MapearEstado(string? e) => e?.Trim().ToUpperInvariant() switch
     {
