@@ -13,6 +13,14 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.21.1",
+    fecha: "2026-09-10",
+    cambios: [
+      "La sección se llama ahora 'Reporte de documentos'.",
+      "El filtro de fechas pasó a ser un selector: Este mes, Acumulado del año a la fecha o Rango de fechas.",
+    ],
+  },
+  {
     version: "1.21.0",
     fecha: "2026-09-10",
     cambios: [
