@@ -245,7 +245,7 @@ function PaginaParametros() {
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-0.5">
             <Label htmlFor="documentos-cobro-externos">
-              Usar datos de documentos por cobrar de fuente externa
+              Usar datos para reporte de documentos de fuente externa
             </Label>
             <p className="text-xs text-muted-foreground">
               Los documentos por cobrar (tipos FAC y DEV) se leen de la tabla DOCUMENTOS_CC del
