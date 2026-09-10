@@ -42,13 +42,13 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/documentos-cobrar")({
   head: () => ({
     meta: [
-      { title: "Documentos por cobrar | Aplix Cash Flow Insights" },
+      { title: "Reporte de documentos | Aplix Cash Flow Insights" },
       {
         name: "description",
         content:
           "Vista de consulta de los documentos de cuentas por cobrar tipo FAC y DEV, con monto, saldo y filtros por cliente, moneda y fechas.",
       },
-      { property: "og:title", content: "Documentos por cobrar | Aplix Cash Flow Insights" },
+      { property: "og:title", content: "Reporte de documentos | Aplix Cash Flow Insights" },
       {
         property: "og:description",
         content:
@@ -160,7 +160,7 @@ function PaginaDocumentosPorCobrar() {
   return (
     <div className="space-y-6">
       <EncabezadoPagina
-        titulo="Documentos por cobrar"
+        titulo="Reporte de documentos"
         requerimiento="RF-006"
         descripcion="Vista de consulta de los documentos de cuentas por cobrar de tipo FAC (facturas) y DEV (devoluciones). Se muestran los cobrados y los pendientes; los anulados quedan fuera."
         acciones={
