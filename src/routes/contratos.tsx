@@ -481,6 +481,9 @@ function ContratosDelMes() {
     if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
     if (fechaInicio && c.fecha < fechaInicio) return false;
     if (fechaFin && c.fecha > fechaFin) return false;
+    const estaPagado = pagados.has(`${c.contratoId}|${c.fecha}`);
+    if (!verPagados && estaPagado) return false;
+    if (!verPendientes && !estaPagado) return false;
     return true;
   });
 
