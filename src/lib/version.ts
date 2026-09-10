@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.22.7";
+export const APP_VERSION = "1.22.8";
 export const APP_FECHA_VERSION = "2026-09-10";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.22.8",
+    fecha: "2026-09-10",
+    cambios: [
+      "Reporte de documentos y Comparativo anual: ahora se incluyen las notas de crédito (NC) además de FAC y DEV; las NC restan en los totales netos.",
+      "Comparativo anual: el grid y la exportación muestran el detalle del año anterior según el filtro seleccionado.",
+    ],
+  },
   {
     version: "1.22.7",
     fecha: "2026-09-10",

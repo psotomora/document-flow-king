@@ -27,7 +27,7 @@ BEGIN
         CreadoEn             DATETIME2(0)    NOT NULL CONSTRAINT DF_DocPorCobrar_Creado DEFAULT (SYSUTCDATETIME()),
         CONSTRAINT UQ_DocumentoPorCobrar UNIQUE (CompaniaId, Tipo, Numero),
         CONSTRAINT CK_DocPorCobrar_Moneda CHECK (Moneda IN ('USD', 'CRC')),
-        CONSTRAINT CK_DocPorCobrar_Tipo CHECK (Tipo IN ('FAC', 'DEV'))
+        CONSTRAINT CK_DocPorCobrar_Tipo CHECK (Tipo IN ('FAC', 'DEV', 'NC', 'N/C'))
     );
 END
 GO
@@ -37,4 +37,13 @@ IF NOT EXISTS (SELECT 1 FROM flujo.Parametro WHERE Clave = 'documentosCobroFuent
     INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
     VALUES ('documentosCobroFuenteExterna', '0',
             'Usar datos de documentos por cobrar (FAC y DEV) de fuente externa');
+GO
+
+-- Ampliación: permitir notas de crédito (NC).
+IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_DocPorCobrar_Tipo')
+BEGIN
+    ALTER TABLE flujo.DocumentoPorCobrar DROP CONSTRAINT CK_DocPorCobrar_Tipo;
+    ALTER TABLE flujo.DocumentoPorCobrar ADD CONSTRAINT CK_DocPorCobrar_Tipo
+        CHECK (Tipo IN ('FAC', 'DEV', 'NC', 'N/C'));
+END
 GO

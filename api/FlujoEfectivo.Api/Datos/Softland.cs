@@ -463,7 +463,7 @@ public static partial class Softland
                    d.MONTO AS Monto,
                    d.SALDO AS Saldo
             FROM [{e}].[DOCUMENTOS_CC] d
-            WHERE d.TIPO IN ('FAC', 'DEV')
+            WHERE d.TIPO IN ('FAC', 'DEV', 'NC', 'N/C')
               AND d.FECHA_ANUL IS NULL
             ORDER BY ISNULL(d.FECHA_DOCUMENTO, d.FECHA) DESC, d.DOCUMENTO DESC
             """);

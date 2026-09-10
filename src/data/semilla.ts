@@ -128,7 +128,8 @@ export const documentosPorCobrar: DocumentoPorCobrar[] = [
   { id: "dc3", companiaId: "tx", cliente: "Grupo Ferretero CR", numero: "TX-D-014", tipo: "DEV", fecha: "2026-08-18", fechaVence: "2026-08-18", moneda: "USD", monto: 950, saldo: 950, notas: "Devolución de mercadería" },
   { id: "dc4", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-2006", tipo: "FAC", fecha: "2026-08-27", fechaVence: "2026-09-26", moneda: "USD", monto: 22300, saldo: 18300, notas: "Abono parcial" },
   { id: "dc5", companiaId: "ax", cliente: "Hotelera Guanacaste", numero: "AX-2007", tipo: "FAC", fecha: "2026-06-30", fechaVence: "2026-07-30", moneda: "CRC", monto: 1600000, saldo: 0, notas: "Cobrada" },
-  { id: "dc6", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-D-002", tipo: "DEV", fecha: "2026-08-29", fechaVence: "2026-08-29", moneda: "CRC", monto: 320000, saldo: 320000, notas: "Nota de crédito por diferencia de precio" },
+  { id: "dc6", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-D-002", tipo: "DEV", fecha: "2026-08-29", fechaVence: "2026-08-29", moneda: "CRC", monto: 320000, saldo: 320000, notas: "Devolución por diferencia de precio" },
+  { id: "dc7", companiaId: "tx", cliente: "Distribuidora del Valle", numero: "TX-NC-003", tipo: "NC", fecha: "2026-08-25", fechaVence: "2026-08-25", moneda: "USD", monto: 640, saldo: 640, notas: "Nota de crédito por descuento comercial" },
 ];
 
 export const contratos: Contrato[] = [
