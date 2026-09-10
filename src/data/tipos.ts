@@ -238,4 +238,6 @@ export interface Usuario {
   verErogaciones?: boolean;
   verProyeccion?: boolean;
   verCatalogos?: boolean;
+  /** Permite modificar erogaciones existentes; el perfil consulta sigue siendo de solo lectura. */
+  editarErogaciones?: boolean;
 }

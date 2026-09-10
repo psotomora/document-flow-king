@@ -150,6 +150,7 @@ interface EstadoApp {
     verErogaciones?: boolean;
     verProyeccion?: boolean;
     verCatalogos?: boolean;
+    editarErogaciones?: boolean;
   }) => Promise<void>;
   actualizarUsuario: (
     id: string,
@@ -165,6 +166,7 @@ interface EstadoApp {
       verErogaciones?: boolean;
       verProyeccion?: boolean;
       verCatalogos?: boolean;
+      editarErogaciones?: boolean;
     },
   ) => Promise<void>;
   eliminarUsuario: (id: string) => Promise<void>;
@@ -174,6 +176,7 @@ interface EstadoApp {
   agregarPago: (p: Omit<Pago, "id">) => Promise<boolean>;
   eliminarPago: (id: string) => void;
   agregarErogacion: (e: Omit<Erogacion, "id">) => void;
+  actualizarErogacion: (id: string, cambios: Omit<Erogacion, "id">) => void;
   eliminarErogacion: (id: string) => void;
   agregarDocumentoPorPagar: (d: Omit<DocumentoPorPagar, "id">) => void;
   actualizarDocumentoPorPagar: (id: string, cambios: Partial<DocumentoPorPagar>) => void;
@@ -641,6 +644,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           verErogaciones: datos.verErogaciones ?? true,
           verProyeccion: datos.verProyeccion ?? true,
           verCatalogos: datos.verCatalogos ?? true,
+          editarErogaciones: datos.editarErogaciones ?? true,
         };
         setUsuarios((prev) => [...prev, nuevo]);
         anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
@@ -662,6 +666,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
             : {}),
           ...(cambios.verProyeccion !== undefined ? { verProyeccion: cambios.verProyeccion } : {}),
           ...(cambios.verCatalogos !== undefined ? { verCatalogos: cambios.verCatalogos } : {}),
+          ...(cambios.editarErogaciones !== undefined
+            ? { editarErogaciones: cambios.editarErogaciones }
+            : {}),
         };
         setUsuarios((prev) =>
           prev.map((u) =>
@@ -750,6 +757,35 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
               ),
             );
           anotar("Erogaciones", e.numeroTransferencia, "Creación", `Monto: ${e.monto}`);
+        }),
+      actualizarErogacion: (id, cambios) =>
+        mutar(`/erogaciones/${id}`, "PUT", cambios, () => {
+          const anterior = erogaciones.find((x) => x.id === id);
+          setErogaciones((prev) => prev.map((e) => (e.id === id ? { ...e, ...cambios } : e)));
+          if (anterior?.documentoPagoId)
+            setDocumentosPorPagar((prev) =>
+              prev.map((d) =>
+                d.id === anterior.documentoPagoId
+                  ? { ...d, saldo: Math.min(d.monto, Number((d.saldo + anterior.monto).toFixed(2))) }
+                  : d,
+              ),
+            );
+          if (cambios.documentoPagoId)
+            setDocumentosPorPagar((prev) =>
+              prev.map((d) =>
+                d.id === cambios.documentoPagoId
+                  ? { ...d, saldo: Math.max(0, Number((d.saldo - cambios.monto).toFixed(2))) }
+                  : d,
+              ),
+            );
+          if (anterior)
+            anotar(
+              "Erogaciones",
+              cambios.numeroTransferencia,
+              "Modificación",
+              JSON.stringify(cambios),
+              JSON.stringify(anterior),
+            );
         }),
       agregarDocumentoPorPagar: (d) =>
         mutar("/documentos-pagar", "POST", d, () => {
