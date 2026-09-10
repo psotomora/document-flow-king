@@ -109,8 +109,10 @@ function PaginaDocumentosPorCobrar() {
         if (tipo !== "todos" && tipoDoc !== tipo) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
         const fecha = d.fecha.slice(0, 10);
-        if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
-        if (periodo === "anio" && fecha.slice(0, 4) !== anioActual) return false;
+        // "Este mes" y "Acumulado del año a la fecha" son rangos hasta hoy,
+        // para que el comparativo anual pueda usar el periodo equivalente.
+        if (periodo === "mes" && (fecha.slice(0, 7) !== mesActual || fecha > hoyIso)) return false;
+        if (periodo === "anio" && (fecha.slice(0, 4) !== anioActual || fecha > hoyIso)) return false;
         if (periodo === "rango") {
           if (desde && fecha < desde) return false;
           if (hasta && fecha > hasta) return false;
