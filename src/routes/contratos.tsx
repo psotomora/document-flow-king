@@ -592,6 +592,7 @@ function ContratosDelMes() {
               <TableHead>Creación</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Situación</TableHead>
+              <TableHead className="text-center">Pagado</TableHead>
               <TableHead className="w-24 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
