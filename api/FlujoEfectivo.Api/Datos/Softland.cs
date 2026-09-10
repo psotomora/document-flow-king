@@ -363,7 +363,8 @@ public static partial class Softland
                 Entero(d["PlazoDias"]), MapearMoneda(Texto(d["Moneda"])), Numero(d["Monto"]),
                 notas.Count > 0 ? string.Join(" · ", notas) : null,
                 Fuente, Entero(d["Lineas"]), cobrada,
-                saldoErp, fechaVence.Length > 0 ? fechaVence : null));
+                saldoErp, fechaVence.Length > 0 ? fechaVence : null,
+                Texto(d["FechaEmision"])));
         }
         return lista;
     }
