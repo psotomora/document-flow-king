@@ -342,6 +342,7 @@ export function VistaComparativa() {
         <Table>
           <TableHeader className="sticky top-0 z-20 bg-card shadow-sm [&_th]:bg-card">
             <TableRow>
+              <TableHead>Periodo</TableHead>
               <TableHead>Compañía</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Documento</TableHead>
@@ -354,8 +355,9 @@ export function VistaComparativa() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {docsAnterior.map((d) => (
-              <TableRow key={d.id}>
+            {docsCombinados.map((d) => (
+              <TableRow key={`${d.periodo}-${d.id}`}>
+                <TableCell className="text-xs font-medium text-muted-foreground">{d.periodo}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {companias.find((c) => c.id === d.companiaId)?.codigo}
                 </TableCell>
@@ -377,10 +379,10 @@ export function VistaComparativa() {
                 </TableCell>
               </TableRow>
             ))}
-            {docsAnterior.length === 0 ? (
+            {docsCombinados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
-                  No hay documentos del periodo anterior para los filtros aplicados.
+                <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
+                  No hay documentos para los filtros aplicados.
                 </TableCell>
               </TableRow>
             ) : null}
