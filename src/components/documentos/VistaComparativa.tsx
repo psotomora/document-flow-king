@@ -35,8 +35,18 @@ import type { DocumentoPorCobrar, Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
-type Periodo = "mes-actual" | "anio-a-hoy" | "rango";
+type Periodo = "mes" | "anio" | "rango";
 interface Rango {
+  desde: string;
+  hasta: string;
+}
+
+interface Props {
+  cliente: string;
+  numeroBusqueda: string;
+  tipo: "todos" | "FAC" | "DEV" | "NC";
+  moneda: Moneda | "todas";
+  periodo: Periodo;
   desde: string;
   hasta: string;
 }
@@ -46,35 +56,36 @@ const normalizarTipo = (t: string) => t.toUpperCase().replace("/", "").trim();
 /** Devoluciones y notas de crédito restan del monto neto. */
 const esCredito = (t: string) => normalizarTipo(t) === "DEV" || normalizarTipo(t) === "NC";
 
-const restarAnio = (iso: string) => `${Number(iso.slice(0, 4)) - 1}${iso.slice(4)}`;
+/** Resta un año a una fecha ISO, ajustando el 29 de febrero. */
+const restarAnio = (iso: string) => {
+  const anio = Number(iso.slice(0, 4)) - 1;
+  const resto = iso.slice(4);
+  if (resto === "-02-29") return `${anio}-02-28`;
+  return `${anio}${resto}`;
+};
 
 function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: string) {
   const anio = hoyIso.slice(0, 4);
   const mes = hoyIso.slice(5, 7);
-  if (periodo === "mes-actual") {
-    const actual: Rango = {
-      desde: `${anio}-${mes}-01`,
-      hasta: hoyIso,
-    };
-    return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
-  }
-  if (periodo === "anio-a-hoy") {
-    const actual: Rango = { desde: `${anio}-01-01`, hasta: hoyIso };
-    return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
-  }
-  // Rango de fechas: el periodo actual es el que el usuario eligió;
-  // el periodo anterior es exactamente el mismo rango pero del año anterior.
-  const actual: Rango = { desde: desde || hoyIso, hasta: hasta || hoyIso };
+  let actual: Rango;
+  if (periodo === "mes") actual = { desde: `${anio}-${mes}-01`, hasta: hoyIso };
+  else if (periodo === "anio") actual = { desde: `${anio}-01-01`, hasta: hoyIso };
+  else actual = { desde: desde || `${anio}-01-01`, hasta: hasta || hoyIso };
   return {
     actual,
-    anterior: {
-      desde: restarAnio(actual.desde),
-      hasta: restarAnio(actual.hasta),
-    },
+    anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) },
   };
 }
 
-export function VistaComparativa() {
+export function VistaComparativa({
+  cliente,
+  numeroBusqueda,
+  tipo,
+  moneda,
+  periodo,
+  desde,
+  hasta,
+}: Props) {
   const {
     filas: filasVisibles,
     estiloTabla,
@@ -82,13 +93,6 @@ export function VistaComparativa() {
   } = useFilasVisibles("documentos-cobrar-comparativo");
   const { documentosPorCobrar, companias, companiaActiva, tipoCambio, usuario } = useApp();
 
-  const [cliente, setCliente] = useState("");
-  const [numeroBusqueda, setNumeroBusqueda] = useState("");
-  const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV" | "NC">("todos");
-  const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<Periodo>("anio-a-hoy");
-  const [desde, setDesde] = useState("");
-  const [hasta, setHasta] = useState("");
   const [monedaConsolidado, setMonedaConsolidado] = useState<Moneda>("USD");
 
 
