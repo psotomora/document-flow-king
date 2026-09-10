@@ -66,6 +66,8 @@ export const PARAM_FACTURAS_FUENTE_EXTERNA = "facturasFuenteExterna";
 export const PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA = "documentosPagoFuenteExterna";
 /** Clave del parámetro que indica si los documentos por cobrar se leen de una fuente externa. */
 export const PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA = "documentosCobroFuenteExterna";
+/** Clave del parámetro que indica si los contratos recurrentes se leen de una fuente externa. */
+export const PARAM_CONTRATOS_FUENTE_EXTERNA = "contratosFuenteExterna";
 /** Clave del subparámetro que indica cuál es la fuente externa (compartida por pedidos y facturas). */
 export const PARAM_PEDIDOS_FUENTE_ORIGEN = "pedidosFuenteOrigen";
 /** Fuentes externas de pedidos disponibles. */
@@ -82,6 +84,7 @@ const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_FACTURAS_FUENTE_EXTERNA]: "0",
   [PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA]: "0",
   [PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA]: "0",
+  [PARAM_CONTRATOS_FUENTE_EXTERNA]: "0",
   [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
 };
 
@@ -118,6 +121,7 @@ interface EstadoApp {
   facturasFuenteExterna: boolean;
   documentosPagoFuenteExterna: boolean;
   documentosCobroFuenteExterna: boolean;
+  contratosFuenteExterna: boolean;
   pedidosFuenteOrigen: string;
   /** Mensaje del servidor cuando la fuente externa está activa pero no pudo leerse. */
   avisoFuenteExterna: string | null;
@@ -577,6 +581,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
       documentosPagoFuenteExterna: parametros[PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA] === "1",
       documentosCobroFuenteExterna: parametros[PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA] === "1",
+      contratosFuenteExterna: parametros[PARAM_CONTRATOS_FUENTE_EXTERNA] === "1",
       pedidosFuenteOrigen: parametros[PARAM_PEDIDOS_FUENTE_ORIGEN] || FUENTE_PEDIDOS_DEFECTO,
       avisoFuenteExterna,
       actualizarParametro: (clave, nuevoValor) =>

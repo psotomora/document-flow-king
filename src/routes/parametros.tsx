@@ -33,6 +33,7 @@ import {
   PARAM_FACTURAS_FUENTE_EXTERNA,
   PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA,
   PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA,
+  PARAM_CONTRATOS_FUENTE_EXTERNA,
   useApp,
 } from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
@@ -73,6 +74,7 @@ function PaginaParametros() {
     facturasFuenteExterna,
     documentosPagoFuenteExterna,
     documentosCobroFuenteExterna,
+    contratosFuenteExterna,
     pedidosFuenteOrigen,
     parametros,
     actualizarParametro,
@@ -129,11 +131,24 @@ function PaginaParametros() {
     );
   };
 
+  const cambiarContratosExternos = (activo: boolean) => {
+    actualizarParametro(PARAM_CONTRATOS_FUENTE_EXTERNA, activo ? "1" : "0");
+    if (activo && !parametros[PARAM_PEDIDOS_FUENTE_ORIGEN]) {
+      actualizarParametro(PARAM_PEDIDOS_FUENTE_ORIGEN, FUENTE_PEDIDOS_DEFECTO);
+    }
+    toast.success(
+      activo
+        ? "Los contratos se tomarán de la fuente externa (SoftlandERP)."
+        : "Los contratos se tomarán del registro interno.",
+    );
+  };
+
   const algunaFuenteExterna =
     pedidosFuenteExterna ||
     facturasFuenteExterna ||
     documentosPagoFuenteExterna ||
-    documentosCobroFuenteExterna;
+    documentosCobroFuenteExterna ||
+    contratosFuenteExterna;
 
   const guardar = () => {
     const numero = Number(valor);
@@ -260,6 +275,28 @@ function PaginaParametros() {
               id="documentos-cobro-externos"
               checked={documentosCobroFuenteExterna}
               onCheckedChange={cambiarDocumentosCobroExternos}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="contratos-externos">
+              Usar datos de contratos de fuente externa
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Los contratos recurrentes y sus líneas se leen de las tablas CONTRATO y
+              CONTRATO_LINEA del sistema externo, con la misma conexión de pedidos y facturas.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {contratosFuenteExterna ? "Sí" : "No"}
+            </span>
+            <Switch
+              id="contratos-externos"
+              checked={contratosFuenteExterna}
+              onCheckedChange={cambiarContratosExternos}
               disabled={!esAdministrador}
             />
           </div>
