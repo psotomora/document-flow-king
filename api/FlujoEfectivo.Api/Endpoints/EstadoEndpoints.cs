@@ -60,7 +60,43 @@ public static class EstadoEndpoints
                 ORDER BY e.Fecha DESC, e.ErogacionId DESC
                 """);
 
-            var contratos = cn.Query<ContratoDto>(
+            var parametros = cn.Query<(string Clave, string Valor)>(
+                    "SELECT Clave, Valor FROM flujo.Parametro")
+                .ToDictionary(p => p.Clave, p => p.Valor);
+
+            string? avisoFuente = null;
+
+            // Contratos recurrentes: registro interno o fuente externa (CONTRATO / CONTRATO_LINEA).
+            IEnumerable<ContratoDto> contratos;
+            var contratosSoftland = parametros.GetValueOrDefault("contratosFuenteExterna") == "1"
+                && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
+                    Softland.Fuente, StringComparison.OrdinalIgnoreCase);
+            if (contratosSoftland)
+            {
+                var cfg = Softland.Leer(cn);
+                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                {
+                    contratos = [];
+                    avisoFuente ??= "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
+                }
+                else
+                {
+                    try
+                    {
+                        var companiaId = cfg.CompaniaId?.ToString()
+                            ?? companias.FirstOrDefault()?.Id ?? "0";
+                        contratos = Softland.Contratos(cfg, secreto, companiaId).ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                        contratos = [];
+                        avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
+                            + "No fue posible leer los contratos de SoftlandERP: " + Detalle(ex);
+                    }
+                }
+            }
+            else
+            contratos = cn.Query<ContratoDto>(
                 """
                 SELECT CAST(k.ContratoId AS NVARCHAR(20)) AS Id,
                        CAST(k.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
@@ -72,12 +108,6 @@ public static class EstadoEndpoints
                 INNER JOIN flujo.Cliente c ON c.ClienteId = k.ClienteId
                 ORDER BY k.ProximaFacturacion
                 """);
-
-            var parametros = cn.Query<(string Clave, string Valor)>(
-                    "SELECT Clave, Valor FROM flujo.Parametro")
-                .ToDictionary(p => p.Clave, p => p.Valor);
-
-            string? avisoFuente = null;
             IEnumerable<PedidoDto> pedidos;
             var usaSoftland = parametros.GetValueOrDefault("pedidosFuenteExterna") == "1"
                 && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
