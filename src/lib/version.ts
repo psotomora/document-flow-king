@@ -13,6 +13,14 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.30.2",
+    fecha: "2026-09-10",
+    cambios: [
+      "Nuevo interruptor «Pagado» por línea en los contratos por facturar del mes, como marca histórica del usuario.",
+      "La marca no genera facturas ni afecta la proyección y se incluye en la exportación a Excel.",
+    ],
+  },
+  {
     version: "1.30.1",
     fecha: "2026-09-10",
     cambios: [
