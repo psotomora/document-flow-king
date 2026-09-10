@@ -72,20 +72,20 @@ export const tiposCambio: TipoCambio[] = [
 ];
 
 export const facturas: Factura[] = [
-  { id: "f1", companiaId: "tx", numero: "TX-1001", cliente: "Grupo Ferretero CR", fechaEmision: "2026-05-12", plazoDias: 30, moneda: "USD", monto: 18500, notas: "Licenciamiento anual" },
-  { id: "f2", companiaId: "tx", numero: "TX-1002", cliente: "Distribuidora del Valle", fechaEmision: "2026-06-02", plazoDias: 45, moneda: "CRC", monto: 6350000, notas: "Soporte trimestral" },
-  { id: "f3", companiaId: "tx", numero: "TX-1003", cliente: "Corporación Santa Ana", fechaEmision: "2026-07-08", plazoDias: 30, moneda: "USD", monto: 9750 },
-  { id: "f4", companiaId: "tx", numero: "TX-1004", cliente: "Grupo Ferretero CR", fechaEmision: "2026-07-22", plazoDias: 30, moneda: "USD", monto: 4200, notas: "Horas adicionales" },
-  { id: "f5", companiaId: "tx", numero: "TX-1005", cliente: "Textiles Heredia", fechaEmision: "2026-08-05", plazoDias: 15, moneda: "CRC", monto: 2450000 },
-  { id: "f6", companiaId: "tx", numero: "TX-1006", cliente: "Corporación Santa Ana", fechaEmision: "2026-08-14", plazoDias: 30, moneda: "USD", monto: 12800 },
-  { id: "f7", companiaId: "tx", numero: "TX-1007", cliente: "Inversiones Escazú", fechaEmision: "2026-08-24", plazoDias: 45, moneda: "CRC", monto: 9800000, notas: "Proyecto de migración" },
-  { id: "f8", companiaId: "ax", numero: "AX-2001", cliente: "Farmacias Unidas", fechaEmision: "2026-05-28", plazoDias: 30, moneda: "USD", monto: 7600 },
-  { id: "f9", companiaId: "ax", numero: "AX-2002", cliente: "Transportes Pacífico", fechaEmision: "2026-06-19", plazoDias: 60, moneda: "CRC", monto: 4100000 },
-  { id: "f10", companiaId: "ax", numero: "AX-2003", cliente: "Hotelera Guanacaste", fechaEmision: "2026-07-15", plazoDias: 30, moneda: "USD", monto: 15400, notas: "Implementación fase I" },
-  { id: "f11", companiaId: "ax", numero: "AX-2004", cliente: "Farmacias Unidas", fechaEmision: "2026-08-10", plazoDias: 30, moneda: "USD", monto: 5250 },
-  { id: "f12", companiaId: "ax", numero: "AX-2005", cliente: "Agroindustrial Zarcero", fechaEmision: "2026-08-20", plazoDias: 30, moneda: "CRC", monto: 3720000 },
-  { id: "f13", companiaId: "ax", numero: "AX-2006", cliente: "Transportes Pacífico", fechaEmision: "2026-08-27", plazoDias: 60, moneda: "USD", monto: 22300, notas: "Renovación de contrato" },
-  { id: "f14", companiaId: "ax", numero: "AX-2007", cliente: "Hotelera Guanacaste", fechaEmision: "2026-04-16", plazoDias: 30, moneda: "CRC", monto: 5600000, notas: "Saldo en gestión de cobro" },
+  { id: "f1", companiaId: "tx", numero: "TX-1001", cliente: "Grupo Ferretero CR", fechaEmision: "2026-05-12", plazoDias: 30, moneda: "USD", monto: 18500, notas: "Licenciamiento anual", fechaCreacion: "2026-05-12" },
+  { id: "f2", companiaId: "tx", numero: "TX-1002", cliente: "Distribuidora del Valle", fechaEmision: "2026-06-02", plazoDias: 45, moneda: "CRC", monto: 6350000, notas: "Soporte trimestral", fechaCreacion: "2026-06-02" },
+  { id: "f3", companiaId: "tx", numero: "TX-1003", cliente: "Corporación Santa Ana", fechaEmision: "2026-07-08", plazoDias: 30, moneda: "USD", monto: 9750, fechaCreacion: "2026-07-08" },
+  { id: "f4", companiaId: "tx", numero: "TX-1004", cliente: "Grupo Ferretero CR", fechaEmision: "2026-07-22", plazoDias: 30, moneda: "USD", monto: 4200, notas: "Horas adicionales", fechaCreacion: "2026-07-22" },
+  { id: "f5", companiaId: "tx", numero: "TX-1005", cliente: "Textiles Heredia", fechaEmision: "2026-08-05", plazoDias: 15, moneda: "CRC", monto: 2450000, fechaCreacion: "2026-08-05" },
+  { id: "f6", companiaId: "tx", numero: "TX-1006", cliente: "Corporación Santa Ana", fechaEmision: "2026-08-14", plazoDias: 30, moneda: "USD", monto: 12800, fechaCreacion: "2026-08-14" },
+  { id: "f7", companiaId: "tx", numero: "TX-1007", cliente: "Inversiones Escazú", fechaEmision: "2026-08-24", plazoDias: 45, moneda: "CRC", monto: 9800000, notas: "Proyecto de migración", fechaCreacion: "2026-08-24" },
+  { id: "f8", companiaId: "ax", numero: "AX-2001", cliente: "Farmacias Unidas", fechaEmision: "2026-05-28", plazoDias: 30, moneda: "USD", monto: 7600, fechaCreacion: "2026-05-28" },
+  { id: "f9", companiaId: "ax", numero: "AX-2002", cliente: "Transportes Pacífico", fechaEmision: "2026-06-19", plazoDias: 60, moneda: "CRC", monto: 4100000, fechaCreacion: "2026-06-19" },
+  { id: "f10", companiaId: "ax", numero: "AX-2003", cliente: "Hotelera Guanacaste", fechaEmision: "2026-07-15", plazoDias: 30, moneda: "USD", monto: 15400, notas: "Implementación fase I", fechaCreacion: "2026-07-15" },
+  { id: "f11", companiaId: "ax", numero: "AX-2004", cliente: "Farmacias Unidas", fechaEmision: "2026-08-10", plazoDias: 30, moneda: "USD", monto: 5250, fechaCreacion: "2026-08-10" },
+  { id: "f12", companiaId: "ax", numero: "AX-2005", cliente: "Agroindustrial Zarcero", fechaEmision: "2026-08-20", plazoDias: 30, moneda: "CRC", monto: 3720000, fechaCreacion: "2026-08-20" },
+  { id: "f13", companiaId: "ax", numero: "AX-2006", cliente: "Transportes Pacífico", fechaEmision: "2026-08-27", plazoDias: 60, moneda: "USD", monto: 22300, notas: "Renovación de contrato", fechaCreacion: "2026-08-27" },
+  { id: "f14", companiaId: "ax", numero: "AX-2007", cliente: "Hotelera Guanacaste", fechaEmision: "2026-04-16", plazoDias: 30, moneda: "CRC", monto: 5600000, notas: "Saldo en gestión de cobro", fechaCreacion: "2026-04-16" },
 ];
 
 export const pagos: Pago[] = [
@@ -122,11 +122,11 @@ export const documentosPorPagar: DocumentoPorPagar[] = [
 ];
 
 export const contratos: Contrato[] = [
-  { id: "c1", companiaId: "tx", numero: "CT-101", cliente: "Grupo Ferretero CR", periodicidad: "Mensual", proximaFacturacion: "2026-09-01", plazoDias: 30, moneda: "USD", monto: 3200, facturado: false, estado: "Activo", notas: "Soporte mensual" },
-  { id: "c2", companiaId: "tx", numero: "CT-102", cliente: "Distribuidora del Valle", periodicidad: "Trimestral", proximaFacturacion: "2026-10-01", plazoDias: 45, moneda: "CRC", monto: 2850000, facturado: false, estado: "Activo" },
-  { id: "c3", companiaId: "ax", numero: "CT-201", cliente: "Farmacias Unidas", periodicidad: "Mensual", proximaFacturacion: "2026-09-05", plazoDias: 30, moneda: "USD", monto: 1850, facturado: true, estado: "Activo" },
-  { id: "c4", companiaId: "ax", numero: "CT-202", cliente: "Hotelera Guanacaste", periodicidad: "Anual", proximaFacturacion: "2027-01-15", plazoDias: 60, moneda: "USD", monto: 24000, facturado: false, estado: "Activo", notas: "Mantenimiento anual" },
-  { id: "c5", companiaId: "ax", numero: "CT-203", cliente: "Transportes Pacífico", periodicidad: "Semestral", proximaFacturacion: "2026-09-30", plazoDias: 30, moneda: "CRC", monto: 4600000, facturado: false, estado: "Cancelado", notas: "Cancelado por el cliente" },
+  { id: "c1", companiaId: "tx", numero: "CT-101", cliente: "Grupo Ferretero CR", periodicidad: "Mensual", proximaFacturacion: "2026-09-01", plazoDias: 30, moneda: "USD", monto: 3200, facturado: false, estado: "Activo", notas: "Soporte mensual", fechaCreacion: "2026-08-01" },
+  { id: "c2", companiaId: "tx", numero: "CT-102", cliente: "Distribuidora del Valle", periodicidad: "Trimestral", proximaFacturacion: "2026-10-01", plazoDias: 45, moneda: "CRC", monto: 2850000, facturado: false, estado: "Activo", fechaCreacion: "2026-07-01" },
+  { id: "c3", companiaId: "ax", numero: "CT-201", cliente: "Farmacias Unidas", periodicidad: "Mensual", proximaFacturacion: "2026-09-05", plazoDias: 30, moneda: "USD", monto: 1850, facturado: true, estado: "Activo", fechaCreacion: "2026-08-01" },
+  { id: "c4", companiaId: "ax", numero: "CT-202", cliente: "Hotelera Guanacaste", periodicidad: "Anual", proximaFacturacion: "2027-01-15", plazoDias: 60, moneda: "USD", monto: 24000, facturado: false, estado: "Activo", notas: "Mantenimiento anual", fechaCreacion: "2026-01-15" },
+  { id: "c5", companiaId: "ax", numero: "CT-203", cliente: "Transportes Pacífico", periodicidad: "Semestral", proximaFacturacion: "2026-09-30", plazoDias: 30, moneda: "CRC", monto: 4600000, facturado: false, estado: "Cancelado", notas: "Cancelado por el cliente", fechaCreacion: "2026-03-30" },
 ];
 
 export const pedidos: Pedido[] = [
