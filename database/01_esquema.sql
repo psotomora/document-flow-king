@@ -213,6 +213,7 @@ CREATE TABLE flujo.Contrato (
     Facturado          BIT           NOT NULL CONSTRAINT DF_Contrato_Facturado DEFAULT (0),
     Estado             NVARCHAR(20)  NOT NULL CONSTRAINT DF_Contrato_Estado DEFAULT ('Activo'),
     Notas              NVARCHAR(500) NULL,
+    CreadoEn           DATETIME2(0)  NOT NULL CONSTRAINT DF_Contrato_CreadoEn DEFAULT SYSUTCDATETIME(),
     CONSTRAINT FK_Contrato_Compania FOREIGN KEY (CompaniaId) REFERENCES flujo.Compania(CompaniaId),
     CONSTRAINT FK_Contrato_Cliente  FOREIGN KEY (ClienteId) REFERENCES flujo.Cliente(ClienteId),
     CONSTRAINT FK_Contrato_Moneda   FOREIGN KEY (Moneda) REFERENCES flujo.Moneda(Codigo),
