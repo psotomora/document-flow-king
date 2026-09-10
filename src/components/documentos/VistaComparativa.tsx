@@ -144,11 +144,16 @@ export function VistaComparativa() {
     },
   ];
 
+  const docsActualConPeriodo = docsActual.map((d) => ({ ...d, periodo: "Año actual" as const }));
+  const docsAnteriorConPeriodo = docsAnterior.map((d) => ({ ...d, periodo: "Año anterior" as const }));
+  const docsCombinados = [...docsActualConPeriodo, ...docsAnteriorConPeriodo];
+
   const exportar = () =>
     exportarExcel(
       "reporte-documentos-comparativo",
       "Comparativo de documentos",
-      docsAnterior.map((d) => ({
+      docsCombinados.map((d) => ({
+        Periodo: d.periodo,
         Compañía: companias.find((c) => c.id === d.companiaId)?.codigo ?? "",
         Cliente: d.cliente,
         Documento: d.numero,
