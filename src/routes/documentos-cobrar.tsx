@@ -84,7 +84,7 @@ function PaginaDocumentosPorCobrar() {
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV">("todos");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<"mes" | "anio" | "rango">("mes");
+  const [periodo, setPeriodo] = useState<"mes" | "anio" | "rango">("anio");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [nuevo, setNuevo] = useState(false);
@@ -107,7 +107,7 @@ function PaginaDocumentosPorCobrar() {
         if (moneda !== "todas" && d.moneda !== moneda) return false;
         const fecha = d.fecha.slice(0, 10);
         if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
-        if (periodo === "anio" && (fecha.slice(0, 4) !== anioActual || fecha > hoyIso)) return false;
+        if (periodo === "anio" && fecha.slice(0, 4) !== anioActual) return false;
         if (periodo === "rango") {
           if (desde && fecha < desde) return false;
           if (hasta && fecha > hasta) return false;
