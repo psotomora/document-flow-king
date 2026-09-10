@@ -400,6 +400,9 @@ function PaginaDocumentosPorCobrar() {
           </TableBody>
         </Table>
       </div>
+        </TabsContent>
+      </Tabs>
+
 
       {nuevo ? <DialogoDocumento abierto onCerrar={() => setNuevo(false)} /> : null}
       {enEdicion ? (
