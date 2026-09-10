@@ -84,6 +84,8 @@ export function VistaComparativa() {
   const [periodo, setPeriodo] = useState<Periodo>("anio-a-hoy");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
+  const [monedaConsolidado, setMonedaConsolidado] = useState<Moneda>("USD");
+
 
   const clienteTexto = cliente.trim().toLowerCase();
   const numeroTexto = numeroBusqueda.trim().toLowerCase();
@@ -115,21 +117,41 @@ export function VistaComparativa() {
   const docsActual = useMemo(() => enRango(base, actual), [base, actual]);
   const docsAnterior = useMemo(() => enRango(base, anterior), [base, anterior]);
 
+  const porMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
+    lista.filter((d) => d.moneda === m).reduce((s, d) => s + d.monto, 0);
+
   const consolidado = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
       (s, d) => s + (d.moneda === "USD" ? d[campo] : tipoCambio > 0 ? d[campo] / tipoCambio : 0),
       0,
     );
 
+  const consolidadoEn = (lista: DocumentoPorCobrar[], m: Moneda) => {
+    const usd = consolidado(lista, "monto");
+    return m === "USD" ? usd : usd * tipoCambio;
+  };
+
+  const crcActual = porMoneda(docsActual, "CRC");
+  const crcAnterior = porMoneda(docsAnterior, "CRC");
+  const usdActual = porMoneda(docsActual, "USD");
+  const usdAnterior = porMoneda(docsAnterior, "USD");
+
+  const consActual = consolidadoEn(docsActual, monedaConsolidado);
+  const consAnterior = consolidadoEn(docsAnterior, monedaConsolidado);
+
   const totalActual = consolidado(docsActual, "monto");
   const totalAnterior = consolidado(docsAnterior, "monto");
   const variacion = totalAnterior !== 0 ? (totalActual - totalAnterior) / totalAnterior : 0;
+
+  const porcentaje = (act: number, ant: number) =>
+    ant !== 0 ? `${(((act - ant) / ant) * 100).toFixed(1)}%` : "—";
 
   const porTipo = (lista: DocumentoPorCobrar[], t: string) =>
     consolidado(
       lista.filter((d) => d.tipo.toUpperCase() === t),
       "monto",
     );
+
 
   const datosGrafico = [
     {
@@ -175,38 +197,99 @@ export function VistaComparativa() {
           <p className="text-sm font-semibold">Año presente vs año anterior</p>
           <p className="text-xs text-muted-foreground">
             {formatearFecha(actual.desde)} – {formatearFecha(actual.hasta)} contra{" "}
-            {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)} (valores
-            consolidados en USD).
+            {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
           </p>
-          <div className="mt-4 grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Año actual</p>
-              <p className="font-mono text-lg font-semibold tabular-nums">
-                {formatearMoneda(totalActual, "USD")}
+
+          {[
+            { titulo: "Moneda local (CRC)", act: crcActual, ant: crcAnterior, m: "CRC" as Moneda },
+            { titulo: "Dólares (USD)", act: usdActual, ant: usdAnterior, m: "USD" as Moneda },
+          ].map((fila) => (
+            <div key={fila.titulo} className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {fila.titulo}
               </p>
-              <p className="text-xs text-muted-foreground">{docsActual.length} documentos</p>
+              <div className="mt-1 grid grid-cols-3 gap-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Año actual</p>
+                  <p className="font-mono text-base font-semibold tabular-nums">
+                    {formatearMoneda(fila.act, fila.m)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Año anterior</p>
+                  <p className="font-mono text-base font-semibold tabular-nums">
+                    {formatearMoneda(fila.ant, fila.m)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Variación</p>
+                  <p
+                    className={`font-mono text-base font-semibold tabular-nums ${
+                      fila.act - fila.ant >= 0 ? "text-emerald-600" : "text-destructive"
+                    }`}
+                  >
+                    {formatearMoneda(fila.act - fila.ant, fila.m)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{porcentaje(fila.act, fila.ant)}</p>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Año anterior</p>
-              <p className="font-mono text-lg font-semibold tabular-nums">
-                {formatearMoneda(totalAnterior, "USD")}
+          ))}
+
+          <div className="mt-4 border-t border-border pt-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Consolidado
               </p>
-              <p className="text-xs text-muted-foreground">{docsAnterior.length} documentos</p>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  T.C. {tipoCambio.toLocaleString("es-CR")}
+                </span>
+                <Select
+                  value={monedaConsolidado}
+                  onValueChange={(v) => setMonedaConsolidado(v as Moneda)}
+                >
+                  <SelectTrigger className="h-7 w-24 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="CRC">CRC</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Variación</p>
-              <p
-                className={`font-mono text-lg font-semibold tabular-nums ${
-                  totalActual - totalAnterior >= 0 ? "text-emerald-600" : "text-destructive"
-                }`}
-              >
-                {formatearMoneda(totalActual - totalAnterior, "USD")}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {totalAnterior !== 0 ? `${(variacion * 100).toFixed(1)}%` : "—"}
-              </p>
+            <div className="mt-1 grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">Año actual</p>
+                <p className="font-mono text-lg font-semibold tabular-nums">
+                  {formatearMoneda(consActual, monedaConsolidado)}
+                </p>
+                <p className="text-xs text-muted-foreground">{docsActual.length} documentos</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Año anterior</p>
+                <p className="font-mono text-lg font-semibold tabular-nums">
+                  {formatearMoneda(consAnterior, monedaConsolidado)}
+                </p>
+                <p className="text-xs text-muted-foreground">{docsAnterior.length} documentos</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Variación</p>
+                <p
+                  className={`font-mono text-lg font-semibold tabular-nums ${
+                    consActual - consAnterior >= 0 ? "text-emerald-600" : "text-destructive"
+                  }`}
+                >
+                  {formatearMoneda(consActual - consAnterior, monedaConsolidado)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {totalAnterior !== 0 ? `${(variacion * 100).toFixed(1)}%` : "—"}
+                </p>
+              </div>
             </div>
           </div>
+
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4">
