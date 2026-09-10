@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.22.1",
+    fecha: "2026-09-10",
+    cambios: [
+      "Comparativo anual: ahora compara el año en curso a la fecha de hoy contra el mismo periodo del año anterior (opción predeterminada) y el mes en curso a hoy contra su equivalente del año anterior.",
+    ],
+  },
+  {
     version: "1.22.0",
     fecha: "2026-09-10",
     cambios: [
