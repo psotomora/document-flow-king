@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasVisibles } from "@/lib/preferencias";
 import { DialogoLineasPedido } from "@/components/pedidos/DialogoLineasPedido";
@@ -138,6 +139,7 @@ function PaginaPedidos() {
         descripcion="Los pedidos son ingresos probables aún no facturados. No incluyen contratos, que se administran por separado."
         acciones={
           <>
+            <BotonActualizar />
             <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
               <FileDown className="size-4" /> Exportar Excel
             </Button>
