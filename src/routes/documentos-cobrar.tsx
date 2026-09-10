@@ -84,7 +84,7 @@ function PaginaDocumentosPorCobrar() {
 
   const [cliente, setCliente] = useState("");
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
-  const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV">("todos");
+  const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV" | "NC">("todos");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
   const [periodo, setPeriodo] = useState<"mes" | "anio" | "rango">("anio");
   const [desde, setDesde] = useState("");
@@ -105,7 +105,8 @@ function PaginaDocumentosPorCobrar() {
       filtrarPorCompania(documentosPorCobrar, companiaActiva).filter((d) => {
         if (clienteTexto && !d.cliente.toLowerCase().includes(clienteTexto)) return false;
         if (numeroTexto && !d.numero.toLowerCase().includes(numeroTexto)) return false;
-        if (tipo !== "todos" && d.tipo.toUpperCase() !== tipo) return false;
+        const tipoDoc = d.tipo.toUpperCase().replace("/", "");
+        if (tipo !== "todos" && tipoDoc !== tipo) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
         const fecha = d.fecha.slice(0, 10);
         if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
@@ -164,7 +165,7 @@ function PaginaDocumentosPorCobrar() {
       <EncabezadoPagina
         titulo="Reporte de documentos"
         requerimiento="RF-006"
-        descripcion="Vista de consulta de los documentos de cuentas por cobrar de tipo FAC (facturas) y DEV (devoluciones). Se muestran los cobrados y los pendientes; los anulados quedan fuera."
+        descripcion="Vista de consulta de los documentos de cuentas por cobrar de tipo FAC (facturas), DEV (devoluciones) y NC (notas de crédito). Se muestran los cobrados y los pendientes; los anulados quedan fuera."
         acciones={
           <>
             <BotonActualizar />
@@ -219,7 +220,7 @@ function PaginaDocumentosPorCobrar() {
         </div>
         <div className="space-y-1.5">
           <Label>Tipo</Label>
-          <Select value={tipo} onValueChange={(v) => setTipo(v as "todos" | "FAC" | "DEV")}>
+          <Select value={tipo} onValueChange={(v) => setTipo(v as "todos" | "FAC" | "DEV" | "NC")}>
             <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
@@ -227,6 +228,7 @@ function PaginaDocumentosPorCobrar() {
               <SelectItem value="todos">Todos</SelectItem>
               <SelectItem value="FAC">FAC</SelectItem>
               <SelectItem value="DEV">DEV</SelectItem>
+              <SelectItem value="NC">NC</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -515,6 +517,7 @@ function DialogoDocumento({
               <SelectContent>
                 <SelectItem value="FAC">FAC — Factura</SelectItem>
                 <SelectItem value="DEV">DEV — Devolución</SelectItem>
+                <SelectItem value="NC">NC — Nota de crédito</SelectItem>
               </SelectContent>
             </Select>
           </div>
