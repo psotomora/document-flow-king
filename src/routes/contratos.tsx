@@ -461,6 +461,7 @@ function ContratosDelMes() {
         Cliente: c.cliente,
         Periodicidad: c.periodicidad,
         "Fecha esperada": formatearFecha(c.fecha),
+        Creación: formatearFecha(c.fechaCreacion),
         Moneda: c.moneda,
         Monto: c.monto,
         Documento: c.documento ?? "",
@@ -552,6 +553,7 @@ function ContratosDelMes() {
               <TableHead>Cliente</TableHead>
               <TableHead>Periodicidad</TableHead>
               <TableHead>Fecha esperada</TableHead>
+              <TableHead>Creación</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Situación</TableHead>
               <TableHead className="w-24 text-right">Acciones</TableHead>
@@ -570,6 +572,9 @@ function ContratosDelMes() {
                 <TableCell>{c.cliente}</TableCell>
                 <TableCell>{c.periodicidad}</TableCell>
                 <TableCell className="whitespace-nowrap">{formatearFecha(c.fecha)}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {formatearFecha(c.fechaCreacion)}
+                </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
                   {formatearMoneda(c.monto, c.moneda)}
                 </TableCell>
@@ -609,7 +614,7 @@ function ContratosDelMes() {
             ))}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
                   No hay contratos por facturar este mes con los filtros aplicados.
                 </TableCell>
               </TableRow>
