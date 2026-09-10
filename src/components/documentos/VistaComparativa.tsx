@@ -115,21 +115,41 @@ export function VistaComparativa() {
   const docsActual = useMemo(() => enRango(base, actual), [base, actual]);
   const docsAnterior = useMemo(() => enRango(base, anterior), [base, anterior]);
 
+  const porMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
+    lista.filter((d) => d.moneda === m).reduce((s, d) => s + d.monto, 0);
+
   const consolidado = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
       (s, d) => s + (d.moneda === "USD" ? d[campo] : tipoCambio > 0 ? d[campo] / tipoCambio : 0),
       0,
     );
 
+  const consolidadoEn = (lista: DocumentoPorCobrar[], m: Moneda) => {
+    const usd = consolidado(lista, "monto");
+    return m === "USD" ? usd : usd * tipoCambio;
+  };
+
+  const crcActual = porMoneda(docsActual, "CRC");
+  const crcAnterior = porMoneda(docsAnterior, "CRC");
+  const usdActual = porMoneda(docsActual, "USD");
+  const usdAnterior = porMoneda(docsAnterior, "USD");
+
+  const consActual = consolidadoEn(docsActual, monedaConsolidado);
+  const consAnterior = consolidadoEn(docsAnterior, monedaConsolidado);
+
   const totalActual = consolidado(docsActual, "monto");
   const totalAnterior = consolidado(docsAnterior, "monto");
   const variacion = totalAnterior !== 0 ? (totalActual - totalAnterior) / totalAnterior : 0;
+
+  const porcentaje = (act: number, ant: number) =>
+    ant !== 0 ? `${(((act - ant) / ant) * 100).toFixed(1)}%` : "—";
 
   const porTipo = (lista: DocumentoPorCobrar[], t: string) =>
     consolidado(
       lista.filter((d) => d.tipo.toUpperCase() === t),
       "monto",
     );
+
 
   const datosGrafico = [
     {
