@@ -34,6 +34,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VistaComparativa } from "@/components/documentos/VistaComparativa";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { DocumentoPorCobrar, Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
@@ -178,6 +180,15 @@ function PaginaDocumentosPorCobrar() {
         }
       />
 
+      <Tabs defaultValue="documentos" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="documentos">Documentos</TabsTrigger>
+          <TabsTrigger value="comparativo">Comparativo anual</TabsTrigger>
+        </TabsList>
+        <TabsContent value="comparativo" className="space-y-6">
+          <VistaComparativa />
+        </TabsContent>
+        <TabsContent value="documentos" className="space-y-6">
       {soloLectura ? (
         <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
           Los documentos por cobrar se están leyendo del sistema externo (SoftlandERP). En este modo
@@ -389,6 +400,9 @@ function PaginaDocumentosPorCobrar() {
           </TableBody>
         </Table>
       </div>
+        </TabsContent>
+      </Tabs>
+
 
       {nuevo ? <DialogoDocumento abierto onCerrar={() => setNuevo(false)} /> : null}
       {enEdicion ? (
