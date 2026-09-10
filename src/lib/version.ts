@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.22.3";
+export const APP_VERSION = "1.22.4";
 export const APP_FECHA_VERSION = "2026-09-10";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,13 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.22.4",
+    fecha: "2026-09-10",
+    cambios: [
+      "Reporte de documentos: se corrige la moneda de los documentos del origen externo; ahora se reconocen todas las formas en que SoftlandERP identifica dólares y colones.",
+    ],
+  },
   {
     version: "1.22.3",
     fecha: "2026-09-10",
