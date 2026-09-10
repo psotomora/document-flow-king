@@ -271,6 +271,74 @@ public static class RegistrosEndpoints
             return Results.Ok(new { mensaje = "Documento eliminado." });
         });
 
+        /* ----------------------- Documentos por cobrar ---------------------- */
+        g.MapPost("/documentos-cobrar", (NuevoDocumentoPorCobrar d, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            using var cn = db.Abrir();
+            if (cn.ExecuteScalar<int>(
+                    "SELECT COUNT(1) FROM flujo.DocumentoPorCobrar WHERE CompaniaId=@c AND Numero=@n AND Tipo=@t",
+                    new { c = Id(d.CompaniaId), n = d.Numero, t = d.Tipo }) > 0)
+                return Results.BadRequest(new { mensaje = "El documento ya fue registrado." });
+
+            var id = cn.ExecuteScalar<int>(
+                """
+                INSERT INTO flujo.DocumentoPorCobrar (CompaniaId, Cliente, Numero, Tipo, Fecha, FechaVence, Moneda, Monto, Saldo, Notas)
+                OUTPUT INSERTED.DocumentoPorCobrarId
+                VALUES (@CompaniaId, @Cliente, @Numero, @Tipo, @Fecha, @FechaVence, @Moneda, @Monto, @Saldo, @Notas)
+                """,
+                new
+                {
+                    CompaniaId = Id(d.CompaniaId), d.Cliente, d.Numero, d.Tipo,
+                    Fecha = DateTime.Parse(d.Fecha),
+                    FechaVence = string.IsNullOrWhiteSpace(d.FechaVence) ? (DateTime?)null : DateTime.Parse(d.FechaVence),
+                    d.Moneda, d.Monto, d.Saldo, d.Notas,
+                });
+
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Documentos por cobrar",
+                d.Numero, "Creación", valorNuevo: $"{d.Moneda} {d.Monto} (saldo {d.Saldo})");
+            return Results.Ok(new { id = id.ToString() });
+        });
+
+        g.MapPut("/documentos-cobrar/{id}", (string id, NuevoDocumentoPorCobrar d, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            using var cn = db.Abrir();
+            var filas = cn.Execute(
+                """
+                UPDATE flujo.DocumentoPorCobrar
+                SET CompaniaId=@CompaniaId, Cliente=@Cliente, Numero=@Numero, Tipo=@Tipo,
+                    Fecha=@Fecha, FechaVence=@FechaVence, Moneda=@Moneda, Monto=@Monto,
+                    Saldo=@Saldo, Notas=@Notas
+                WHERE DocumentoPorCobrarId=@Id
+                """,
+                new
+                {
+                    Id = Id(id), CompaniaId = Id(d.CompaniaId), d.Cliente, d.Numero, d.Tipo,
+                    Fecha = DateTime.Parse(d.Fecha),
+                    FechaVence = string.IsNullOrWhiteSpace(d.FechaVence) ? (DateTime?)null : DateTime.Parse(d.FechaVence),
+                    d.Moneda, d.Monto, d.Saldo, d.Notas,
+                });
+            if (filas == 0) return Results.NotFound(new { mensaje = "Documento inexistente." });
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Documentos por cobrar",
+                d.Numero, "Modificación", valorNuevo: $"{d.Moneda} {d.Monto} (saldo {d.Saldo})");
+            return Results.Ok(new { mensaje = "Documento actualizado." });
+        });
+
+        g.MapDelete("/documentos-cobrar/{id}", (string id, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SoloAdministrador();
+            using var cn = db.Abrir();
+            var numero = cn.QueryFirstOrDefault<string>(
+                "SELECT Numero FROM flujo.DocumentoPorCobrar WHERE DocumentoPorCobrarId=@id", new { id = Id(id) });
+            var filas = cn.Execute(
+                "DELETE FROM flujo.DocumentoPorCobrar WHERE DocumentoPorCobrarId=@id", new { id = Id(id) });
+            if (filas == 0) return Results.NotFound(new { mensaje = "Documento inexistente." });
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Documentos por cobrar",
+                numero ?? id, "Eliminación");
+            return Results.Ok(new { mensaje = "Documento eliminado." });
+        });
+
         /* ----------------------------- Contratos ---------------------------- */
         g.MapPost("/contratos", (NuevoContrato c, HttpContext ctx, Db db) =>
         {

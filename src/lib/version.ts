@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.20.6";
+export const APP_VERSION = "1.21.0";
 export const APP_FECHA_VERSION = "2026-09-10";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,16 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.21.0",
+    fecha: "2026-09-10",
+    cambios: [
+      "Nueva sección Operación → Documentos por cobrar con los documentos de cliente tipo FAC y DEV, sin los anulados.",
+      "Filtros por cliente, número de documento, tipo, moneda y rango de fechas, con selector de filas, encabezado fijo y totales.",
+      "Botón 'Actualizar' y exportación a Excel; puede leerse del sistema externo (DOCUMENTOS_CC) o del registro interno.",
+      "Nuevo parámetro de administrador 'Usar datos de documentos por cobrar de fuente externa', auditado en la bitácora.",
+    ],
+  },
   {
     version: "1.20.6",
     fecha: "2026-09-10",

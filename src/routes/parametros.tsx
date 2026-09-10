@@ -32,6 +32,7 @@ import {
   PARAM_PEDIDOS_FUENTE_ORIGEN,
   PARAM_FACTURAS_FUENTE_EXTERNA,
   PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA,
+  PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA,
   useApp,
 } from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
@@ -71,6 +72,7 @@ function PaginaParametros() {
     pedidosFuenteExterna,
     facturasFuenteExterna,
     documentosPagoFuenteExterna,
+    documentosCobroFuenteExterna,
     pedidosFuenteOrigen,
     parametros,
     actualizarParametro,
@@ -115,8 +117,23 @@ function PaginaParametros() {
     );
   };
 
+  const cambiarDocumentosCobroExternos = (activo: boolean) => {
+    actualizarParametro(PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA, activo ? "1" : "0");
+    if (activo && !parametros[PARAM_PEDIDOS_FUENTE_ORIGEN]) {
+      actualizarParametro(PARAM_PEDIDOS_FUENTE_ORIGEN, FUENTE_PEDIDOS_DEFECTO);
+    }
+    toast.success(
+      activo
+        ? "Los documentos por cobrar se tomarán de la fuente externa (SoftlandERP)."
+        : "Los documentos por cobrar se tomarán del registro interno.",
+    );
+  };
+
   const algunaFuenteExterna =
-    pedidosFuenteExterna || facturasFuenteExterna || documentosPagoFuenteExterna;
+    pedidosFuenteExterna ||
+    facturasFuenteExterna ||
+    documentosPagoFuenteExterna ||
+    documentosCobroFuenteExterna;
 
   const guardar = () => {
     const numero = Number(valor);
@@ -221,6 +238,28 @@ function PaginaParametros() {
               id="documentos-pago-externos"
               checked={documentosPagoFuenteExterna}
               onCheckedChange={cambiarDocumentosPagoExternos}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="documentos-cobro-externos">
+              Usar datos de documentos por cobrar de fuente externa
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Los documentos por cobrar (tipos FAC y DEV) se leen de la tabla DOCUMENTOS_CC del
+              sistema externo, con la misma conexión de pedidos y facturas.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {documentosCobroFuenteExterna ? "Sí" : "No"}
+            </span>
+            <Switch
+              id="documentos-cobro-externos"
+              checked={documentosCobroFuenteExterna}
+              onCheckedChange={cambiarDocumentosCobroExternos}
               disabled={!esAdministrador}
             />
           </div>

@@ -2,6 +2,7 @@ import type {
   Banco,
   Compania,
   Contrato,
+  DocumentoPorCobrar,
   DocumentoPorPagar,
   Erogacion,
   Factura,
@@ -119,6 +120,15 @@ export const documentosPorPagar: DocumentoPorPagar[] = [
   { id: "dp4", companiaId: "ax", proveedor: "Kölbi Empresarial", numero: "KE-33120", tipo: "FAC", fecha: "2026-08-12", fechaVence: "2026-09-11", moneda: "CRC", monto: 385000, saldo: 385000, notas: "Telecomunicaciones" },
   { id: "dp5", companiaId: "ax", proveedor: "JetBrains", numero: "JB-5540", tipo: "FAC", fecha: "2026-08-22", fechaVence: "2026-09-21", moneda: "USD", monto: 1150, saldo: 1150 },
   { id: "dp6", companiaId: "ax", proveedor: "CCSS", numero: "CCSS-0826", tipo: "FAC", fecha: "2026-08-31", fechaVence: "2026-09-15", moneda: "CRC", monto: 2980000, saldo: 2980000, notas: "Cargas sociales agosto" },
+];
+
+export const documentosPorCobrar: DocumentoPorCobrar[] = [
+  { id: "dc1", companiaId: "tx", cliente: "Grupo Ferretero CR", numero: "TX-1006", tipo: "FAC", fecha: "2026-08-14", fechaVence: "2026-09-13", moneda: "USD", monto: 12800, saldo: 12800, notas: "Pendiente de cobro" },
+  { id: "dc2", companiaId: "tx", cliente: "Distribuidora del Valle", numero: "TX-1007", tipo: "FAC", fecha: "2026-07-20", fechaVence: "2026-08-19", moneda: "CRC", monto: 3450000, saldo: 0, notas: "Cobrada" },
+  { id: "dc3", companiaId: "tx", cliente: "Grupo Ferretero CR", numero: "TX-D-014", tipo: "DEV", fecha: "2026-08-18", fechaVence: "2026-08-18", moneda: "USD", monto: 950, saldo: 950, notas: "Devolución de mercadería" },
+  { id: "dc4", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-2006", tipo: "FAC", fecha: "2026-08-27", fechaVence: "2026-09-26", moneda: "USD", monto: 22300, saldo: 18300, notas: "Abono parcial" },
+  { id: "dc5", companiaId: "ax", cliente: "Hotelera Guanacaste", numero: "AX-2007", tipo: "FAC", fecha: "2026-06-30", fechaVence: "2026-07-30", moneda: "CRC", monto: 1600000, saldo: 0, notas: "Cobrada" },
+  { id: "dc6", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-D-002", tipo: "DEV", fecha: "2026-08-29", fechaVence: "2026-08-29", moneda: "CRC", monto: 320000, saldo: 320000, notas: "Nota de crédito por diferencia de precio" },
 ];
 
 export const contratos: Contrato[] = [

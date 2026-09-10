@@ -221,6 +221,30 @@ try
             INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
             VALUES ('documentosPagoFuenteExterna', '0',
                     'Usar datos de documentos pendientes de pago de fuente externa');
+
+        -- Documentos por cobrar internos, FAC y DEV (10_documentos_por_cobrar.sql).
+        IF OBJECT_ID('flujo.DocumentoPorCobrar', 'U') IS NULL
+            CREATE TABLE flujo.DocumentoPorCobrar
+            (
+                DocumentoPorCobrarId INT IDENTITY(1,1) PRIMARY KEY,
+                CompaniaId           INT           NOT NULL,
+                Cliente              NVARCHAR(150) NOT NULL,
+                Numero               NVARCHAR(50)  NOT NULL,
+                Tipo                 NVARCHAR(10)  NOT NULL CONSTRAINT DF_DocPorCobrar_Tipo DEFAULT ('FAC'),
+                Fecha                DATE          NOT NULL,
+                FechaVence           DATE          NULL,
+                Moneda               CHAR(3)       NOT NULL,
+                Monto                DECIMAL(18,2) NOT NULL,
+                Saldo                DECIMAL(18,2) NOT NULL,
+                Anulado              BIT           NOT NULL CONSTRAINT DF_DocPorCobrar_Anulado DEFAULT (0),
+                Notas                NVARCHAR(500) NULL,
+                CreadoEn             DATETIME2(0)  NOT NULL CONSTRAINT DF_DocPorCobrar_Creado DEFAULT (SYSUTCDATETIME()),
+                CONSTRAINT UQ_DocumentoPorCobrar UNIQUE (CompaniaId, Tipo, Numero)
+            );
+        IF NOT EXISTS (SELECT 1 FROM flujo.Parametro WHERE Clave = 'documentosCobroFuenteExterna')
+            INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
+            VALUES ('documentosCobroFuenteExterna', '0',
+                    'Usar datos de documentos por cobrar (FAC y DEV) de fuente externa');
         """);
 }
 catch (Exception ex)
