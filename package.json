@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:node": "vite build && node scripts/verificar-build-node.mjs",
+    "verificar:node": "node scripts/verificar-build-node.mjs",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
