@@ -233,25 +233,42 @@ function PaginaDocumentosPorCobrar() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="dc-desde">Fecha inicio</Label>
-          <Input
-            id="dc-desde"
-            type="date"
-            className="w-44"
-            value={desde}
-            onChange={(e) => setDesde(e.target.value)}
-          />
+          <Label>Periodo</Label>
+          <Select value={periodo} onValueChange={(v) => setPeriodo(v as "mes" | "anio" | "rango")}>
+            <SelectTrigger className="w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mes">Este mes</SelectItem>
+              <SelectItem value="anio">Acumulado del año a la fecha</SelectItem>
+              <SelectItem value="rango">Rango de fechas</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="dc-hasta">Fecha fin</Label>
-          <Input
-            id="dc-hasta"
-            type="date"
-            className="w-44"
-            value={hasta}
-            onChange={(e) => setHasta(e.target.value)}
-          />
-        </div>
+        {periodo === "rango" ? (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="dc-desde">Fecha inicio</Label>
+              <Input
+                id="dc-desde"
+                type="date"
+                className="w-44"
+                value={desde}
+                onChange={(e) => setDesde(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="dc-hasta">Fecha fin</Label>
+              <Input
+                id="dc-hasta"
+                type="date"
+                className="w-44"
+                value={hasta}
+                onChange={(e) => setHasta(e.target.value)}
+              />
+            </div>
+          </>
+        ) : null}
         <div className="ml-auto flex flex-wrap gap-6 text-right">
           <div>
             <p className="text-xs text-muted-foreground">Monto USD</p>
