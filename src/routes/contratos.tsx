@@ -40,6 +40,7 @@ import {
   filtrarPorCompania,
   useApp,
   PREF_CONTRATOS_MES_FILTROS,
+  PREF_CONTRATOS_MES_PAGADOS,
 } from "@/contexto/AppContexto";
 import type { Contrato, EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
@@ -449,6 +450,25 @@ function ContratosDelMes() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busqueda, fechaInicio, fechaFin, listo]);
 
+  // Marcas de "pagado": solo histórico, no generan facturas ni afectan la proyección.
+  const pagados = useMemo(() => {
+    try {
+      const bruto = preferencias[PREF_CONTRATOS_MES_PAGADOS];
+      const lista = bruto ? (JSON.parse(bruto) as unknown) : [];
+      return new Set(Array.isArray(lista) ? lista.filter((x): x is string => typeof x === "string") : []);
+    } catch {
+      return new Set<string>();
+    }
+  }, [preferencias]);
+
+  const marcarPagado = (clave: string, valor: boolean) => {
+    const siguiente = new Set(pagados);
+    if (valor) siguiente.add(clave);
+    else siguiente.delete(clave);
+    actualizarPreferencia(PREF_CONTRATOS_MES_PAGADOS, JSON.stringify([...siguiente]));
+  };
+
+
   const texto = busqueda.trim().toLowerCase();
   const filtrados = filtrarPorCompania(contratosDelMes, companiaActiva).filter((c) => {
     if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
@@ -481,6 +501,7 @@ function ContratosDelMes() {
         Monto: c.monto,
         Documento: c.documento ?? "",
         Situación: c.yaDocumentado ? "Ya facturado o con pedido" : "Por facturar",
+        Pagado: pagados.has(`${c.contratoId}|${c.fecha}`) ? "Sí" : "No",
       })),
       usuario.nombre,
     );
@@ -571,6 +592,7 @@ function ContratosDelMes() {
               <TableHead>Creación</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead>Situación</TableHead>
+              <TableHead className="text-center">Pagado</TableHead>
               <TableHead className="w-24 text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -597,6 +619,14 @@ function ContratosDelMes() {
                   {c.yaDocumentado
                     ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
                     : "Por facturar"}
+                </TableCell>
+                <TableCell className="text-center">
+                  <Switch
+                    checked={pagados.has(`${c.contratoId}|${c.fecha}`)}
+                    disabled={!puedeEditar}
+                    aria-label={`Marcar contrato ${c.numero} como pagado`}
+                    onCheckedChange={(v) => marcarPagado(`${c.contratoId}|${c.fecha}`, v)}
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-1">
@@ -629,7 +659,7 @@ function ContratosDelMes() {
             ))}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
                   No hay contratos por facturar este mes con los filtros aplicados.
                 </TableCell>
               </TableRow>

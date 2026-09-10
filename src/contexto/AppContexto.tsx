@@ -79,6 +79,8 @@ export const FUENTE_PEDIDOS_DEFECTO = "SoftlandERP";
 export const PREF_CONTRATOS_MES_REVISADO = "contratosMesRevisado";
 /** Preferencias de los filtros de la subsección de contratos del mes. */
 export const PREF_CONTRATOS_MES_FILTROS = "contratosMesFiltros";
+/** Marcas históricas de contratos del mes indicados como pagados por el usuario. */
+export const PREF_CONTRATOS_MES_PAGADOS = "contratosMesPagados";
 const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
   [PARAM_FACTURAS_FUENTE_EXTERNA]: "0",
