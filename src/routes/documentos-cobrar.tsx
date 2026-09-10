@@ -94,6 +94,10 @@ function PaginaDocumentosPorCobrar() {
   const numeroTexto = numeroBusqueda.trim().toLowerCase();
   const soloLectura = modoApi && documentosCobroFuenteExterna;
 
+  const hoyIso = new Date().toISOString().slice(0, 10);
+  const mesActual = hoyIso.slice(0, 7);
+  const anioActual = hoyIso.slice(0, 4);
+
   const filtrados = useMemo(
     () =>
       filtrarPorCompania(documentosPorCobrar, companiaActiva).filter((d) => {
@@ -102,11 +106,28 @@ function PaginaDocumentosPorCobrar() {
         if (tipo !== "todos" && d.tipo.toUpperCase() !== tipo) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
         const fecha = d.fecha.slice(0, 10);
-        if (desde && fecha < desde) return false;
-        if (hasta && fecha > hasta) return false;
+        if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
+        if (periodo === "anio" && (fecha.slice(0, 4) !== anioActual || fecha > hoyIso)) return false;
+        if (periodo === "rango") {
+          if (desde && fecha < desde) return false;
+          if (hasta && fecha > hasta) return false;
+        }
         return true;
       }),
-    [documentosPorCobrar, companiaActiva, clienteTexto, numeroTexto, tipo, moneda, desde, hasta],
+    [
+      documentosPorCobrar,
+      companiaActiva,
+      clienteTexto,
+      numeroTexto,
+      tipo,
+      moneda,
+      periodo,
+      desde,
+      hasta,
+      mesActual,
+      anioActual,
+      hoyIso,
+    ],
   );
 
   const sumar = (m: Moneda, campo: "monto" | "saldo") =>
