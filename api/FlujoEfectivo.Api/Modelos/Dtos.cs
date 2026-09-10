@@ -213,6 +213,45 @@ public class ContratoDto
     public string? Notas { get; set; }
     /// <summary>Fecha en que se creó el contrato en el sistema.</summary>
     public string? FechaCreacion { get; set; }
+    /// <summary>Sistema del que proviene el contrato; ausente = registro interno.</summary>
+    public string? Origen { get; set; }
+    /// <summary>Cantidad de líneas (solo contratos de fuente externa).</summary>
+    public int? Lineas { get; set; }
+}
+
+/// <summary>Línea de un contrato leído de la fuente externa (CONTRATO_LINEA).</summary>
+public class LineaContratoDto
+{
+    public LineaContratoDto() { }
+
+    public LineaContratoDto(
+        int linea,
+        string articulo,
+        string? descripcion,
+        decimal cantidad,
+        decimal precioUnitario,
+        decimal descuento,
+        decimal impuesto,
+        decimal total)
+    {
+        Linea = linea;
+        Articulo = articulo;
+        Descripcion = descripcion;
+        Cantidad = cantidad;
+        PrecioUnitario = precioUnitario;
+        Descuento = descuento;
+        Impuesto = impuesto;
+        Total = total;
+    }
+
+    public int Linea { get; set; }
+    public string Articulo { get; set; } = "";
+    public string? Descripcion { get; set; }
+    public decimal Cantidad { get; set; }
+    public decimal PrecioUnitario { get; set; }
+    public decimal Descuento { get; set; }
+    public decimal Impuesto { get; set; }
+    public decimal Total { get; set; }
 }
 
 public class PedidoDto
