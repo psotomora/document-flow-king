@@ -13,8 +13,6 @@ import {
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -35,8 +33,18 @@ import type { DocumentoPorCobrar, Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
-type Periodo = "mes-actual" | "anio-a-hoy" | "rango";
+type Periodo = "mes" | "anio" | "rango";
 interface Rango {
+  desde: string;
+  hasta: string;
+}
+
+interface Props {
+  cliente: string;
+  numeroBusqueda: string;
+  tipo: "todos" | "FAC" | "DEV" | "NC";
+  moneda: Moneda | "todas";
+  periodo: Periodo;
   desde: string;
   hasta: string;
 }
@@ -46,35 +54,36 @@ const normalizarTipo = (t: string) => t.toUpperCase().replace("/", "").trim();
 /** Devoluciones y notas de crédito restan del monto neto. */
 const esCredito = (t: string) => normalizarTipo(t) === "DEV" || normalizarTipo(t) === "NC";
 
-const restarAnio = (iso: string) => `${Number(iso.slice(0, 4)) - 1}${iso.slice(4)}`;
+/** Resta un año a una fecha ISO, ajustando el 29 de febrero. */
+const restarAnio = (iso: string) => {
+  const anio = Number(iso.slice(0, 4)) - 1;
+  const resto = iso.slice(4);
+  if (resto === "-02-29") return `${anio}-02-28`;
+  return `${anio}${resto}`;
+};
 
 function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: string) {
   const anio = hoyIso.slice(0, 4);
   const mes = hoyIso.slice(5, 7);
-  if (periodo === "mes-actual") {
-    const actual: Rango = {
-      desde: `${anio}-${mes}-01`,
-      hasta: hoyIso,
-    };
-    return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
-  }
-  if (periodo === "anio-a-hoy") {
-    const actual: Rango = { desde: `${anio}-01-01`, hasta: hoyIso };
-    return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
-  }
-  // Rango de fechas: el periodo actual es el que el usuario eligió;
-  // el periodo anterior es exactamente el mismo rango pero del año anterior.
-  const actual: Rango = { desde: desde || hoyIso, hasta: hasta || hoyIso };
+  let actual: Rango;
+  if (periodo === "mes") actual = { desde: `${anio}-${mes}-01`, hasta: hoyIso };
+  else if (periodo === "anio") actual = { desde: `${anio}-01-01`, hasta: hoyIso };
+  else actual = { desde: desde || `${anio}-01-01`, hasta: hasta || hoyIso };
   return {
     actual,
-    anterior: {
-      desde: restarAnio(actual.desde),
-      hasta: restarAnio(actual.hasta),
-    },
+    anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) },
   };
 }
 
-export function VistaComparativa() {
+export function VistaComparativa({
+  cliente,
+  numeroBusqueda,
+  tipo,
+  moneda,
+  periodo,
+  desde,
+  hasta,
+}: Props) {
   const {
     filas: filasVisibles,
     estiloTabla,
@@ -82,13 +91,6 @@ export function VistaComparativa() {
   } = useFilasVisibles("documentos-cobrar-comparativo");
   const { documentosPorCobrar, companias, companiaActiva, tipoCambio, usuario } = useApp();
 
-  const [cliente, setCliente] = useState("");
-  const [numeroBusqueda, setNumeroBusqueda] = useState("");
-  const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV" | "NC">("todos");
-  const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<Periodo>("anio-a-hoy");
-  const [desde, setDesde] = useState("");
-  const [hasta, setHasta] = useState("");
   const [monedaConsolidado, setMonedaConsolidado] = useState<Moneda>("USD");
 
 
@@ -348,95 +350,11 @@ export function VistaComparativa() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="dcc-cliente">Cliente</Label>
-          <Input
-            id="dcc-cliente"
-            className="w-56"
-            placeholder="Buscar cliente…"
-            value={cliente}
-            onChange={(e) => setCliente(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="dcc-numero">N.º de documento</Label>
-          <Input
-            id="dcc-numero"
-            className="w-56"
-            placeholder="Buscar n.º de documento…"
-            value={numeroBusqueda}
-            onChange={(e) => setNumeroBusqueda(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Tipo</Label>
-          <Select value={tipo} onValueChange={(v) => setTipo(v as "todos" | "FAC" | "DEV" | "NC")}>
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="FAC">FAC</SelectItem>
-              <SelectItem value="DEV">DEV</SelectItem>
-              <SelectItem value="NC">NC</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Moneda</Label>
-          <Select value={moneda} onValueChange={(v) => setMoneda(v as Moneda | "todas")}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas</SelectItem>
-              <SelectItem value="USD">USD</SelectItem>
-              <SelectItem value="CRC">CRC</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Periodo</Label>
-          <Select value={periodo} onValueChange={(v) => setPeriodo(v as Periodo)}>
-            <SelectTrigger className="w-72">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mes-actual">
-                Mes en curso a hoy vs mismo periodo del año anterior
-              </SelectItem>
-              <SelectItem value="anio-a-hoy">
-                Año en curso a hoy vs mismo periodo del año anterior
-              </SelectItem>
-              <SelectItem value="rango">Rango de fechas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {periodo === "rango" ? (
-          <>
-            <div className="space-y-1.5">
-              <Label htmlFor="dcc-desde">Fecha inicio</Label>
-              <Input
-                id="dcc-desde"
-                type="date"
-                className="w-44"
-                value={desde}
-                onChange={(e) => setDesde(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="dcc-hasta">Fecha fin</Label>
-              <Input
-                id="dcc-hasta"
-                type="date"
-                className="w-44"
-                value={hasta}
-                onChange={(e) => setHasta(e.target.value)}
-              />
-            </div>
-          </>
-        ) : null}
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
+        <p className="text-xs text-muted-foreground">
+          Se aplican los mismos filtros de la pestaña Documentos. El detalle muestra el año
+          anterior: {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
+        </p>
         <div className="ml-auto flex items-end gap-3">
           <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
             <FileDown className="size-4" /> Exportar Excel

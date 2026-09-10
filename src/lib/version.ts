@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.22.8";
+export const APP_VERSION = "1.22.9";
 export const APP_FECHA_VERSION = "2026-09-10";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.22.9",
+    fecha: "2026-09-10",
+    cambios: [
+      "Reporte de documentos: los filtros (cliente, número, tipo, moneda y periodo) ahora son compartidos entre la pestaña Documentos y el Comparativo anual.",
+      "Comparativo anual: el periodo anterior es exactamente el mismo rango del filtro vigente, restándole un año (con ajuste para el 29 de febrero).",
+      "El periodo «Acumulado del año a la fecha» se limita hasta hoy para que la comparación sea equivalente.",
+    ],
+  },
   {
     version: "1.22.8",
     fecha: "2026-09-10",
