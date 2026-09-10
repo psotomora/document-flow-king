@@ -2,6 +2,7 @@ import type {
   Banco,
   Compania,
   Contrato,
+  DocumentoPorCobrar,
   DocumentoPorPagar,
   Erogacion,
   Factura,
