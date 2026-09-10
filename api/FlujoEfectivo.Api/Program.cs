@@ -245,6 +245,10 @@ try
             INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
             VALUES ('documentosCobroFuenteExterna', '0',
                     'Usar datos de documentos por cobrar (FAC y DEV) de fuente externa');
+        IF NOT EXISTS (SELECT 1 FROM flujo.Parametro WHERE Clave = 'contratosFuenteExterna')
+            INSERT INTO flujo.Parametro (Clave, Valor, Descripcion)
+            VALUES ('contratosFuenteExterna', '0',
+                    'Usar datos de contratos recurrentes de fuente externa (SoftlandERP)');
         """);
 }
 catch (Exception ex)

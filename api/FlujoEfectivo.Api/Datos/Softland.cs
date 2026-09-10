@@ -493,6 +493,127 @@ public static partial class Softland
         return lista;
     }
 
+    /* -------------------------------- Contratos ------------------------------ */
+
+    /// <summary>
+    /// Contratos recurrentes de SoftlandERP (tabla CONTRATO) mapeados a la estructura interna.
+    /// Equivalencias: CONTRATO→Numero, CLIENTE→Cliente (nombre resuelto contra CLIENTE),
+    /// PERIODICIDAD→Periodicidad, FECHA_PROXIMA_FACT→ProximaFacturacion,
+    /// MONEDA_FACTURA (L/D)→Moneda, TOTAL_FACTURA→Monto,
+    /// SUSPENDIDO='S' o ESTADO_CONTRATO distinto de vigente→Cancelado.
+    /// </summary>
+    public static IEnumerable<ContratoDto> Contratos(ConfigSoftland c, string secreto, string companiaId)
+    {
+        using var cn = Abrir(c, secreto);
+        var e = c.Esquema;
+        var tieneCliente = cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{e}.CLIENTE" }) == 1;
+        var nombre = tieneCliente
+            ? $"ISNULL((SELECT TOP 1 cl.NOMBRE FROM [{e}].[CLIENTE] cl WHERE cl.CLIENTE = k.CLIENTE), k.CLIENTE)"
+            : "k.CLIENTE";
+        var tieneCondicion = cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{e}.CONDICION_PAGO" }) == 1;
+        var plazo = tieneCondicion
+            ? $"ISNULL((SELECT TOP 1 cp.DIAS_NETO FROM [{e}].[CONDICION_PAGO] cp WHERE cp.CONDICION_PAGO = k.CONDICION_PAGO), 0)"
+            : "0";
+
+        var filas = cn.Query(
+            $"""
+            SELECT k.CONTRATO AS Numero,
+                   {nombre} AS Cliente,
+                   k.PERIODICIDAD AS Periodicidad,
+                   CONVERT(CHAR(10), ISNULL(k.FECHA_PROXIMA_FACT, k.FECHA_INICIO), 23) AS ProximaFacturacion,
+                   {plazo} AS PlazoDias,
+                   k.MONEDA_FACTURA AS Moneda,
+                   ISNULL(k.TOTAL_FACTURA, 0) AS Monto,
+                   k.SUSPENDIDO AS Suspendido,
+                   k.ESTADO_CONTRATO AS EstadoContrato,
+                   CONVERT(CHAR(10), k.FECHA_ULTIMA_FAC, 23) AS UltimaFactura,
+                   CONVERT(CHAR(10), k.FECHA_CREACION, 23) AS FechaCreacion,
+                   k.TIPO_CONTRATO AS TipoContrato,
+                   (SELECT COUNT(1) FROM [{e}].[CONTRATO_LINEA] l WHERE l.CONTRATO = k.CONTRATO) AS Lineas
+            FROM [{e}].[CONTRATO] k
+            ORDER BY ISNULL(k.FECHA_PROXIMA_FACT, k.FECHA_INICIO)
+            """);
+
+        var mesActual = DateTime.Today.ToString("yyyy-MM");
+        var lista = new List<ContratoDto>();
+        foreach (var fila in filas)
+        {
+            var d = (IDictionary<string, object?>)fila;
+            var numero = Texto(d["Numero"]);
+            var suspendido = Texto(d["Suspendido"]).Equals("S", StringComparison.OrdinalIgnoreCase);
+            var estadoErp = Texto(d["EstadoContrato"]).ToUpperInvariant();
+            var cancelado = suspendido || estadoErp is "C" or "A" or "I";
+            var ultima = Texto(d["UltimaFactura"]);
+            var notas = new List<string>();
+            if (Texto(d["TipoContrato"]) is { Length: > 0 } tc) notas.Add($"Tipo {tc}");
+            if (ultima.Length > 0) notas.Add($"Última facturación {ultima}");
+            lista.Add(new ContratoDto
+            {
+                Id = PrefijoId + "ct-" + numero,
+                CompaniaId = companiaId,
+                Numero = numero,
+                Cliente = Texto(d["Cliente"]),
+                Periodicidad = MapearPeriodicidad(Texto(d["Periodicidad"])),
+                ProximaFacturacion = Texto(d["ProximaFacturacion"]),
+                PlazoDias = Entero(d["PlazoDias"]),
+                Moneda = MapearMoneda(Texto(d["Moneda"])),
+                Monto = Numero(d["Monto"]),
+                Facturado = ultima.StartsWith(mesActual, StringComparison.Ordinal),
+                Estado = cancelado ? "Cancelado" : "Activo",
+                Notas = notas.Count > 0 ? string.Join(" · ", notas) : null,
+                FechaCreacion = Texto(d["FechaCreacion"]) is { Length: > 0 } fc ? fc : null,
+                Origen = Fuente,
+                Lineas = Entero(d["Lineas"]),
+            });
+        }
+        return lista;
+    }
+
+    /// <summary>Líneas (CONTRATO_LINEA) de un contrato de Softland.</summary>
+    public static IEnumerable<LineaContratoDto> LineasContrato(ConfigSoftland c, string secreto, string numero)
+    {
+        using var cn = Abrir(c, secreto);
+        var e = c.Esquema;
+        var filas = cn.Query(
+            $"""
+            SELECT l.LINEA AS Linea, l.ARTICULO AS Articulo,
+                   CAST(l.DESCRIPCION AS NVARCHAR(400)) AS Descripcion,
+                   l.CANTIDAD AS Cantidad, l.PRECIO_UNITARIO AS PrecioUnitario,
+                   ISNULL(l.DESCUENTO_LINEA, 0) AS Descuento,
+                   ISNULL(l.TOTAL_IMPUESTO1, 0) + ISNULL(l.TOTAL_IMPUESTO2, 0) AS Impuesto,
+                   l.PRECIO_TOTAL AS Total
+            FROM [{e}].[CONTRATO_LINEA] l
+            WHERE l.CONTRATO = @numero
+            ORDER BY l.LINEA
+            """, new { numero });
+
+        var lista = new List<LineaContratoDto>();
+        foreach (var f in filas)
+        {
+            var d = (IDictionary<string, object?>)f;
+            lista.Add(new LineaContratoDto(
+                Entero(d["Linea"]), Texto(d["Articulo"]), Texto(d["Descripcion"]),
+                Numero(d["Cantidad"]), Numero(d["PrecioUnitario"]), Numero(d["Descuento"]),
+                Numero(d["Impuesto"]), Numero(d["Total"])));
+        }
+        return lista;
+    }
+
+    /// <summary>Normaliza la periodicidad de Softland a la usada por el sistema.</summary>
+    private static string MapearPeriodicidad(string? p)
+    {
+        var v = (p ?? "").Trim().ToUpperInvariant();
+        if (v.StartsWith("BIM") || v is "B" or "2") return "Bimestral";
+        if (v.StartsWith("TRI") || v is "T" or "3") return "Trimestral";
+        if (v.StartsWith("SEM") || v is "S" or "6") return "Semestral";
+        if (v.StartsWith("AN") || v is "A" or "12") return "Anual";
+        return "Mensual";
+    }
+
     /// <summary>Moneda (CRC/USD) de una factura vigente de Softland, o null si no existe.</summary>
     public static string? MonedaFactura(ConfigSoftland c, string secreto, string numero)
     {
