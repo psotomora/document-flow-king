@@ -14,6 +14,7 @@ import type {
   Banco,
   Compania,
   Contrato,
+  DocumentoPorCobrar,
   DocumentoPorPagar,
   Erogacion,
   Factura,
@@ -47,6 +48,7 @@ interface EstadoServidor {
   pagos: Pago[];
   erogaciones: Erogacion[];
   documentosPorPagar?: DocumentoPorPagar[];
+  documentosPorCobrar?: DocumentoPorCobrar[];
   contratos: Contrato[];
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
@@ -62,6 +64,8 @@ export const PARAM_PEDIDOS_FUENTE_EXTERNA = "pedidosFuenteExterna";
 export const PARAM_FACTURAS_FUENTE_EXTERNA = "facturasFuenteExterna";
 /** Clave del parámetro que indica si los documentos por pagar se leen de una fuente externa. */
 export const PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA = "documentosPagoFuenteExterna";
+/** Clave del parámetro que indica si los documentos por cobrar se leen de una fuente externa. */
+export const PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA = "documentosCobroFuenteExterna";
 /** Clave del subparámetro que indica cuál es la fuente externa (compartida por pedidos y facturas). */
 export const PARAM_PEDIDOS_FUENTE_ORIGEN = "pedidosFuenteOrigen";
 /** Fuentes externas de pedidos disponibles. */
@@ -77,6 +81,7 @@ const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
   [PARAM_FACTURAS_FUENTE_EXTERNA]: "0",
   [PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA]: "0",
+  [PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA]: "0",
   [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
 };
 
