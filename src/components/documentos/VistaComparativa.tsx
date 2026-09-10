@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FileDown } from "lucide-react";
+import { FileDown, Info } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -120,27 +120,42 @@ export function VistaComparativa() {
   const porMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
     lista.filter((d) => d.moneda === m).reduce((s, d) => s + d.monto, 0);
 
+  const netoPorMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
+    lista
+      .filter((d) => d.moneda === m)
+      .reduce((s, d) => s + (d.tipo.toUpperCase() === "DEV" ? -d.monto : d.monto), 0);
+
   const consolidado = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
       (s, d) => s + (d.moneda === "USD" ? d[campo] : tipoCambio > 0 ? d[campo] / tipoCambio : 0),
       0,
     );
 
+  const consolidadoNeto = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
+    lista.reduce(
+      (s, d) => {
+        const factor = d.tipo.toUpperCase() === "DEV" ? -1 : 1;
+        const valor = d.moneda === "USD" ? d[campo] : tipoCambio > 0 ? d[campo] / tipoCambio : 0;
+        return s + factor * valor;
+      },
+      0,
+    );
+
   const consolidadoEn = (lista: DocumentoPorCobrar[], m: Moneda) => {
-    const usd = consolidado(lista, "monto");
+    const usd = consolidadoNeto(lista, "monto");
     return m === "USD" ? usd : usd * tipoCambio;
   };
 
-  const crcActual = porMoneda(docsActual, "CRC");
-  const crcAnterior = porMoneda(docsAnterior, "CRC");
-  const usdActual = porMoneda(docsActual, "USD");
-  const usdAnterior = porMoneda(docsAnterior, "USD");
+  const crcActual = netoPorMoneda(docsActual, "CRC");
+  const crcAnterior = netoPorMoneda(docsAnterior, "CRC");
+  const usdActual = netoPorMoneda(docsActual, "USD");
+  const usdAnterior = netoPorMoneda(docsAnterior, "USD");
 
   const consActual = consolidadoEn(docsActual, monedaConsolidado);
   const consAnterior = consolidadoEn(docsAnterior, monedaConsolidado);
 
-  const totalActual = consolidado(docsActual, "monto");
-  const totalAnterior = consolidado(docsAnterior, "monto");
+  const totalActual = consolidadoNeto(docsActual, "monto");
+  const totalAnterior = consolidadoNeto(docsAnterior, "monto");
   const variacion = totalAnterior !== 0 ? (totalActual - totalAnterior) / totalAnterior : 0;
 
   const porcentaje = (act: number, ant: number) =>
@@ -199,6 +214,12 @@ export function VistaComparativa() {
             {formatearFecha(actual.desde)} – {formatearFecha(actual.hasta)} contra{" "}
             {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
           </p>
+          <div className="mt-2 flex items-start gap-2 rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
+            <span>
+              Los totales comparativos representan el monto neto: suma de facturas (FAC) menos suma de devoluciones (DEV).
+            </span>
+          </div>
 
           {[
             { titulo: "Moneda local (CRC)", act: crcActual, ant: crcAnterior, m: "CRC" as Moneda },
