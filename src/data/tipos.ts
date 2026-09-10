@@ -144,6 +144,21 @@ export interface Contrato {
   notas?: string | undefined;
   /** Fecha en que se creó el contrato en el sistema. */
   fechaCreacion?: string;
+  /** Sistema del que proviene el contrato; ausente = registro interno. */
+  origen?: string | null;
+  /** Cantidad de líneas (solo contratos de fuente externa). */
+  lineas?: number | null;
+}
+
+export interface LineaContrato {
+  linea: number;
+  articulo: string;
+  descripcion?: string | null;
+  cantidad: number;
+  precioUnitario: number;
+  descuento: number;
+  impuesto: number;
+  total: number;
 }
 
 export type EstadoPedido = "Pendiente" | "Facturado" | "Anulado";
