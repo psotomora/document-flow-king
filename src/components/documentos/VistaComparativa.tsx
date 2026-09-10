@@ -54,7 +54,7 @@ function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: 
     };
     return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
   }
-  if (periodo === "acumulado-anterior") {
+  if (periodo === "anio-a-hoy") {
     const actual: Rango = { desde: `${anio}-01-01`, hasta: hoyIso };
     return { actual, anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) } };
   }
