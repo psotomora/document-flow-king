@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.32.1";
+export const APP_VERSION = "1.33.0";
 export const APP_FECHA_VERSION = "2026-09-11";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.33.0",
+    fecha: "2026-09-11",
+    cambios: [
+      "Facturas por cobrar: nuevo botón 'Envío de estados de cuenta' con selección de cliente y correo del destinatario.",
+      "El estado de cuenta se genera en PDF con el logo de Aplix, el cliente, la fecha de emisión y el desglose de facturas.",
+      "El PDF puede descargarse o enviarse por el servidor de correo configurado; cada envío queda en bitácora.",
+    ],
+  },
   {
     version: "1.32.1",
     fecha: "2026-09-11",
