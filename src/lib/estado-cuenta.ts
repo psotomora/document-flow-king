@@ -3,7 +3,8 @@
  * desglose de sus facturas). Se genera en el navegador y puede descargarse o
  * enviarse por correo a través de la API.
  */
-import type { Factura, Moneda } from "@/data/tipos";
+import type { Moneda } from "@/data/tipos";
+import type { FacturaCalculada } from "@/lib/calculos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 
 const LOGO_URL =
@@ -45,7 +46,7 @@ function limpiarNombre(texto: string): string {
 
 export async function generarEstadoCuenta(
   cliente: string,
-  facturas: Factura[],
+  facturas: FacturaCalculada[],
   compania: string,
   usuario: string,
 ): Promise<EstadoCuentaPdf> {
