@@ -139,6 +139,7 @@ interface EstadoApp {
   erogaciones: Erogacion[];
   documentosPorPagar: DocumentoPorPagar[];
   documentosPorCobrar: DocumentoPorCobrar[];
+  documentosPorCobrarComparativo: DocumentoPorCobrar[];
   contratos: Contrato[];
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
