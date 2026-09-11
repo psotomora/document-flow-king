@@ -445,11 +445,9 @@ public static partial class Softland
         };
 
     /// <summary>
-    /// Documentos de cuentas por cobrar (tabla DOCUMENTOS_CC) de tipo FAC, DEV y NC que no estén
-    /// anulados. Incluye los ya cobrados (saldo cero) porque es una vista de consulta.
-    /// Como cuentas por cobrar suele depurar los documentos cancelados de periodos anteriores,
-    /// se completa el histórico con la tabla FACTURA para los documentos que ya no están en
-    /// DOCUMENTOS_CC; así el comparativo anual sí encuentra el periodo del año pasado.
+    /// Histórico de documentos de clientes. FACTURA es la fuente principal para conservar los
+    /// periodos anteriores; DOCUMENTOS_CC completa saldo y vencimiento y agrega documentos que
+    /// todavía no existan en FACTURA. Incluye FAC, DEV y NC no anulados.
     /// El nombre del cliente se resuelve contra la tabla CLIENTE cuando existe.
     /// </summary>
     public static IEnumerable<DocumentoPorCobrarDto> DocumentosPorCobrar(
@@ -460,15 +458,69 @@ public static partial class Softland
         var tieneCliente = cn.ExecuteScalar<int>(
             "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
             new { t = $"{e}.CLIENTE" }) == 1;
-        var nombre = tieneCliente
-            ? $"ISNULL((SELECT TOP 1 cl.NOMBRE FROM [{e}].[CLIENTE] cl WHERE cl.CLIENTE = d.CLIENTE), d.CLIENTE)"
-            : "d.CLIENTE";
-
         var lista = new List<DocumentoPorCobrarDto>();
-        var vistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var porDocumento = new Dictionary<string, DocumentoPorCobrarDto>(StringComparer.OrdinalIgnoreCase);
+
+        // FACTURA conserva el histórico que DOCUMENTOS_CC puede depurar al cancelar saldos.
+        var tieneFactura = cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{e}.FACTURA" }) == 1;
+        if (tieneFactura)
+        {
+            var filasFac = cn.Query(
+                $"""
+                SELECT f.CLIENTE AS Codigo,
+                       ISNULL(NULLIF(LTRIM(RTRIM(f.NOMBRE_CLIENTE)), ''), f.CLIENTE) AS Cliente,
+                       f.FACTURA AS Numero,
+                       f.TIPO_DOCUMENTO AS TipoDocumento,
+                       CONVERT(CHAR(10), f.FECHA, 23) AS Fecha,
+                       f.MONEDA_FACTURA AS Moneda,
+                       f.TOTAL_FACTURA AS Monto,
+                       f.COBRADA AS Cobrada
+                FROM [{e}].[FACTURA] f
+                WHERE ISNULL(f.ANULADA, 'N') <> 'S'
+                  AND ISNULL(LTRIM(RTRIM(f.TIPO_DOCUMENTO)), '') IN
+                      ('', 'F', 'FAC', 'D', 'DEV', 'C', 'N', 'NC', 'N/C')
+                ORDER BY f.FECHA DESC, f.FACTURA DESC
+                """);
+
+            foreach (var fila in filasFac)
+            {
+                var d = (IDictionary<string, object?>)fila;
+                var numero = Texto(d["Numero"]);
+                var tipo = TipoDesdeFactura(Texto(d["TipoDocumento"]));
+                var clave = tipo.Replace("/", "") + "|" + numero;
+                if (porDocumento.ContainsKey(clave)) continue;
+                var monto = Numero(d["Monto"]);
+                var cobrada = Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
+                var codigo = Texto(d["Codigo"]);
+                var documento = new DocumentoPorCobrarDto
+                {
+                    Id = PrefijoId + "fac-" + tipo + "-" + numero,
+                    CompaniaId = companiaId,
+                    Cliente = Texto(d["Cliente"]),
+                    Numero = numero,
+                    Tipo = tipo,
+                    Fecha = Texto(d["Fecha"]),
+                    FechaVence = null,
+                    Moneda = MapearMoneda(Texto(d["Moneda"])),
+                    Monto = monto,
+                    Saldo = cobrada ? 0m : monto,
+                    Origen = Fuente,
+                    Notas = codigo.Length > 0
+                        ? $"Cliente {codigo} · Histórico de facturación"
+                        : "Histórico de facturación",
+                };
+                porDocumento[clave] = documento;
+                lista.Add(documento);
+            }
+        }
 
         if (HayCuentasPorCobrar(cn, e))
         {
+            var nombre = tieneCliente
+                ? $"ISNULL((SELECT TOP 1 cl.NOMBRE FROM [{e}].[CLIENTE] cl WHERE cl.CLIENTE = d.CLIENTE), d.CLIENTE)"
+                : "d.CLIENTE";
             var filas = cn.Query(
                 $"""
                 SELECT d.CLIENTE AS Codigo,
@@ -492,8 +544,16 @@ public static partial class Softland
                 var numero = Texto(d["Numero"]);
                 var tipo = Texto(d["Tipo"]);
                 if (tipo.Length == 0) tipo = "FAC";
-                vistos.Add(tipo.Replace("/", "") + "|" + numero);
-                lista.Add(new DocumentoPorCobrarDto
+                var clave = tipo.Replace("/", "") + "|" + numero;
+                if (porDocumento.TryGetValue(clave, out var historico))
+                {
+                    // Se conserva la fecha original de FACTURA para el comparativo histórico.
+                    historico.FechaVence = Texto(d["FechaVence"]) is { Length: > 0 } vence ? vence : null;
+                    historico.Saldo = Numero(d["Saldo"]);
+                    continue;
+                }
+
+                var documento = new DocumentoPorCobrarDto
                 {
                     Id = PrefijoId + "cc-" + tipo + "-" + numero,
                     CompaniaId = companiaId,
@@ -507,56 +567,9 @@ public static partial class Softland
                     Saldo = Numero(d["Saldo"]),
                     Origen = Fuente,
                     Notas = Texto(d["Codigo"]) is { Length: > 0 } cod ? $"Cliente {cod}" : null,
-                });
-            }
-        }
-
-        // Histórico: documentos que ya no viven en cuentas por cobrar se recuperan de FACTURA.
-        var tieneFactura = cn.ExecuteScalar<int>(
-            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
-            new { t = $"{e}.FACTURA" }) == 1;
-        if (tieneFactura)
-        {
-            var filasFac = cn.Query(
-                $"""
-                SELECT f.CLIENTE AS Codigo,
-                       ISNULL(NULLIF(LTRIM(RTRIM(f.NOMBRE_CLIENTE)), ''), f.CLIENTE) AS Cliente,
-                       f.FACTURA AS Numero,
-                       f.TIPO_DOCUMENTO AS TipoDocumento,
-                       CONVERT(CHAR(10), f.FECHA, 23) AS Fecha,
-                       f.MONEDA_FACTURA AS Moneda,
-                       f.TOTAL_FACTURA AS Monto,
-                       f.COBRADA AS Cobrada
-                FROM [{e}].[FACTURA] f
-                WHERE ISNULL(f.ANULADA, 'N') <> 'S'
-                ORDER BY f.FECHA DESC, f.FACTURA DESC
-                """);
-
-            foreach (var fila in filasFac)
-            {
-                var d = (IDictionary<string, object?>)fila;
-                var numero = Texto(d["Numero"]);
-                var tipo = TipoDesdeFactura(Texto(d["TipoDocumento"]));
-                if (!vistos.Add(tipo.Replace("/", "") + "|" + numero)) continue;
-                var monto = Numero(d["Monto"]);
-                var cobrada = Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
-                var codigo = Texto(d["Codigo"]);
-                var notas = codigo.Length > 0 ? $"Cliente {codigo} · Histórico de facturación" : "Histórico de facturación";
-                lista.Add(new DocumentoPorCobrarDto
-                {
-                    Id = PrefijoId + "fac-" + tipo + "-" + numero,
-                    CompaniaId = companiaId,
-                    Cliente = Texto(d["Cliente"]),
-                    Numero = numero,
-                    Tipo = tipo,
-                    Fecha = Texto(d["Fecha"]),
-                    FechaVence = null,
-                    Moneda = MapearMoneda(Texto(d["Moneda"])),
-                    Monto = monto,
-                    Saldo = cobrada ? 0m : monto,
-                    Origen = Fuente,
-                    Notas = notas,
-                });
+                };
+                porDocumento[clave] = documento;
+                lista.Add(documento);
             }
         }
 
