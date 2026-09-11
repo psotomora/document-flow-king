@@ -212,6 +212,8 @@ function PaginaDocumentosPorCobrar() {
             periodo={periodo}
             desde={desde}
             hasta={hasta}
+            neto={neto}
+            onNetoCambio={setNeto}
           />
         </TabsContent>
         <TabsContent value="documentos" className="space-y-6">
