@@ -479,6 +479,29 @@ public record CambioFuenteExterna(
     string? CompaniaId,
     bool? Encriptar);
 
+/* ---------------------------- Servidor de correo --------------------------- */
+
+public record CorreoSmtpDto(
+    string Servidor,
+    int Puerto,
+    bool Ssl,
+    string Usuario,
+    bool TieneClave,
+    string Remitente,
+    string NombreRemitente,
+    string CopiaOculta);
+
+public record CambioCorreoSmtp(
+    string Servidor,
+    int? Puerto,
+    bool? Ssl,
+    string? Usuario,
+    string? Clave,
+    string Remitente,
+    string? NombreRemitente,
+    string? CopiaOculta,
+    string? Destinatario);
+
 public record NuevoPedido(
     string CompaniaId,
     string Numero,
