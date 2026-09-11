@@ -293,16 +293,6 @@ export function VistaComparativa({
               </Select>
             </div>
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            <Checkbox
-              id="comp-neto"
-              checked={neto}
-              onCheckedChange={(v) => onNetoCambio(v === true)}
-            />
-            <Label htmlFor="comp-neto" className="text-xs font-normal">
-              Rebajar devoluciones y notas de crédito
-            </Label>
-          </div>
           <p className="text-xs text-muted-foreground">
             {formatearFecha(actual.desde)} – {formatearFecha(actual.hasta)} contra{" "}
             {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
@@ -315,16 +305,9 @@ export function VistaComparativa({
               API instalada sea la versión 1.34.4 o posterior y que FACTURA contenga ese periodo.
             </div>
           ) : null}
-          <div className="mt-2 flex items-start gap-2 rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
-            <Info className="mt-0.5 size-3.5 shrink-0" />
-            <span>
-              {neto
-                ? "Los totales comparativos representan el monto neto: suma de facturas (FAC) menos las devoluciones (DEV) y notas de crédito (NC)."
-                : "Los totales comparativos representan el monto bruto: se suman todos los documentos (FAC, DEV y NC) sin rebajos."}
-            </span>
-          </div>
 
           {[
+
             { titulo: "Moneda local (CRC)", act: crcActual, ant: crcAnterior, m: "CRC" as Moneda },
             { titulo: "Dólares (USD)", act: usdActual, ant: usdAnterior, m: "USD" as Moneda },
           ].map((fila) => (
@@ -414,6 +397,24 @@ export function VistaComparativa({
             </div>
           </div>
 
+          <div className="mt-4 flex items-center gap-2 border-t border-border pt-3">
+            <Checkbox
+              id="comp-neto"
+              checked={neto}
+              onCheckedChange={(v) => onNetoCambio(v === true)}
+            />
+            <Label htmlFor="comp-neto" className="text-xs font-normal">
+              Rebajar devoluciones y notas de crédito
+            </Label>
+          </div>
+          <div className="mt-2 flex items-start gap-2 rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
+            <span>
+              {neto
+                ? "Los totales comparativos representan el monto neto: suma de facturas (FAC) menos las devoluciones (DEV) y notas de crédito (NC)."
+                : "Los totales comparativos representan el monto bruto: se suman todos los documentos (FAC, DEV y NC) sin rebajos."}
+            </span>
+          </div>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4">
