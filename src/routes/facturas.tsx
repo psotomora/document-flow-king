@@ -9,6 +9,7 @@ import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasVisibles } from "@/lib/preferencias";
 import { EstadoBadge } from "@/components/comunes/EstadoBadge";
 import { DialogoLineasFactura } from "@/components/facturas/DialogoLineasFactura";
+import { DialogoEstadoCuenta } from "@/components/facturas/DialogoEstadoCuenta";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -170,6 +171,7 @@ function PaginaFacturas() {
             <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
               <FileDown className="size-4" /> Exportar Excel
             </Button>
+            <DialogoEstadoCuenta facturas={filtradas} />
             {puedeEditar && !fuenteExterna ? (
               <DialogoFactura abierto={abierto} setAbierto={setAbierto} onGuardar={agregarFactura} />
             ) : null}

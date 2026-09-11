@@ -903,6 +903,43 @@ public static class RegistrosEndpoints
             return ok ? Results.Ok(new { mensaje }) : Results.BadRequest(new { mensaje });
         });
 
+        // Envío del estado de cuenta de un cliente con el PDF generado en el navegador.
+        g.MapPost("/correo/estado-cuenta", (EnvioEstadoCuenta e, HttpContext ctx, Db db, IConfiguration config) =>
+        {
+            if (string.IsNullOrWhiteSpace(e.Destinatario) || string.IsNullOrWhiteSpace(e.Cliente))
+                return Results.BadRequest(new { mensaje = "Indique el cliente y el correo del destinatario." });
+
+            byte[] pdf;
+            try { pdf = Convert.FromBase64String(e.ArchivoBase64 ?? ""); }
+            catch (FormatException) { return Results.BadRequest(new { mensaje = "El documento adjunto no es válido." }); }
+            if (pdf.Length == 0)
+                return Results.BadRequest(new { mensaje = "El estado de cuenta está vacío." });
+
+            using var cn = db.Abrir();
+            var cfg = Correo.Leer(cn);
+            if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                return Results.BadRequest(new
+                {
+                    mensaje = "Falta configurar el servidor de correo en Parámetros → Servidor de correo.",
+                });
+
+            var nombre = string.IsNullOrWhiteSpace(e.NombreArchivo) ? "estado-cuenta.pdf" : e.NombreArchivo!;
+            var cuerpo =
+                $"<p>Estimado cliente <strong>{System.Net.WebUtility.HtmlEncode(e.Cliente)}</strong>,</p>" +
+                "<p>Adjunto encontrará su estado de cuenta con el desglose de las facturas pendientes " +
+                $"al {DateTime.Now:dd/MM/yyyy}.</p>" +
+                $"<p>Cordialmente,<br/>{System.Net.WebUtility.HtmlEncode(e.Compania ?? "Aplix")}</p>";
+
+            var (ok, mensaje) = Correo.Enviar(cfg, config["Jwt:Llave"] ?? "", e.Destinatario.Trim(),
+                $"Estado de cuenta · {e.Cliente}", cuerpo, (nombre, pdf));
+
+            if (!ok) return Results.BadRequest(new { mensaje });
+
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Facturas", "Estado de cuenta",
+                "Envío", null, $"{e.Cliente} → {e.Destinatario} ({e.Documentos ?? 0} documentos)");
+            return Results.Ok(new { mensaje });
+        });
+
         /* --------------------------- Carga inicial --------------------------- */
         g.MapPost("/importacion/lote", (LoteImportacion lote, HttpContext ctx, Db db) =>
         {

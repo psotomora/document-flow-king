@@ -54,7 +54,8 @@ public static class Correo
 
     /// <summary>Envía un mensaje HTML. Devuelve (ok, mensaje) sin lanzar excepciones.</summary>
     public static (bool ok, string mensaje) Enviar(
-        ConfigCorreo c, string secreto, string destinatario, string asunto, string cuerpoHtml)
+        ConfigCorreo c, string secreto, string destinatario, string asunto, string cuerpoHtml,
+        (string nombre, byte[] contenido)? adjunto = null)
     {
         if (string.IsNullOrWhiteSpace(c.Servidor))
             return (false, "Falta el servidor SMTP. Complete los datos en Parámetros → Servidor de correo.");
@@ -87,6 +88,9 @@ public static class Correo
                 Body = cuerpoHtml,
                 IsBodyHtml = true,
             };
+            if (adjunto is { } a)
+                mensaje.Attachments.Add(new Attachment(
+                    new MemoryStream(a.contenido), a.nombre, "application/pdf"));
             foreach (var d in Separar(destinatario)) mensaje.To.Add(d);
             foreach (var d in Separar(c.CopiaOculta)) mensaje.Bcc.Add(d);
 

@@ -570,3 +570,12 @@ public record ArchivoContratosMes(
     string Mes,
     string? ArchivadoEn,
     List<LineaContratoMesHistorico>? Lineas);
+
+/// <summary>Envío del estado de cuenta de un cliente con el PDF adjunto (base64).</summary>
+public record EnvioEstadoCuenta(
+    string Destinatario,
+    string Cliente,
+    string? Compania,
+    int? Documentos,
+    string? NombreArchivo,
+    string ArchivoBase64);
