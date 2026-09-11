@@ -680,9 +680,11 @@ function ContratosDelMes() {
                   {formatearMoneda(c.monto, c.moneda)}
                 </TableCell>
                 <TableCell className="text-xs">
-                  {c.yaDocumentado
-                    ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
-                    : "Por facturar"}
+                  {facturaCoincidente
+                    ? `Factura encontrada (${facturaCoincidente})`
+                    : c.yaDocumentado
+                      ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
+                      : "Por facturar"}
                 </TableCell>
                 <TableCell className="text-center">
                   <Switch
