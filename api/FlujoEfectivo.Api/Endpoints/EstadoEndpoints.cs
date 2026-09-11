@@ -235,7 +235,8 @@ public static class EstadoEndpoints
                 ORDER BY d.Fecha DESC, d.DocumentoPorPagarId DESC
                 """);
 
-            // Documentos por cobrar (FAC y DEV): registro interno o fuente externa (DOCUMENTOS_CC).
+            // Documentos por cobrar: FACTURA aporta el histórico externo y DOCUMENTOS_CC
+            // complementa saldo/vencimiento; si no, se usa el registro interno.
             IEnumerable<DocumentoPorCobrarDto> documentosPorCobrar;
             var ccSoftland = parametros.GetValueOrDefault("documentosCobroFuenteExterna") == "1"
                 && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),

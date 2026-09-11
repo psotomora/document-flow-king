@@ -6,3 +6,5 @@
 - [x] Aumentar versiones y verificar
 - [x] Usar FACTURA como fuente histórica principal del comparativo anual
 - [x] Verificar periodo anterior y aumentar versión
+- [x] Evitar que números de factura reutilizados oculten documentos históricos
+- [x] Aclarar el diagnóstico del comparativo y aumentar a 1.34.4
