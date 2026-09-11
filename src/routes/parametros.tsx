@@ -86,6 +86,37 @@ function PaginaParametros() {
   } = useApp();
   const [valor, setValor] = useState(String(tipoCambio));
   const [nota, setNota] = useState("");
+  const [versionApi, setVersionApi] = useState<string | null>(null);
+
+  // Lee la versión expuesta por la API en /api/salud.
+  useEffect(() => {
+    const base = urlApi();
+    if (!base) {
+      setVersionApi(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    fetch(`${base}/salud`, {
+      headers: { Accept: "application/json" },
+      signal: ctrl.signal,
+    })
+      .then(async (r) => {
+        const texto = await r.text();
+        let datos: { versionApi?: string } | null = null;
+        try {
+          datos = JSON.parse(texto) as { versionApi?: string };
+        } catch {
+          datos = null;
+        }
+        setVersionApi(
+          datos?.versionApi ??
+            r.headers.get("X-FlujoEfectivo-Api-Version") ??
+            null,
+        );
+      })
+      .catch(() => setVersionApi(null));
+    return () => ctrl.abort();
+  }, []);
 
   const cambiarPedidosExternos = (activo: boolean) => {
     actualizarParametro(PARAM_PEDIDOS_FUENTE_EXTERNA, activo ? "1" : "0");
