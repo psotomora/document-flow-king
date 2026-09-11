@@ -424,6 +424,9 @@ function PaginaParametros() {
 
       <ServidorCorreo />
 
+      <TarjetaLicencia />
+
+
       <h2 className="text-sm font-semibold text-foreground">Presentación de tablas</h2>
       <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1">
