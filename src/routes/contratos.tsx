@@ -722,7 +722,8 @@ function ContratosDelMes() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
             {filtrados.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
