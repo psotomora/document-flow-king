@@ -469,6 +469,30 @@ function ContratosDelMes() {
     }
   }, [preferencias]);
 
+  // Revisa cada línea del mes contra las facturas registradas: coincide cuando
+  // el número de la factura contiene el número del contrato, o cuando el
+  // cliente, la moneda y el monto coinciden dentro del mismo mes.
+  const facturaPorLinea = useMemo(() => {
+    const mapa = new Map<string, string>();
+    const normal = (v: string) => v.trim().toLowerCase();
+    for (const c of contratosDelMes) {
+      const mes = c.fecha.slice(0, 7);
+      const numeroContrato = normal(c.numero);
+      const encontrada = facturas.find((f) => {
+        if (f.companiaId !== c.companiaId) return false;
+        if (numeroContrato.length > 0 && normal(f.numero).includes(numeroContrato)) return true;
+        if ((f.fechaEmision ?? "").slice(0, 7) !== mes) return false;
+        return (
+          normal(f.cliente) === normal(c.cliente) &&
+          f.moneda === c.moneda &&
+          Math.abs(f.monto - c.monto) < 0.01
+        );
+      });
+      if (encontrada) mapa.set(`${c.contratoId}|${c.fecha}`, encontrada.numero);
+    }
+    return mapa;
+  }, [contratosDelMes, facturas]);
+
   const marcarPagado = (clave: string, valor: boolean) => {
     const siguiente = new Set(pagados);
     if (valor) siguiente.add(clave);
