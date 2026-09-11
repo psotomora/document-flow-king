@@ -407,7 +407,18 @@ function PaginaParametros() {
           </Select>
         </div>
         {pedidosFuenteOrigen === "SoftlandERP" ? (
-          <ConexionSoftland habilitado={algunaFuenteExterna} />
+          <>
+            <ConexionSoftland
+              habilitado={algunaFuenteExterna}
+              fuente="softland"
+              titulo="Conexión 1 a fuente externa"
+            />
+            <ConexionSoftland
+              habilitado={algunaFuenteExterna}
+              fuente="softland2"
+              titulo="Conexión 2 a fuente externa"
+            />
+          </>
         ) : null}
       </div>
 
