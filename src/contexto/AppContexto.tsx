@@ -582,6 +582,27 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     return contratosPorFacturarDelMes(contratos, documentos, hoy.slice(0, 7));
   }, [contratos, pedidos, facturas, hoy]);
 
+  // Histórico de meses cerrados de contratos por facturar.
+  const contratosMesHistorico = useMemo<MesHistoricoContratos[]>(() => {
+    try {
+      const bruto = preferencias[PREF_CONTRATOS_MES_HISTORICO];
+      if (!bruto) return [];
+      const datos = JSON.parse(bruto) as MesHistoricoContratos[];
+      return Array.isArray(datos) ? datos : [];
+    } catch {
+      return [];
+    }
+  }, [preferencias]);
+
+  const guardarPreferencia = useCallback((clave: string, valorPref: string) => {
+    setPreferencias((prev) => ({ ...prev, [clave]: valorPref }));
+    if (hayApi())
+      void api(`/preferencias/${encodeURIComponent(clave)}`, {
+        metodo: "PUT",
+        cuerpo: { valor: valorPref },
+      }).catch(() => undefined);
+  }, []);
+
   // Al primer ingreso de cada mes se revisa la lista y se avisa al usuario.
   const mesRevisado = useRef<string | null>(null);
   useEffect(() => {
@@ -592,13 +613,56 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       mesRevisado.current = mes;
       return;
     }
+    const mesAnterior = preferencias[PREF_CONTRATOS_MES_REVISADO];
     mesRevisado.current = mes;
-    setPreferencias((prev) => ({ ...prev, [PREF_CONTRATOS_MES_REVISADO]: mes }));
-    if (hayApi())
-      void api(`/preferencias/${PREF_CONTRATOS_MES_REVISADO}`, {
-        metodo: "PUT",
-        cuerpo: { valor: mes },
-      }).catch(() => undefined);
+
+    // Si el parámetro está encendido, el mes anterior se archiva y la lista queda limpia.
+    if (parametros[PARAM_CONTRATOS_MES_LIMPIAR] === "1" && mesAnterior && mesAnterior !== mes) {
+      let pagados: string[] = [];
+      try {
+        const bruto = preferencias[PREF_CONTRATOS_MES_PAGADOS];
+        if (bruto) pagados = JSON.parse(bruto) as string[];
+      } catch {
+        pagados = [];
+      }
+      const documentos = [
+        ...pedidos
+          .filter((p) => p.estado !== "Anulado")
+          .map((p) => ({ numero: p.numero, fecha: p.fechaCreacion })),
+        ...facturas.map((f) => ({ numero: f.numero, fecha: f.fechaEmision })),
+      ];
+      const lineas: LineaHistoricoContrato[] = contratosPorFacturarDelMes(
+        contratos,
+        documentos,
+        mesAnterior,
+      ).map((c) => ({
+        contratoId: c.contratoId,
+        companiaId: c.companiaId,
+        numero: c.numero,
+        cliente: c.cliente,
+        periodicidad: c.periodicidad,
+        fecha: c.fecha,
+        moneda: c.moneda,
+        monto: c.monto,
+        pagado: pagados.includes(`${c.contratoId}|${c.fecha}`),
+        ...(c.documento ? { documento: c.documento } : {}),
+      }));
+      if (lineas.length > 0) {
+        const historico = [
+          { mes: mesAnterior, archivadoEn: hoy, lineas },
+          ...contratosMesHistorico.filter((h) => h.mes !== mesAnterior),
+        ].slice(0, 24);
+        guardarPreferencia(PREF_CONTRATOS_MES_HISTORICO, JSON.stringify(historico));
+      }
+      // La lista principal conserva solo las marcas del mes corriente.
+      guardarPreferencia(
+        PREF_CONTRATOS_MES_PAGADOS,
+        JSON.stringify(pagados.filter((k) => (k.split("|")[1] ?? "").slice(0, 7) === mes)),
+      );
+      toast.info(`Los contratos de ${mesAnterior} se archivaron en el histórico.`);
+    }
+
+    guardarPreferencia(PREF_CONTRATOS_MES_REVISADO, mes);
     const porFacturar = contratosDelMes.filter((c) => !c.yaDocumentado).length;
     if (porFacturar > 0)
       toast.info(
@@ -606,7 +670,19 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           ? "1 contrato debe facturarse este mes. Vea Contratos por facturar del mes."
           : `${porFacturar} contratos deben facturarse este mes. Vea Contratos por facturar del mes.`,
       );
-  }, [autenticado, cargando, hoy, preferencias, contratosDelMes]);
+  }, [
+    autenticado,
+    cargando,
+    hoy,
+    preferencias,
+    parametros,
+    contratos,
+    pedidos,
+    facturas,
+    contratosDelMes,
+    contratosMesHistorico,
+    guardarPreferencia,
+  ]);
 
   const valor = useMemo<EstadoApp>(() => {
     const puedeEditar = usuario.perfil !== "consulta";
