@@ -583,7 +583,47 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   }, [contratos, pedidos, facturas, hoy]);
 
   // Histórico de meses cerrados de contratos por facturar.
+  // Con SQL Server vive en la tabla flujo.ContratoMesHistorico (se consulta
+  // aparte de la lista activa, así la pantalla principal no crece con el tiempo).
+  // En modo demostración se conserva en la preferencia del usuario.
+  const [historicoBd, setHistoricoBd] = useState<MesHistoricoContratos[]>([]);
+
+  const cargarHistorico = useCallback(async () => {
+    if (!hayApi()) return;
+    try {
+      const filas = await api<(LineaHistoricoContrato & { mes: string; archivadoEn: string })[]>(
+        "/contratos-mes-historico",
+      );
+      const meses = new Map<string, MesHistoricoContratos>();
+      for (const f of filas ?? []) {
+        const actual = meses.get(f.mes) ?? { mes: f.mes, archivadoEn: f.archivadoEn, lineas: [] };
+        actual.lineas.push({
+          contratoId: f.contratoId,
+          companiaId: f.companiaId,
+          numero: f.numero,
+          cliente: f.cliente,
+          periodicidad: f.periodicidad,
+          fecha: f.fecha,
+          moneda: f.moneda,
+          monto: f.monto,
+          pagado: f.pagado,
+          ...(f.documento ? { documento: f.documento } : {}),
+        });
+        meses.set(f.mes, actual);
+      }
+      setHistoricoBd([...meses.values()].sort((a, b) => b.mes.localeCompare(a.mes)));
+    } catch {
+      // Bases antiguas pueden no tener la tabla todavía; no interrumpe la sesión.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!autenticado || !hayApi()) return;
+    void cargarHistorico();
+  }, [autenticado, cargarHistorico]);
+
   const contratosMesHistorico = useMemo<MesHistoricoContratos[]>(() => {
+    if (hayApi()) return historicoBd;
     try {
       const bruto = preferencias[PREF_CONTRATOS_MES_HISTORICO];
       if (!bruto) return [];
@@ -592,7 +632,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     } catch {
       return [];
     }
-  }, [preferencias]);
+  }, [preferencias, historicoBd]);
+
 
   const guardarPreferencia = useCallback((clave: string, valorPref: string) => {
     setPreferencias((prev) => ({ ...prev, [clave]: valorPref }));
