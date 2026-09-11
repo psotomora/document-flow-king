@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.34.5",
+    fecha: "2026-09-11",
+    cambios: [
+      "Parámetros: la primera tarjeta ahora muestra la versión de la aplicación y la versión de la API.",
+    ],
+  },
+  {
     version: "1.34.4",
     fecha: "2026-09-11",
     cambios: [
