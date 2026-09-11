@@ -27,6 +27,7 @@ public static class Correo
     /// <summary>DDL de la tabla de configuración; se reutiliza en la migración de arranque.</summary>
     public const string SqlTabla =
         """
+        IF SCHEMA_ID('flujo') IS NULL EXEC('CREATE SCHEMA flujo');
         IF OBJECT_ID('flujo.ConfiguracionCorreo', 'U') IS NULL
             CREATE TABLE flujo.ConfiguracionCorreo
             (
