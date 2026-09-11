@@ -48,10 +48,10 @@ public static class UsuariosEndpoints
                 """
                 INSERT INTO flujo.Usuario
                     (NombreUsuario, NombreCompleto, CorreoElectronico, HashContrasena, PerfilId, Activo,
-                      VerBancos, VerConsolidado, VerErogaciones, VerProyeccion, VerCatalogos, EditarErogaciones)
+                      VerBancos, VerConsolidado, VerErogaciones, VerProyeccion, VerCatalogos, EditarErogaciones, AsignarFacturaContrato)
                 OUTPUT INSERTED.UsuarioId
                 VALUES (@NombreUsuario, @Nombre, @Correo, @Hash, @PerfilId, @Activo,
-                        @VerBancos, @VerConsolidado, @VerErogaciones, @VerProyeccion, @VerCatalogos, @EditarErogaciones)
+                        @VerBancos, @VerConsolidado, @VerErogaciones, @VerProyeccion, @VerCatalogos, @EditarErogaciones, @AsignarFacturaContrato)
                 """,
                 new
                 {
@@ -67,6 +67,7 @@ public static class UsuariosEndpoints
                     VerProyeccion = datos.VerProyeccion ?? true,
                     VerCatalogos = datos.VerCatalogos ?? true,
                     EditarErogaciones = datos.EditarErogaciones ?? true,
+                    AsignarFacturaContrato = datos.AsignarFacturaContrato ?? false,
                 });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Seguridad",
@@ -77,7 +78,8 @@ public static class UsuariosEndpoints
                     + $"Erogaciones: {(datos.VerErogaciones ?? true ? "Sí" : "No")}; "
                     + $"Proyección de cobros: {(datos.VerProyeccion ?? true ? "Sí" : "No")}; "
                     + $"Catálogos: {(datos.VerCatalogos ?? true ? "Sí" : "No")}; "
-                    + $"Editar erogaciones: {(datos.EditarErogaciones ?? true ? "Sí" : "No")}");
+                    + $"Editar erogaciones: {(datos.EditarErogaciones ?? true ? "Sí" : "No")}; "
+                    + $"Asignar factura a contratos: {(datos.AsignarFacturaContrato ?? false ? "Sí" : "No")}");
 
             return Results.Ok(new { id = id.ToString() });
         });
@@ -129,7 +131,8 @@ public static class UsuariosEndpoints
                     VerErogaciones    = ISNULL(@VerErogaciones, VerErogaciones),
                     VerProyeccion     = ISNULL(@VerProyeccion, VerProyeccion),
                     VerCatalogos      = ISNULL(@VerCatalogos, VerCatalogos),
-                    EditarErogaciones = ISNULL(@EditarErogaciones, EditarErogaciones)
+                    EditarErogaciones = ISNULL(@EditarErogaciones, EditarErogaciones),
+                    AsignarFacturaContrato = ISNULL(@AsignarFacturaContrato, AsignarFacturaContrato)
                 WHERE UsuarioId = @usuarioId
                 """,
                 new
@@ -146,6 +149,7 @@ public static class UsuariosEndpoints
                     datos.VerProyeccion,
                     datos.VerCatalogos,
                     datos.EditarErogaciones,
+                    datos.AsignarFacturaContrato,
                     usuarioId,
                 });
 
@@ -155,14 +159,16 @@ public static class UsuariosEndpoints
                 valorAnterior: $"Perfil: {actual.Perfil}; Activo: {actual.Activo}; "
                     + $"Saldo por banco: {Si(actual.VerBancos)}; Saldo consolidado: {Si(actual.VerConsolidado)}; "
                     + $"Erogaciones: {Si(actual.VerErogaciones)}; Proyección de cobros: {Si(actual.VerProyeccion)}; "
-                    + $"Catálogos: {Si(actual.VerCatalogos)}; Editar erogaciones: {Si(actual.EditarErogaciones)}",
+                    + $"Catálogos: {Si(actual.VerCatalogos)}; Editar erogaciones: {Si(actual.EditarErogaciones)}; "
+                    + $"Asignar factura a contratos: {Si(actual.AsignarFacturaContrato)}",
                 valorNuevo: $"Perfil: {datos.Perfil ?? actual.Perfil}; Activo: {datos.Activo ?? actual.Activo}; "
                     + $"Saldo por banco: {Si(datos.VerBancos ?? actual.VerBancos)}; "
                     + $"Saldo consolidado: {Si(datos.VerConsolidado ?? actual.VerConsolidado)}; "
                     + $"Erogaciones: {Si(datos.VerErogaciones ?? actual.VerErogaciones)}; "
                     + $"Proyección de cobros: {Si(datos.VerProyeccion ?? actual.VerProyeccion)}; "
                     + $"Catálogos: {Si(datos.VerCatalogos ?? actual.VerCatalogos)}; "
-                    + $"Editar erogaciones: {Si(datos.EditarErogaciones ?? actual.EditarErogaciones)}");
+                    + $"Editar erogaciones: {Si(datos.EditarErogaciones ?? actual.EditarErogaciones)}; "
+                    + $"Asignar factura a contratos: {Si(datos.AsignarFacturaContrato ?? actual.AsignarFacturaContrato)}");
 
             return Results.Ok(new { mensaje = "Usuario actualizado." });
         });
@@ -217,7 +223,7 @@ public static class UsuariosEndpoints
             SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,
                    u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo,
                     u.VerBancos, u.VerConsolidado, u.VerErogaciones, u.VerProyeccion, u.VerCatalogos,
-                    u.EditarErogaciones
+                    u.EditarErogaciones, u.AsignarFacturaContrato
             FROM flujo.Usuario u
             INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
             WHERE 1 = 1

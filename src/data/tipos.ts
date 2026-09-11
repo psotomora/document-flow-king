@@ -254,4 +254,6 @@ export interface Usuario {
   verCatalogos?: boolean;
   /** Permite modificar erogaciones existentes; el perfil consulta sigue siendo de solo lectura. */
   editarErogaciones?: boolean;
+  /** Permite asignar o cambiar la factura sugerida en los contratos por facturar del mes. */
+  asignarFacturaContrato?: boolean;
 }

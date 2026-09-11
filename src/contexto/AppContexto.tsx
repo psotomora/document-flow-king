@@ -81,6 +81,8 @@ export const PREF_CONTRATOS_MES_REVISADO = "contratosMesRevisado";
 export const PREF_CONTRATOS_MES_FILTROS = "contratosMesFiltros";
 /** Marcas históricas de contratos del mes indicados como pagados por el usuario. */
 export const PREF_CONTRATOS_MES_PAGADOS = "contratosMesPagados";
+/** Facturas asignadas manualmente a cada línea de contratos por facturar del mes. */
+export const PREF_CONTRATOS_MES_FACTURAS = "contratosMesFacturas";
 /** Histórico de meses cerrados de contratos por facturar. */
 export const PREF_CONTRATOS_MES_HISTORICO = "contratosMesHistorico";
 /** Parámetro: al cambio de mes se archivan los contratos del mes anterior y se limpia la lista. */
@@ -184,6 +186,7 @@ interface EstadoApp {
     verProyeccion?: boolean;
     verCatalogos?: boolean;
     editarErogaciones?: boolean;
+    asignarFacturaContrato?: boolean;
   }) => Promise<void>;
   actualizarUsuario: (
     id: string,
@@ -200,6 +203,7 @@ interface EstadoApp {
       verProyeccion?: boolean;
       verCatalogos?: boolean;
       editarErogaciones?: boolean;
+      asignarFacturaContrato?: boolean;
     },
   ) => Promise<void>;
   eliminarUsuario: (id: string) => Promise<void>;
@@ -843,6 +847,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           verProyeccion: datos.verProyeccion ?? true,
           verCatalogos: datos.verCatalogos ?? true,
           editarErogaciones: datos.editarErogaciones ?? true,
+          asignarFacturaContrato: datos.asignarFacturaContrato ?? false,
         };
         setUsuarios((prev) => [...prev, nuevo]);
         anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
@@ -866,6 +871,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           ...(cambios.verCatalogos !== undefined ? { verCatalogos: cambios.verCatalogos } : {}),
           ...(cambios.editarErogaciones !== undefined
             ? { editarErogaciones: cambios.editarErogaciones }
+            : {}),
+          ...(cambios.asignarFacturaContrato !== undefined
+            ? { asignarFacturaContrato: cambios.asignarFacturaContrato }
             : {}),
         };
         setUsuarios((prev) =>
