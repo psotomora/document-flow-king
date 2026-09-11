@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.35.4",
+    fecha: "2026-09-11",
+    cambios: [
+      "Reporte de documentos: al cambiar de pestaña se conserva la fuente externa seleccionada en Comparativo anual.",
+    ],
+  },
+  {
     version: "1.35.3",
     fecha: "2026-09-11",
     cambios: [
