@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Loader2, LockKeyhole, ServerCog, Tag } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
 import { configurarUrlApi, probarConexionApi, urlApi } from "@/lib/api";
@@ -31,6 +31,37 @@ export function PantallaLogin() {
   const [editandoServidor, setEditandoServidor] = useState(false);
   const [probandoServidor, setProbandoServidor] = useState(false);
   const [demostracion, setDemostracion] = useState(false);
+  const [versionApi, setVersionApi] = useState<string | null>(null);
+
+  // Lee la versión expuesta por la API en /api/salud.
+  useEffect(() => {
+    const base = urlApi();
+    if (!base) {
+      setVersionApi(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    fetch(`${base}/salud`, {
+      headers: { Accept: "application/json" },
+      signal: ctrl.signal,
+    })
+      .then(async (r) => {
+        const texto = await r.text();
+        let datos: { versionApi?: string } | null = null;
+        try {
+          datos = JSON.parse(texto) as { versionApi?: string };
+        } catch {
+          datos = null;
+        }
+        setVersionApi(
+          datos?.versionApi ??
+            r.headers.get("X-FlujoEfectivo-Api-Version") ??
+            null,
+        );
+      })
+      .catch(() => setVersionApi(null));
+    return () => ctrl.abort();
+  }, []);
 
   async function enviar(e?: FormEvent) {
     e?.preventDefault();
@@ -181,10 +212,14 @@ export function PantallaLogin() {
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
             <Tag className="size-3.5" aria-hidden />
             <span>
-              Versión {APP_VERSION} — {APP_FECHA_VERSION}
+              Versión app {APP_VERSION} — {APP_FECHA_VERSION}
+            </span>
+            <span aria-hidden>·</span>
+            <span>
+              {versionApi ? `Versión API ${versionApi}` : "API no detectada"}
             </span>
           </div>
         </CardContent>
