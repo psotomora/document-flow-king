@@ -420,7 +420,7 @@ function ContratosDelMes() {
   const guardados = useMemo(() => {
     try {
       const bruto = preferencias[PREF_CONTRATOS_MES_FILTROS];
-      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true };
+      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
       const p = JSON.parse(bruto) as Record<string, unknown>;
       return {
         busqueda: typeof p["busqueda"] === "string" ? p["busqueda"] : "",
@@ -428,9 +428,10 @@ function ContratosDelMes() {
         fechaFin: typeof p["fechaFin"] === "string" ? p["fechaFin"] : "",
         verPagados: typeof p["verPagados"] === "boolean" ? p["verPagados"] : true,
         verPendientes: typeof p["verPendientes"] === "boolean" ? p["verPendientes"] : true,
+        facturaAsociada: typeof p["facturaAsociada"] === "string" ? p["facturaAsociada"] : "todas",
       };
     } catch {
-      return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true };
+      return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
     }
   }, [preferencias]);
 
@@ -439,6 +440,7 @@ function ContratosDelMes() {
   const [fechaFin, setFechaFin] = useState(guardados.fechaFin);
   const [verPagados, setVerPagados] = useState(guardados.verPagados);
   const [verPendientes, setVerPendientes] = useState(guardados.verPendientes);
+  const [facturaAsociada, setFacturaAsociada] = useState(guardados.facturaAsociada);
   const [listo, setListo] = useState(false);
 
   // Toma los filtros recordados cuando llegan del servidor.
@@ -448,18 +450,19 @@ function ContratosDelMes() {
     setFechaFin(guardados.fechaFin);
     setVerPagados(guardados.verPagados);
     setVerPendientes(guardados.verPendientes);
+    setFacturaAsociada(guardados.facturaAsociada);
     setListo(true);
   }, [guardados]);
 
   // Guarda los filtros del usuario para la próxima vez que entre.
   useEffect(() => {
     if (!listo) return;
-    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin, verPagados, verPendientes });
+    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada });
     if (actual === JSON.stringify(guardados)) return;
     const id = window.setTimeout(() => actualizarPreferencia(PREF_CONTRATOS_MES_FILTROS, actual), 600);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busqueda, fechaInicio, fechaFin, verPagados, verPendientes, listo]);
+  }, [busqueda, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada, listo]);
 
   // Marcas de "pagado": solo histórico, no generan facturas ni afectan la proyección.
   const pagados = useMemo(() => {
@@ -542,6 +545,10 @@ function ContratosDelMes() {
     const estaPagado = pagados.has(`${c.contratoId}|${c.fecha}`);
     if (!verPagados && estaPagado) return false;
     if (!verPendientes && !estaPagado) return false;
+    const clave = `${c.contratoId}|${c.fecha}`;
+    const asociada = facturaDeLinea(clave);
+    if (facturaAsociada === "con" && !asociada) return false;
+    if (facturaAsociada === "sin" && asociada) return false;
     return true;
   });
 
@@ -636,6 +643,22 @@ function ContratosDelMes() {
             onChange={(e) => setFechaFin(e.target.value)}
           />
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="cm-factura">Factura asociada</Label>
+          <Select
+            value={facturaAsociada}
+            onValueChange={(v) => setFacturaAsociada(v)}
+          >
+            <SelectTrigger id="cm-factura" className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas</SelectItem>
+              <SelectItem value="sin">Sin factura</SelectItem>
+              <SelectItem value="con">Con factura</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Checkbox
@@ -658,7 +681,7 @@ function ContratosDelMes() {
             </Label>
           </div>
         </div>
-        {busqueda || fechaInicio || fechaFin || !verPagados || !verPendientes ? (
+        {busqueda || fechaInicio || fechaFin || !verPagados || !verPendientes || facturaAsociada !== "todas" ? (
           <Button
             variant="ghost"
             size="sm"
@@ -668,6 +691,7 @@ function ContratosDelMes() {
               setFechaFin("");
               setVerPagados(true);
               setVerPendientes(true);
+              setFacturaAsociada("todas");
             }}
           >
             Limpiar
