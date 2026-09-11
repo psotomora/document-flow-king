@@ -19,6 +19,7 @@ export const HISTORIAL_VERSIONES: EntradaVersion[] = [
       "Parámetros: nueva sección Servidor de correo (SMTP) para el envío de estados de cuenta, con contraseña cifrada y bitácora.",
       "Botón de correo de prueba para confirmar la configuración antes de usarla.",
       "Nueva tabla flujo.ConfiguracionCorreo (script 13_correo_smtp.sql) creada automáticamente al iniciar la API.",
+      "Mensaje guiado cuando Microsoft 365 rechaza la autenticación SMTP (error 535 / 5.7.139).",
     ],
   },
   {
