@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileDown, Info } from "lucide-react";
 import {
   Bar,
@@ -32,6 +32,8 @@ import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { DocumentoPorCobrar, Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 type Periodo = "mes" | "anio" | "rango";
 interface Rango {
@@ -89,9 +91,34 @@ export function VistaComparativa({
     estiloTabla,
     establecer: establecerFilas,
   } = useFilasVisibles("documentos-cobrar-comparativo");
-  const { documentosPorCobrarComparativo, companias, companiaActiva, tipoCambio, usuario } = useApp();
+  const {
+    documentosPorCobrarComparativo,
+    companias,
+    companiaActiva,
+    tipoCambio,
+    usuario,
+    modoApi,
+  } = useApp();
 
   const [monedaConsolidado, setMonedaConsolidado] = useState<Moneda>("USD");
+  // Fuente externa usada para los documentos del año anterior.
+  const [fuenteAnterior, setFuenteAnterior] = useState<"softland" | "softland2">("softland");
+  const [docsFuente2, setDocsFuente2] = useState<DocumentoPorCobrar[] | null>(null);
+  const [cargandoFuente, setCargandoFuente] = useState(false);
+
+  useEffect(() => {
+    if (fuenteAnterior !== "softland2" || !modoApi || docsFuente2 !== null) return;
+    setCargandoFuente(true);
+    api<DocumentoPorCobrar[]>("/documentos-cobrar/comparativo/softland2")
+      .then((d) => setDocsFuente2(d))
+      .catch((e: unknown) => {
+        setDocsFuente2([]);
+        toast.error(
+          e instanceof Error ? e.message : "No fue posible leer la conexión 2 a fuente externa",
+        );
+      })
+      .finally(() => setCargandoFuente(false));
+  }, [fuenteAnterior, modoApi, docsFuente2]);
 
 
   const clienteTexto = cliente.trim().toLowerCase();
@@ -121,8 +148,20 @@ export function VistaComparativa({
       return f >= r.desde && f <= r.hasta;
     });
 
+  // El año anterior puede leerse de la conexión 2, para comparar ambos orígenes.
+  const baseAnterior = useMemo(() => {
+    if (fuenteAnterior === "softland" || docsFuente2 === null) return base;
+    return filtrarPorCompania(docsFuente2, companiaActiva).filter((d) => {
+      if (clienteTexto && !d.cliente.toLowerCase().includes(clienteTexto)) return false;
+      if (numeroTexto && !d.numero.toLowerCase().includes(numeroTexto)) return false;
+      if (tipo !== "todos" && normalizarTipo(d.tipo) !== tipo) return false;
+      if (moneda !== "todas" && d.moneda !== moneda) return false;
+      return true;
+    });
+  }, [fuenteAnterior, docsFuente2, base, companiaActiva, clienteTexto, numeroTexto, tipo, moneda]);
+
   const docsActual = useMemo(() => enRango(base, actual), [base, actual]);
-  const docsAnterior = useMemo(() => enRango(base, anterior), [base, anterior]);
+  const docsAnterior = useMemo(() => enRango(baseAnterior, anterior), [baseAnterior, anterior]);
 
   const porMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
     lista.filter((d) => d.moneda === m).reduce((s, d) => s + d.monto, 0);
@@ -228,7 +267,25 @@ export function VistaComparativa({
     <div className="space-y-6">
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-sm font-semibold">Año presente vs año anterior</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold">Año presente vs año anterior</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Año anterior desde</span>
+              <Select
+                value={fuenteAnterior}
+                onValueChange={(v) => setFuenteAnterior(v as "softland" | "softland2")}
+                disabled={!modoApi || cargandoFuente}
+              >
+                <SelectTrigger className="h-8 w-44 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="softland">Fuente externa 1</SelectItem>
+                  <SelectItem value="softland2">Fuente externa 2</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <p className="text-xs text-muted-foreground">
             {formatearFecha(actual.desde)} – {formatearFecha(actual.hasta)} contra{" "}
             {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.

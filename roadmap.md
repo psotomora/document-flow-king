@@ -12,3 +12,4 @@
 - [x] Aumentar a 1.34.5
 - [x] Hacer que el Comparativo anual use exclusivamente la tabla FACTURA
 - [x] Aumentar a 1.34.6
+- [x] v1.35.0 Segunda conexión a fuente externa en Parámetros y selector de fuente en el Comparativo anual.

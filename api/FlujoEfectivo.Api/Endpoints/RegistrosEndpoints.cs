@@ -770,14 +770,17 @@ public static class RegistrosEndpoints
             }
         });
 
-        g.MapGet("/fuentes-externas/softland", (HttpContext ctx, Db db) =>
+        // {fuente} admite "softland" (conexión 1) y "softland2" (conexión 2).
+        g.MapGet("/fuentes-externas/{fuente}", (string fuente, HttpContext ctx, Db db) =>
         {
             if (!ctx.User.EsAdministrador()) return SinPermiso();
+            var nombre = Softland.NombreFuente(fuente);
+            if (nombre is null) return Results.NotFound(new { mensaje = "Fuente externa desconocida." });
             using var cn = db.Abrir();
-            var c = Softland.Leer(cn);
+            var c = Softland.Leer(cn, nombre);
             return Results.Ok(c is null
-                ? new FuenteExternaDto(Softland.Fuente, "", "", "", "", false, null, true)
-                : new FuenteExternaDto(Softland.Fuente, c.Servidor, c.BaseDatos, c.Esquema, c.Usuario,
+                ? new FuenteExternaDto(nombre, "", "", "", "", false, null, true)
+                : new FuenteExternaDto(nombre, c.Servidor, c.BaseDatos, c.Esquema, c.Usuario,
                     !string.IsNullOrEmpty(c.ClaveCifrada), c.CompaniaId?.ToString(), c.Encriptar));
         });
 
@@ -797,15 +800,17 @@ public static class RegistrosEndpoints
             };
         }
 
-        g.MapPut("/fuentes-externas/softland", (CambioFuenteExterna f, HttpContext ctx, Db db, IConfiguration config) =>
+        g.MapPut("/fuentes-externas/{fuente}", (string fuente, CambioFuenteExterna f, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!ctx.User.EsAdministrador()) return SinPermiso();
+            var nombre = Softland.NombreFuente(fuente);
+            if (nombre is null) return Results.NotFound(new { mensaje = "Fuente externa desconocida." });
             if (string.IsNullOrWhiteSpace(f.Servidor) || string.IsNullOrWhiteSpace(f.BaseDatos) || string.IsNullOrWhiteSpace(f.Esquema))
                 return Results.BadRequest(new { mensaje = "Servidor, base de datos y esquema son obligatorios." });
             try { Softland.ValidarEsquema(f.Esquema.Trim()); }
             catch (ArgumentException ex) { return Results.BadRequest(new { mensaje = ex.Message }); }
             using var cn = db.Abrir();
-            var actual = Softland.Leer(cn);
+            var actual = Softland.Leer(cn, nombre);
             var nuevo = Combinar(actual, f, config["Jwt:Llave"] ?? "");
             try
             {
@@ -819,27 +824,50 @@ public static class RegistrosEndpoints
             {
                 return Results.BadRequest(new
                 {
-                    mensaje = "La contraseña guardada pertenece a otra llave de seguridad. Escriba nuevamente la contraseña SQL de SoftlandERP antes de guardar."
+                    mensaje = "La contraseña guardada pertenece a otra llave de seguridad. Escriba nuevamente la contraseña SQL de la fuente externa antes de guardar."
                 });
             }
-            Softland.Guardar(cn, nuevo, ctx.User.UsuarioId());
-            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "Conexión SoftlandERP",
+            Softland.Guardar(cn, nuevo, ctx.User.UsuarioId(), nombre);
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "Conexión " + nombre,
                 "Modificación",
                 actual is null ? null : $"{actual.Servidor}/{actual.BaseDatos}.{actual.Esquema} ({actual.Usuario})",
                 $"{nuevo.Servidor}/{nuevo.BaseDatos}.{nuevo.Esquema} ({nuevo.Usuario})");
-            return Results.Ok(new { mensaje = "Conexión a SoftlandERP guardada." });
+            return Results.Ok(new { mensaje = $"Conexión {nombre} guardada." });
         });
 
-        g.MapPost("/fuentes-externas/softland/probar", (CambioFuenteExterna f, HttpContext ctx, Db db, IConfiguration config) =>
+        g.MapPost("/fuentes-externas/{fuente}/probar", (string fuente, CambioFuenteExterna f, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!ctx.User.EsAdministrador()) return SinPermiso();
+            var nombre = Softland.NombreFuente(fuente);
+            if (nombre is null) return Results.NotFound(new { mensaje = "Fuente externa desconocida." });
             using var cn = db.Abrir();
             var secreto = config["Jwt:Llave"] ?? "";
             ConfigSoftland cfg;
-            try { cfg = Combinar(Softland.Leer(cn), f, secreto); Softland.ValidarEsquema(cfg.Esquema); }
+            try { cfg = Combinar(Softland.Leer(cn, nombre), f, secreto); Softland.ValidarEsquema(cfg.Esquema); }
             catch (ArgumentException ex) { return Results.BadRequest(new { mensaje = ex.Message }); }
             var (ok, mensaje, pedidos) = Softland.Probar(cfg, secreto);
             return ok ? Results.Ok(new { mensaje, pedidos }) : Results.BadRequest(new { mensaje });
+        });
+
+        // Documentos del Comparativo anual leídos de una fuente externa concreta (solo FACTURA).
+        g.MapGet("/documentos-cobrar/comparativo/{fuente}", (string fuente, HttpContext ctx, Db db, IConfiguration config) =>
+        {
+            var nombre = Softland.NombreFuente(fuente);
+            if (nombre is null) return Results.NotFound(new { mensaje = "Fuente externa desconocida." });
+            using var cn = db.Abrir();
+            var cfg = Softland.Leer(cn, nombre);
+            if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                return Results.BadRequest(new { mensaje = $"La conexión {nombre} aún no tiene credenciales registradas." });
+            try
+            {
+                var companiaId = cfg.CompaniaId?.ToString() ?? "0";
+                return Results.Ok(Softland.DocumentosPorCobrar(
+                    cfg, config["Jwt:Llave"] ?? "", companiaId, soloFactura: true));
+            }
+            catch (Exception ex)
+            {
+                return Results.Json(new { mensaje = nombre + ": " + ex.Message }, statusCode: 502);
+            }
         });
 
         /* ------------------------ Servidor de correo ------------------------- */
