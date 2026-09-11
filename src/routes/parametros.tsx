@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasGlobales } from "@/lib/preferencias";
+import { urlApi } from "@/lib/api";
+import { APP_VERSION } from "@/lib/version";
 import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
