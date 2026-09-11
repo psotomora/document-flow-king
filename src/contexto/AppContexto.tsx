@@ -265,6 +265,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [documentosPorCobrar, setDocumentosPorCobrar] = useState<DocumentoPorCobrar[]>(
     semilla.documentosPorCobrar,
   );
+  const [documentosPorCobrarComparativo, setDocumentosPorCobrarComparativo] = useState<
+    DocumentoPorCobrar[]
+  >(semilla.documentosPorCobrar);
   const [contratos, setContratos] = useState<Contrato[]>(semilla.contratos);
   const [pedidos, setPedidos] = useState<Pedido[]>(semilla.pedidos);
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
