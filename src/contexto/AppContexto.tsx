@@ -49,6 +49,8 @@ interface EstadoServidor {
   erogaciones: Erogacion[];
   documentosPorPagar?: DocumentoPorPagar[];
   documentosPorCobrar?: DocumentoPorCobrar[];
+  /** Documentos por cobrar usados exclusivamente por el Comparativo anual (solo FACTURA). */
+  documentosPorCobrarComparativo?: DocumentoPorCobrar[];
   contratos: Contrato[];
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
