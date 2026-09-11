@@ -42,6 +42,7 @@ import {
   useApp,
   PREF_CONTRATOS_MES_FILTROS,
   PREF_CONTRATOS_MES_PAGADOS,
+  PREF_CONTRATOS_MES_FACTURAS,
 } from "@/contexto/AppContexto";
 import type { Contrato, EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
@@ -495,6 +496,36 @@ function ContratosDelMes() {
     return mapa;
   }, [contratosDelMes, facturas]);
 
+  // Asignaciones manuales de factura por línea (privilegio por usuario).
+  const asignaciones = useMemo(() => {
+    try {
+      const bruto = preferencias[PREF_CONTRATOS_MES_FACTURAS];
+      const obj = bruto ? (JSON.parse(bruto) as unknown) : {};
+      const mapa: Record<string, string> = {};
+      if (obj && typeof obj === "object") {
+        for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+          if (typeof v === "string") mapa[k] = v;
+        }
+      }
+      return mapa;
+    } catch {
+      return {} as Record<string, string>;
+    }
+  }, [preferencias]);
+
+  const puedeAsignarFactura =
+    esAdministrador || (puedeEditar && usuario.asignarFacturaContrato === true);
+
+  const asignarFactura = (clave: string, numero: string) => {
+    const siguiente = { ...asignaciones };
+    if (numero) siguiente[clave] = numero;
+    else delete siguiente[clave];
+    actualizarPreferencia(PREF_CONTRATOS_MES_FACTURAS, JSON.stringify(siguiente));
+  };
+
+  /** Factura vigente de la línea: la asignada manualmente o la sugerida. */
+  const facturaDeLinea = (clave: string) => asignaciones[clave] ?? facturaPorLinea.get(clave) ?? "";
+
   const marcarPagado = (clave: string, valor: boolean) => {
     const siguiente = new Set(pagados);
     if (valor) siguiente.add(clave);
@@ -541,6 +572,7 @@ function ContratosDelMes() {
         Monto: c.monto,
         Documento: c.documento ?? "",
         "Factura coincidente": facturaPorLinea.get(`${c.contratoId}|${c.fecha}`) ?? "",
+        "Factura asociada": facturaDeLinea(`${c.contratoId}|${c.fecha}`),
         Situación: facturaPorLinea.has(`${c.contratoId}|${c.fecha}`)
           ? "Factura encontrada"
           : c.yaDocumentado
@@ -661,6 +693,7 @@ function ContratosDelMes() {
               <TableHead>Fecha esperada</TableHead>
               <TableHead>Creación</TableHead>
               <TableHead className="text-right">Monto</TableHead>
+              <TableHead>Factura asociada</TableHead>
               <TableHead>Situación</TableHead>
               <TableHead className="text-center">Pagado</TableHead>
               <TableHead className="w-24 text-right">Acciones</TableHead>
@@ -668,7 +701,19 @@ function ContratosDelMes() {
           </TableHeader>
           <TableBody>
             {filtrados.map((c) => {
-              const facturaCoincidente = facturaPorLinea.get(`${c.contratoId}|${c.fecha}`);
+              const clave = `${c.contratoId}|${c.fecha}`;
+              const facturaCoincidente = facturaPorLinea.get(clave);
+              const facturaAsociada = facturaDeLinea(clave);
+              const opciones = facturas
+                .filter((f) => f.companiaId === c.companiaId)
+                .slice()
+                .sort((a, b) => (b.fechaEmision ?? "").localeCompare(a.fechaEmision ?? ""));
+              const numeros = [
+                ...new Set([
+                  ...(facturaAsociada ? [facturaAsociada] : []),
+                  ...opciones.map((f) => f.numero),
+                ]),
+              ].slice(0, 300);
               return (
               <TableRow
                 key={`${c.contratoId}-${c.fecha}`}
@@ -689,6 +734,31 @@ function ContratosDelMes() {
                 </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
                   {formatearMoneda(c.monto, c.moneda)}
+                </TableCell>
+                <TableCell>
+                  {puedeAsignarFactura ? (
+                    <Select
+                      value={facturaAsociada || "__ninguna"}
+                      onValueChange={(v) => asignarFactura(clave, v === "__ninguna" ? "" : v)}
+                    >
+                      <SelectTrigger
+                        className="h-8 w-44"
+                        aria-label={`Factura asociada al contrato ${c.numero}`}
+                      >
+                        <SelectValue placeholder="Sin factura" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        <SelectItem value="__ninguna">Sin factura</SelectItem>
+                        {numeros.map((n) => (
+                          <SelectItem key={n} value={n}>
+                            {n}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <span className="text-xs">{facturaAsociada || "—"}</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-xs">
                   {facturaCoincidente
