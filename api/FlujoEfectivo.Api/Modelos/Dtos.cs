@@ -512,3 +512,38 @@ public record LoteImportacion(
     List<NuevaFactura>? Facturas,
     List<NuevoPago>? Pagos,
     List<NuevaErogacion>? Erogaciones);
+
+/* --------- Histórico de contratos por facturar de meses cerrados --------- */
+
+public class ContratoMesHistoricoDto
+{
+    public string Mes { get; set; } = "";
+    public string ArchivadoEn { get; set; } = "";
+    public string ContratoId { get; set; } = "";
+    public string CompaniaId { get; set; } = "";
+    public string Numero { get; set; } = "";
+    public string Cliente { get; set; } = "";
+    public string Periodicidad { get; set; } = "";
+    public string Fecha { get; set; } = "";
+    public string Moneda { get; set; } = "";
+    public decimal Monto { get; set; }
+    public bool Pagado { get; set; }
+    public string? Documento { get; set; }
+}
+
+public record LineaContratoMesHistorico(
+    string ContratoId,
+    string CompaniaId,
+    string Numero,
+    string Cliente,
+    string Periodicidad,
+    string Fecha,
+    string Moneda,
+    decimal Monto,
+    bool Pagado,
+    string? Documento);
+
+public record ArchivoContratosMes(
+    string Mes,
+    string? ArchivadoEn,
+    List<LineaContratoMesHistorico>? Lineas);
