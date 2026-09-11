@@ -8,3 +8,5 @@
 - [x] Verificar periodo anterior y aumentar versión
 - [x] Evitar que números de factura reutilizados oculten documentos históricos
 - [x] Aclarar el diagnóstico del comparativo y aumentar a 1.34.4
+- [x] Mostrar versión de aplicación y versión de API en Parámetros
+- [x] Aumentar a 1.34.5

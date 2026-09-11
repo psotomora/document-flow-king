@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasGlobales } from "@/lib/preferencias";
+import { urlApi } from "@/lib/api";
+import { APP_VERSION } from "@/lib/version";
 import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,6 +86,37 @@ function PaginaParametros() {
   } = useApp();
   const [valor, setValor] = useState(String(tipoCambio));
   const [nota, setNota] = useState("");
+  const [versionApi, setVersionApi] = useState<string | null>(null);
+
+  // Lee la versión expuesta por la API en /api/salud.
+  useEffect(() => {
+    const base = urlApi();
+    if (!base) {
+      setVersionApi(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    fetch(`${base}/salud`, {
+      headers: { Accept: "application/json" },
+      signal: ctrl.signal,
+    })
+      .then(async (r) => {
+        const texto = await r.text();
+        let datos: { versionApi?: string } | null = null;
+        try {
+          datos = JSON.parse(texto) as { versionApi?: string };
+        } catch {
+          datos = null;
+        }
+        setVersionApi(
+          datos?.versionApi ??
+            r.headers.get("X-FlujoEfectivo-Api-Version") ??
+            null,
+        );
+      })
+      .catch(() => setVersionApi(null));
+    return () => ctrl.abort();
+  }, []);
 
   const cambiarPedidosExternos = (activo: boolean) => {
     actualizarParametro(PARAM_PEDIDOS_FUENTE_EXTERNA, activo ? "1" : "0");
@@ -212,6 +245,10 @@ function PaginaParametros() {
 
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Integración</h2>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Versión de la Aplicación: {APP_VERSION} · Versión de la API:{" "}
+          {versionApi ?? "No detectada"}
+        </p>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-0.5">
             <Label htmlFor="pedidos-externos">Usar datos de pedidos de fuente externa</Label>
