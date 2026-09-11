@@ -181,6 +181,19 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
           ) : null}
 
           <div className="space-y-1.5">
+            <Label htmlFor="ec-dirigido">Dirigido a</Label>
+            <Input
+              id="ec-dirigido"
+              value={dirigido}
+              onChange={(e) => setDirigido(e.target.value)}
+              placeholder="Nombre de la persona"
+            />
+            <p className="text-xs text-muted-foreground">
+              Aparece en el saludo del correo. Si se deja vacío se dirige al cliente.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
             <Label htmlFor="ec-correo">Correo del destinatario</Label>
             <Input
               id="ec-correo"
