@@ -773,6 +773,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       erogaciones,
       documentosPorPagar,
       documentosPorCobrar,
+      documentosPorCobrarComparativo,
       contratos,
       pedidos,
       tiposCambio,
