@@ -16,6 +16,20 @@ public static class UsuariosEndpoints
         cn.QueryFirstOrDefault<int?>("SELECT PerfilId FROM flujo.Perfil WHERE Codigo = @codigo",
             new { codigo });
 
+    /// <summary>Devuelve el mensaje de rechazo cuando la licencia no admite otro usuario activo.</summary>
+    private static string? LimiteUsuarios(System.Data.IDbConnection cn, IConfiguration config, int? excluir)
+    {
+        var estado = Licencias.Estado(cn, config);
+        if (!estado.Requerida || estado.MaxUsuarios <= 0) return null;
+        var activos = cn.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM flujo.Usuario WHERE Activo = 1 AND (@e IS NULL OR UsuarioId <> @e)",
+            new { e = excluir });
+        return activos + 1 > estado.MaxUsuarios
+            ? $"La licencia permite {estado.MaxUsuarios} usuarios activos y ya hay {activos}. "
+              + "Inactive un usuario o solicite la ampliación de la licencia."
+            : null;
+    }
+
     public static void MapUsuarios(this IEndpointRouteBuilder grupo)
     {
         var g = grupo.MapGroup("").RequireAuthorization();
@@ -27,7 +41,7 @@ public static class UsuariosEndpoints
             return Results.Ok(cn.Query<UsuarioAdminDto>(Consultas.Lista));
         });
 
-        g.MapPost("/usuarios", (NuevoUsuario datos, HttpContext ctx, Db db) =>
+        g.MapPost("/usuarios", (NuevoUsuario datos, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
             if (string.IsNullOrWhiteSpace(datos.Nombre) || string.IsNullOrWhiteSpace(datos.NombreUsuario))
@@ -38,6 +52,13 @@ public static class UsuariosEndpoints
             using var cn = db.Abrir();
             var perfilId = PerfilId(cn, datos.Perfil);
             if (perfilId is null) return Results.BadRequest(new { mensaje = "Perfil no válido." });
+
+            if (datos.Activo)
+            {
+                var limite = LimiteUsuarios(cn, config, null);
+                if (limite is not null) return Results.BadRequest(new { mensaje = limite });
+            }
+
 
             if (cn.QueryFirstOrDefault<int?>(
                     "SELECT UsuarioId FROM flujo.Usuario WHERE NombreUsuario = @n",
@@ -84,7 +105,7 @@ public static class UsuariosEndpoints
             return Results.Ok(new { id = id.ToString() });
         });
 
-        g.MapPut("/usuarios/{id}", (string id, CambioUsuario datos, HttpContext ctx, Db db) =>
+        g.MapPut("/usuarios/{id}", (string id, CambioUsuario datos, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
             if (!int.TryParse(id, out var usuarioId))
@@ -102,6 +123,13 @@ public static class UsuariosEndpoints
             {
                 perfilId = PerfilId(cn, datos.Perfil);
                 if (perfilId is null) return Results.BadRequest(new { mensaje = "Perfil no válido." });
+            }
+
+            if (datos.Activo == true && !actual.Activo)
+            {
+                var limite = LimiteUsuarios(cn, config, usuarioId);
+                if (limite is not null) return Results.BadRequest(new { mensaje = limite });
+
             }
 
             // Evita dejar el sistema sin administradores activos.

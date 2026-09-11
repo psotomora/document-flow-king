@@ -13,3 +13,4 @@
 - [x] Hacer que el Comparativo anual use exclusivamente la tabla FACTURA
 - [x] Aumentar a 1.34.6
 - [x] v1.35.0 Segunda conexión a fuente externa en Parámetros y selector de fuente en el Comparativo anual.
+- [x] v1.36.0 Sistema de licenciamiento: archivo .lic firmado, control en Parámetros y emisor interno.

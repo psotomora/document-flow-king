@@ -298,3 +298,26 @@ Los usuarios deben refrescar con **Ctrl+F5**.
 | Web: error de CORS en consola (F12) | Origen no está en `Cors:Origenes` | Agregar la URL exacta y reiniciar el grupo de la API |
 | Web: 502.3 / 404 al abrir | Servicio Node detenido o proxy ARR no habilitado | `nssm status FlujoEfectivoWeb`, paso 0.4 |
 | Web: refrescar `/facturas` da 404 | `web.config` no está en la raíz del sitio | Copiar `public\web.config` |
+
+## Licenciamiento (1.36.0)
+
+1. En el servidor **emisor interno de Aplix**, ingrese como administrador y abra
+   **Parámetros → Licencia del sistema → Emitir licencias** (o la dirección `/licencias`).
+   Use **Generar par de llaves** una sola vez:
+   - la **llave privada** se copia en `appsettings.Production.json` del emisor, en
+     `"Licencia": { "LlavePrivada": "...", "Emisor": "true" }`;
+   - la **llave pública** se copia en `"Licencia": { "LlavePublica": "..." }` de cada
+     instalación de cliente. Nunca comparta la llave privada.
+2. En la instalación del cliente, ejecute `database/14_licencia.sql` (o deje que la API
+   cree las tablas al iniciar) y abra **Parámetros → Licencia del sistema** para copiar la
+   **huella del servidor**.
+3. En el emisor, complete cliente, vencimiento, huella, compañías, usuarios permitidos y
+   días de gracia, y presione **Emitir y descargar licencia**: se genera un archivo `.lic`
+   firmado y queda registrado en el historial.
+4. En el cliente, cargue ese archivo con **Cargar archivo de licencia** y active
+   **Exigir licencia válida**.
+
+Comportamiento: 30 días antes del vencimiento aparece un aviso; al vencer, el sistema
+sigue operando durante los días de gracia con aviso en rojo; agotada la gracia —o si la
+licencia es de otro servidor— la API responde 402 y solo permite autenticarse y cargar
+una licencia nueva. El límite de usuarios impide activar usuarios adicionales.
