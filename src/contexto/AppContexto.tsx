@@ -49,6 +49,8 @@ interface EstadoServidor {
   erogaciones: Erogacion[];
   documentosPorPagar?: DocumentoPorPagar[];
   documentosPorCobrar?: DocumentoPorCobrar[];
+  /** Documentos por cobrar usados exclusivamente por el Comparativo anual (solo FACTURA). */
+  documentosPorCobrarComparativo?: DocumentoPorCobrar[];
   contratos: Contrato[];
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
@@ -137,6 +139,7 @@ interface EstadoApp {
   erogaciones: Erogacion[];
   documentosPorPagar: DocumentoPorPagar[];
   documentosPorCobrar: DocumentoPorCobrar[];
+  documentosPorCobrarComparativo: DocumentoPorCobrar[];
   contratos: Contrato[];
   pedidos: Pedido[];
   tiposCambio: TipoCambio[];
@@ -262,6 +265,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [documentosPorCobrar, setDocumentosPorCobrar] = useState<DocumentoPorCobrar[]>(
     semilla.documentosPorCobrar,
   );
+  const [documentosPorCobrarComparativo, setDocumentosPorCobrarComparativo] = useState<
+    DocumentoPorCobrar[]
+  >(semilla.documentosPorCobrar);
   const [contratos, setContratos] = useState<Contrato[]>(semilla.contratos);
   const [pedidos, setPedidos] = useState<Pedido[]>(semilla.pedidos);
   const [tiposCambio, setTiposCambio] = useState<TipoCambio[]>(semilla.tiposCambio);
@@ -290,6 +296,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setErogaciones(estado.erogaciones);
     setDocumentosPorPagar(estado.documentosPorPagar ?? []);
     setDocumentosPorCobrar(estado.documentosPorCobrar ?? []);
+    setDocumentosPorCobrarComparativo(
+      estado.documentosPorCobrarComparativo ?? estado.documentosPorCobrar ?? [],
+    );
     setContratos(estado.contratos);
     setPedidos(estado.pedidos);
     setTiposCambio(estado.tiposCambio);
@@ -764,6 +773,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       erogaciones,
       documentosPorPagar,
       documentosPorCobrar,
+      documentosPorCobrarComparativo,
       contratos,
       pedidos,
       tiposCambio,
@@ -804,6 +814,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setModoApi(false);
         setUsuario(semilla.usuarios[0]!);
         setUsuarios(semilla.usuarios);
+        setDocumentosPorCobrarComparativo(semilla.documentosPorCobrar);
         setAutenticado(true);
         setSesionCerrada(false);
       },
@@ -1139,6 +1150,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setErogaciones(semilla.erogaciones);
         setDocumentosPorPagar(semilla.documentosPorPagar);
         setDocumentosPorCobrar(semilla.documentosPorCobrar);
+        setDocumentosPorCobrarComparativo(semilla.documentosPorCobrar);
         setContratos(semilla.contratos);
         setPedidos(semilla.pedidos);
         setTiposCambio(semilla.tiposCambio);

@@ -10,3 +10,5 @@
 - [x] Aclarar el diagnóstico del comparativo y aumentar a 1.34.4
 - [x] Mostrar versión de aplicación y versión de API en Parámetros
 - [x] Aumentar a 1.34.5
+- [x] Hacer que el Comparativo anual use exclusivamente la tabla FACTURA
+- [x] Aumentar a 1.34.6

@@ -237,7 +237,10 @@ public static class EstadoEndpoints
 
             // Documentos por cobrar: FACTURA aporta el histórico externo y DOCUMENTOS_CC
             // complementa saldo/vencimiento; si no, se usa el registro interno.
+            // El comparativo anual usa exclusivamente FACTURA para evitar que DOCUMENTOS_CC,
+            // que puede depurar saldos cancelados, oculte documentos históricos.
             IEnumerable<DocumentoPorCobrarDto> documentosPorCobrar;
+            IEnumerable<DocumentoPorCobrarDto> documentosPorCobrarComparativo;
             var ccSoftland = parametros.GetValueOrDefault("documentosCobroFuenteExterna") == "1"
                 && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
                     Softland.Fuente, StringComparison.OrdinalIgnoreCase);
@@ -247,6 +250,7 @@ public static class EstadoEndpoints
                 if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
                 {
                     documentosPorCobrar = [];
+                    documentosPorCobrarComparativo = [];
                     avisoFuente ??= "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
                 }
                 else
@@ -256,28 +260,33 @@ public static class EstadoEndpoints
                         var companiaId = cfg.CompaniaId?.ToString()
                             ?? companias.FirstOrDefault()?.Id ?? "0";
                         documentosPorCobrar = Softland.DocumentosPorCobrar(cfg, secreto, companiaId).ToList();
+                        documentosPorCobrarComparativo = Softland.DocumentosPorCobrar(cfg, secreto, companiaId, soloFactura: true).ToList();
                     }
                     catch (Exception ex)
                     {
                         documentosPorCobrar = [];
+                        documentosPorCobrarComparativo = [];
                         avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
                             + "No fue posible leer los documentos por cobrar de SoftlandERP: " + Detalle(ex);
                     }
                 }
             }
             else
-            documentosPorCobrar = cn.Query<DocumentoPorCobrarDto>(
-                """
-                SELECT CAST(d.DocumentoPorCobrarId AS NVARCHAR(20)) AS Id,
-                       CAST(d.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
-                       d.Cliente, d.Numero, d.Tipo,
-                       CONVERT(CHAR(10), d.Fecha, 23) AS Fecha,
-                       CONVERT(CHAR(10), d.FechaVence, 23) AS FechaVence,
-                       d.Moneda, d.Monto, d.Saldo, d.Notas
-                FROM flujo.DocumentoPorCobrar d
-                WHERE d.Anulado = 0
-                ORDER BY d.Fecha DESC, d.DocumentoPorCobrarId DESC
-                """);
+            {
+                documentosPorCobrar = cn.Query<DocumentoPorCobrarDto>(
+                    """
+                    SELECT CAST(d.DocumentoPorCobrarId AS NVARCHAR(20)) AS Id,
+                           CAST(d.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
+                           d.Cliente, d.Numero, d.Tipo,
+                           CONVERT(CHAR(10), d.Fecha, 23) AS Fecha,
+                           CONVERT(CHAR(10), d.FechaVence, 23) AS FechaVence,
+                           d.Moneda, d.Monto, d.Saldo, d.Notas
+                    FROM flujo.DocumentoPorCobrar d
+                    WHERE d.Anulado = 0
+                    ORDER BY d.Fecha DESC, d.DocumentoPorCobrarId DESC
+                    """);
+                documentosPorCobrarComparativo = documentosPorCobrar;
+            }
 
             var tiposCambio = cn.Query<TipoCambioDto>(
                 """
@@ -333,7 +342,8 @@ public static class EstadoEndpoints
 
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
                 erogaciones, documentosPorPagar, documentosPorCobrar, contratos, pedidos,
-                tiposCambio, bitacora, parametros, avisoFuente, preferencias));
+                tiposCambio, bitacora, parametros, avisoFuente, preferencias,
+                documentosPorCobrarComparativo));
         }).RequireAuthorization();
     }
 }

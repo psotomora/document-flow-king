@@ -89,7 +89,7 @@ export function VistaComparativa({
     estiloTabla,
     establecer: establecerFilas,
   } = useFilasVisibles("documentos-cobrar-comparativo");
-  const { documentosPorCobrar, companias, companiaActiva, tipoCambio, usuario } = useApp();
+  const { documentosPorCobrarComparativo, companias, companiaActiva, tipoCambio, usuario } = useApp();
 
   const [monedaConsolidado, setMonedaConsolidado] = useState<Moneda>("USD");
 
@@ -105,14 +105,14 @@ export function VistaComparativa({
 
   const base = useMemo(
     () =>
-      filtrarPorCompania(documentosPorCobrar, companiaActiva).filter((d) => {
+      filtrarPorCompania(documentosPorCobrarComparativo, companiaActiva).filter((d) => {
         if (clienteTexto && !d.cliente.toLowerCase().includes(clienteTexto)) return false;
         if (numeroTexto && !d.numero.toLowerCase().includes(numeroTexto)) return false;
         if (tipo !== "todos" && normalizarTipo(d.tipo) !== tipo) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
         return true;
       }),
-    [documentosPorCobrar, companiaActiva, clienteTexto, numeroTexto, tipo, moneda],
+    [documentosPorCobrarComparativo, companiaActiva, clienteTexto, numeroTexto, tipo, moneda],
   );
 
   const enRango = (lista: DocumentoPorCobrar[], r: Rango) =>
