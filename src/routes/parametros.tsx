@@ -313,6 +313,29 @@ function PaginaParametros() {
             />
           </div>
         </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="contratos-mes-limpiar">
+              Limpiar los contratos del mes al cambio de mes
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Si está en Sí, al primer ingreso de un mes nuevo los contratos del mes anterior se
+              guardan en el histórico y la lista principal queda solo con los del mes corriente. Si
+              está en No, todo se mantiene en la lista principal.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {contratosMesLimpiar ? "Sí" : "No"}
+            </span>
+            <Switch
+              id="contratos-mes-limpiar"
+              checked={contratosMesLimpiar}
+              onCheckedChange={cambiarLimpiezaMensual}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
         <div
           className={`mt-4 flex flex-wrap items-center justify-between gap-3 border-l-2 border-border pl-4 ${
             algunaFuenteExterna ? "" : "opacity-50"
