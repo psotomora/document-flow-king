@@ -449,9 +449,11 @@ public static partial class Softland
     /// periodos anteriores; DOCUMENTOS_CC completa saldo y vencimiento y agrega documentos que
     /// todavía no existan en FACTURA. Incluye FAC, DEV y NC no anulados.
     /// El nombre del cliente se resuelve contra la tabla CLIENTE cuando existe.
+    /// Cuando <paramref name="soloFactura"/> es true, se omite DOCUMENTOS_CC y el origen es
+    /// exclusivamente la tabla FACTURA (usado por el Comparativo anual).
     /// </summary>
     public static IEnumerable<DocumentoPorCobrarDto> DocumentosPorCobrar(
-        ConfigSoftland c, string secreto, string companiaId)
+        ConfigSoftland c, string secreto, string companiaId, bool soloFactura = false)
     {
         using var cn = Abrir(c, secreto);
         var e = c.Esquema;
