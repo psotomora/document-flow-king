@@ -105,6 +105,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
         cuerpo: {
           destinatario: correo.trim(),
           cliente,
+          dirigido: dirigido.trim() || null,
           compania: nombreCompania,
           documentos: seleccionadas.length,
           nombreArchivo: pdf.nombreArchivo,
@@ -114,6 +115,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       toast.success(r.mensaje);
       setAbierto(false);
       setCorreo("");
+      setDirigido("");
     } catch (e) {
       toast.error(
         e instanceof ErrorApi || e instanceof Error ? e.message : "No fue posible enviar el correo.",
