@@ -396,6 +396,7 @@ function ContratosDelMes() {
   const {
     contratosDelMes,
     contratos,
+    facturas,
     companias,
     companiaActiva,
     tipoCambio,
@@ -468,6 +469,30 @@ function ContratosDelMes() {
     }
   }, [preferencias]);
 
+  // Revisa cada línea del mes contra las facturas registradas: coincide cuando
+  // el número de la factura contiene el número del contrato, o cuando el
+  // cliente, la moneda y el monto coinciden dentro del mismo mes.
+  const facturaPorLinea = useMemo(() => {
+    const mapa = new Map<string, string>();
+    const normal = (v: string) => v.trim().toLowerCase();
+    for (const c of contratosDelMes) {
+      const mes = c.fecha.slice(0, 7);
+      const numeroContrato = normal(c.numero);
+      const encontrada = facturas.find((f) => {
+        if (f.companiaId !== c.companiaId) return false;
+        if (numeroContrato.length > 0 && normal(f.numero).includes(numeroContrato)) return true;
+        if ((f.fechaEmision ?? "").slice(0, 7) !== mes) return false;
+        return (
+          normal(f.cliente) === normal(c.cliente) &&
+          f.moneda === c.moneda &&
+          Math.abs(f.monto - c.monto) < 0.01
+        );
+      });
+      if (encontrada) mapa.set(`${c.contratoId}|${c.fecha}`, encontrada.numero);
+    }
+    return mapa;
+  }, [contratosDelMes, facturas]);
+
   const marcarPagado = (clave: string, valor: boolean) => {
     const siguiente = new Set(pagados);
     if (valor) siguiente.add(clave);
@@ -510,7 +535,12 @@ function ContratosDelMes() {
         Moneda: c.moneda,
         Monto: c.monto,
         Documento: c.documento ?? "",
-        Situación: c.yaDocumentado ? "Ya facturado o con pedido" : "Por facturar",
+        "Factura coincidente": facturaPorLinea.get(`${c.contratoId}|${c.fecha}`) ?? "",
+        Situación: facturaPorLinea.has(`${c.contratoId}|${c.fecha}`)
+          ? "Factura encontrada"
+          : c.yaDocumentado
+            ? "Ya facturado o con pedido"
+            : "Por facturar",
         Pagado: pagados.has(`${c.contratoId}|${c.fecha}`) ? "Sí" : "No",
       })),
       usuario.nombre,
@@ -524,6 +554,7 @@ function ContratosDelMes() {
           <p className="text-sm text-muted-foreground">
             Lista de consulta generada al primer ingreso del mes ({hoy.slice(0, 7)}). Los contratos
             que ya tienen pedido o factura se muestran marcados y no suman en el saldo proyectado.
+            Las líneas en verde tienen una factura coincidente, lista para marcarse como pagada.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
@@ -631,10 +662,15 @@ function ContratosDelMes() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtrados.map((c) => (
+            {filtrados.map((c) => {
+              const facturaCoincidente = facturaPorLinea.get(`${c.contratoId}|${c.fecha}`);
+              return (
               <TableRow
                 key={`${c.contratoId}-${c.fecha}`}
-                className={cn(c.yaDocumentado && "opacity-60")}
+                className={cn(
+                  c.yaDocumentado && !facturaCoincidente && "opacity-60",
+                  facturaCoincidente && "bg-emerald-500/10 hover:bg-emerald-500/15",
+                )}
               >
                 <TableCell className="text-xs text-muted-foreground">
                   {companias.find((x) => x.id === c.companiaId)?.codigo}
@@ -650,9 +686,11 @@ function ContratosDelMes() {
                   {formatearMoneda(c.monto, c.moneda)}
                 </TableCell>
                 <TableCell className="text-xs">
-                  {c.yaDocumentado
-                    ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
-                    : "Por facturar"}
+                  {facturaCoincidente
+                    ? `Factura encontrada (${facturaCoincidente})`
+                    : c.yaDocumentado
+                      ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
+                      : "Por facturar"}
                 </TableCell>
                 <TableCell className="text-center">
                   <Switch
@@ -690,7 +728,8 @@ function ContratosDelMes() {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
             {filtrados.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
