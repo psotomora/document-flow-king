@@ -245,6 +245,10 @@ function PaginaParametros() {
 
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Integración</h2>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Versión de la Aplicación: {APP_VERSION} · Versión de la API:{" "}
+          {versionApi ?? "No detectada"}
+        </p>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-0.5">
             <Label htmlFor="pedidos-externos">Usar datos de pedidos de fuente externa</Label>
