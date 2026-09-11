@@ -82,6 +82,9 @@ public static class Correo
                 c.Servidor, c.Puerto, c.Ssl, c.Usuario, c.ClaveCifrada, c.Remitente,
                 c.NombreRemitente, c.CopiaOculta, usuarioId,
             });
+    }
+
+
 
     /// <summary>Envía un mensaje HTML. Devuelve (ok, mensaje) sin lanzar excepciones.</summary>
     public static (bool ok, string mensaje) Enviar(
