@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.33.1";
+export const APP_VERSION = "1.33.2";
 export const APP_FECHA_VERSION = "2026-09-11";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -13,7 +13,7 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
-    version: "1.33.1",
+    version: "1.33.2",
     fecha: "2026-09-11",
     cambios: [
       "El estado de cuenta en PDF muestra 'Theronix, S. A.' como nombre de la empresa emisora.",
