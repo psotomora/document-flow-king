@@ -16,6 +16,13 @@ export const HISTORIAL_VERSIONES: EntradaVersion[] = [
     version: "1.33.2",
     fecha: "2026-09-11",
     cambios: [
+      "Corregido el error al enviar el estado de cuenta por correo: el registro en bitácora usaba una operación no permitida.",
+    ],
+  },
+  {
+    version: "1.33.1",
+    fecha: "2026-09-11",
+    cambios: [
       "El estado de cuenta en PDF muestra 'Theronix, S. A.' como nombre de la empresa emisora.",
       "Al final del estado de cuenta se incluyen los datos de las cuentas bancarias de Theronix (BAC y Promerica, en USD y CRC).",
     ],
