@@ -228,6 +228,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="min-w-0 flex-1 space-y-6 px-4 py-6 lg:px-6">
+          <AvisoLicencia />
+
           {accesoDenegado ? (
             <div className="rounded-lg border border-border bg-card p-6">
               <p className="text-sm font-medium">Opción no disponible</p>
