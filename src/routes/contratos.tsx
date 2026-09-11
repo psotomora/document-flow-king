@@ -759,6 +759,84 @@ function ContratosDelMes() {
   );
 }
 
+/** Subsección: meses ya cerrados que se archivaron al cambio de mes. */
+function HistoricoContratosMes() {
+  const { contratosMesHistorico, contratosMesLimpiar, companias, usuario } = useApp();
+  if (!contratosMesLimpiar || contratosMesHistorico.length === 0) return null;
+
+  const lineas = contratosMesHistorico.flatMap((h) =>
+    h.lineas.map((l) => ({ ...l, mes: h.mes })),
+  );
+
+  const exportar = () =>
+    exportarExcel(
+      "contratos-mes-historico",
+      "Histórico de contratos por facturar",
+      lineas.map((l) => ({
+        Mes: l.mes,
+        Compañía: companias.find((x) => x.id === l.companiaId)?.codigo ?? "",
+        Contrato: l.numero,
+        Cliente: l.cliente,
+        Periodicidad: l.periodicidad,
+        "Fecha esperada": formatearFecha(l.fecha),
+        Moneda: l.moneda,
+        Monto: l.monto,
+        Documento: l.documento ?? "",
+        Pagado: l.pagado ? "Sí" : "No",
+      })),
+      usuario.nombre,
+    );
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Histórico de contratos por facturar</h2>
+          <p className="text-sm text-muted-foreground">
+            Meses ya cerrados. Se archivan automáticamente al primer ingreso de cada mes nuevo
+            mientras el parámetro de limpieza mensual esté activo.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
+          <FileDown className="size-4" /> Exportar Excel
+        </Button>
+      </div>
+
+      <div className="overflow-auto rounded-lg border border-border" style={{ maxHeight: 480 }}>
+        <Table>
+          <TableHeader className="sticky top-0 z-10 bg-card">
+            <TableRow>
+              <TableHead>Mes</TableHead>
+              <TableHead>Contrato</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Fecha esperada</TableHead>
+              <TableHead>Moneda</TableHead>
+              <TableHead className="text-right">Monto</TableHead>
+              <TableHead className="text-center">Pagado</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {lineas.map((l) => (
+              <TableRow key={`${l.mes}-${l.contratoId}-${l.fecha}`}>
+                <TableCell>{l.mes}</TableCell>
+                <TableCell className="font-medium">{l.numero}</TableCell>
+                <TableCell>{l.cliente}</TableCell>
+                <TableCell>{formatearFecha(l.fecha)}</TableCell>
+                <TableCell>{l.moneda}</TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {formatearMoneda(l.monto, l.moneda as "USD" | "CRC")}
+                </TableCell>
+                <TableCell className="text-center">{l.pagado ? "Sí" : "No"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </section>
+  );
+}
+
+
 /** Edición rápida de un contrato desde la lista del mes. */
 function DialogoEditarContrato({
   contrato,
