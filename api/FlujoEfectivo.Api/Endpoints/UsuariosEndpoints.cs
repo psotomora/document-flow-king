@@ -27,7 +27,7 @@ public static class UsuariosEndpoints
             return Results.Ok(cn.Query<UsuarioAdminDto>(Consultas.Lista));
         });
 
-        g.MapPost("/usuarios", (NuevoUsuario datos, HttpContext ctx, Db db) =>
+        g.MapPost("/usuarios", (NuevoUsuario datos, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
             if (string.IsNullOrWhiteSpace(datos.Nombre) || string.IsNullOrWhiteSpace(datos.NombreUsuario))
