@@ -376,6 +376,8 @@ api.MapAuth();
 api.MapEstado();
 api.MapUsuarios();
 api.MapRegistros();
+api.MapLicencia();
+
 
 app.MapGet("/api/salud", (Db db) =>
 {
