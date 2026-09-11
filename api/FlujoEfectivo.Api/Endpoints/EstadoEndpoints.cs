@@ -342,7 +342,8 @@ public static class EstadoEndpoints
 
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
                 erogaciones, documentosPorPagar, documentosPorCobrar, contratos, pedidos,
-                tiposCambio, bitacora, parametros, avisoFuente, preferencias));
+                tiposCambio, bitacora, parametros, avisoFuente, preferencias,
+                documentosPorCobrarComparativo));
         }).RequireAuthorization();
     }
 }
