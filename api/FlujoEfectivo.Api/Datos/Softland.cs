@@ -529,7 +529,7 @@ public static partial class Softland
             }
         }
 
-        if (HayCuentasPorCobrar(cn, e))
+        if (!soloFactura && HayCuentasPorCobrar(cn, e))
         {
             var nombre = tieneCliente
                 ? $"ISNULL((SELECT TOP 1 cl.NOMBRE FROM [{e}].[CLIENTE] cl WHERE cl.CLIENTE = d.CLIENTE), d.CLIENTE)"
