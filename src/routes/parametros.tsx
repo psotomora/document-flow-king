@@ -145,6 +145,16 @@ function PaginaParametros() {
     );
   };
 
+  const cambiarLimpiezaMensual = (activo: boolean) => {
+    actualizarParametro(PARAM_CONTRATOS_MES_LIMPIAR, activo ? "1" : "0");
+    toast.success(
+      activo
+        ? "Al cambio de mes los contratos del mes anterior pasarán al histórico."
+        : "Los contratos del mes se mantendrán en la lista principal.",
+    );
+  };
+
+
   const algunaFuenteExterna =
     pedidosFuenteExterna ||
     facturasFuenteExterna ||
