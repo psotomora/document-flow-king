@@ -30,8 +30,6 @@ public static class UsuariosEndpoints
             : null;
     }
 
-            new { codigo });
-
     public static void MapUsuarios(this IEndpointRouteBuilder grupo)
     {
         var g = grupo.MapGroup("").RequireAuthorization();
