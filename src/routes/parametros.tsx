@@ -34,6 +34,7 @@ import {
   PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA,
   PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA,
   PARAM_CONTRATOS_FUENTE_EXTERNA,
+  PARAM_CONTRATOS_MES_LIMPIAR,
   useApp,
 } from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
