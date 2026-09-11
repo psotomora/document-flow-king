@@ -13,6 +13,15 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.31.1",
+    fecha: "2026-09-11",
+    cambios: [
+      "El histórico de contratos por facturar se guarda en una tabla propia (flujo.ContratoMesHistorico) en lugar de una preferencia, para mantener el rendimiento.",
+      "Nuevo script 12_contratos_mes_historico.sql y creación automática de la tabla al iniciar la API.",
+    ],
+  },
+  {
+
     version: "1.31.0",
     fecha: "2026-09-11",
     cambios: [
