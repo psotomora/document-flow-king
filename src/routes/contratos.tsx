@@ -643,6 +643,22 @@ function ContratosDelMes() {
             onChange={(e) => setFechaFin(e.target.value)}
           />
         </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="cm-factura">Factura asociada</Label>
+          <Select
+            value={facturaAsociada}
+            onValueChange={(v) => setFacturaAsociada(v)}
+          >
+            <SelectTrigger id="cm-factura" className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todas">Todas</SelectItem>
+              <SelectItem value="sin">Sin factura</SelectItem>
+              <SelectItem value="con">Con factura</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Checkbox
@@ -665,7 +681,7 @@ function ContratosDelMes() {
             </Label>
           </div>
         </div>
-        {busqueda || fechaInicio || fechaFin || !verPagados || !verPendientes ? (
+        {busqueda || fechaInicio || fechaFin || !verPagados || !verPendientes || facturaAsociada !== "todas" ? (
           <Button
             variant="ghost"
             size="sm"
@@ -675,6 +691,7 @@ function ContratosDelMes() {
               setFechaFin("");
               setVerPagados(true);
               setVerPendientes(true);
+              setFacturaAsociada("todas");
             }}
           >
             Limpiar
