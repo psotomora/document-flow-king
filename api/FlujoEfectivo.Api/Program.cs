@@ -346,6 +346,8 @@ string[] pasosEsquema =
     END
     """,
     FlujoEfectivo.Api.Datos.Correo.SqlTabla,
+    FlujoEfectivo.Api.Seguridad.Licencias.SqlTabla,
+
 ];
 
 try
