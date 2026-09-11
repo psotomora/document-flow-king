@@ -104,6 +104,13 @@ public static class UsuariosEndpoints
                 if (perfilId is null) return Results.BadRequest(new { mensaje = "Perfil no válido." });
             }
 
+            if (datos.Activo == true && !actual.Activo)
+            {
+                var limite = LimiteUsuarios(cn, config, usuarioId);
+                if (limite is not null) return Results.BadRequest(new { mensaje = limite });
+
+            }
+
             // Evita dejar el sistema sin administradores activos.
             var quedaSinAdmin =
                 (datos.Activo == false || (perfilId is not null && datos.Perfil != "administrador"))
