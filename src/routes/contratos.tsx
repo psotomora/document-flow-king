@@ -807,7 +807,7 @@ function ContratosDelMes() {
             })}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
                   No hay contratos por facturar este mes con los filtros aplicados.
                 </TableCell>
               </TableRow>

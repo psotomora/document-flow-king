@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.33.6";
+export const APP_VERSION = "1.34.0";
 export const APP_FECHA_VERSION = "2026-09-11";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.34.0",
+    fecha: "2026-09-11",
+    cambios: [
+      "Contratos por facturar del mes: nueva columna con la factura asociada, sugerida automáticamente y editable desde una lista.",
+      "Nuevo privilegio por usuario para cambiar la factura asociada; el administrador siempre puede hacerlo.",
+      "La factura asociada también se incluye en la exportación a Excel.",
+    ],
+  },
   {
     version: "1.33.6",
     fecha: "2026-09-11",
