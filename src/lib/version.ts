@@ -13,6 +13,15 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.32.0",
+    fecha: "2026-09-11",
+    cambios: [
+      "Parámetros: nueva sección Servidor de correo (SMTP) para el envío de estados de cuenta, con contraseña cifrada y bitácora.",
+      "Botón de correo de prueba para confirmar la configuración antes de usarla.",
+      "Nueva tabla flujo.ConfiguracionCorreo (script 13_correo_smtp.sql) creada automáticamente al iniciar la API.",
+    ],
+  },
+  {
     version: "1.31.3",
     fecha: "2026-09-11",
     cambios: [
