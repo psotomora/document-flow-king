@@ -196,6 +196,15 @@ export function VistaComparativa({
   // El grid muestra el detalle del año anterior según el filtro seleccionado.
   const docsGrid = docsAnterior;
 
+  // Diagnóstico: fecha más antigua disponible en los datos cargados. Si es posterior
+  // al periodo anterior, la fuente no está entregando documentos de ese año.
+  const fechaMasAntigua = useMemo(() => {
+    const fechas = base.map((d) => d.fecha.slice(0, 10)).sort();
+    return fechas[0] ?? "";
+  }, [base]);
+  const sinDatosDelAnioAnterior =
+    docsAnterior.length === 0 && fechaMasAntigua !== "" && fechaMasAntigua > anterior.hasta;
+
   const exportar = () =>
     exportarExcel(
       "reporte-documentos-comparativo",
