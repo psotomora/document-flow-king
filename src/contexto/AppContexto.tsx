@@ -146,6 +146,10 @@ interface EstadoApp {
   actualizarPreferencia: (clave: string, valor: string) => void;
   /** Contratos activos que deben facturarse en el mes corriente. */
   contratosDelMes: ContratoDelMes[];
+  /** Meses ya cerrados y archivados de contratos por facturar. */
+  contratosMesHistorico: MesHistoricoContratos[];
+  /** Si está activo, al cambio de mes se archiva y limpia la lista del mes anterior. */
+  contratosMesLimpiar: boolean;
   pedidosFuenteExterna: boolean;
   facturasFuenteExterna: boolean;
   documentosPagoFuenteExterna: boolean;
