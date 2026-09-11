@@ -147,7 +147,7 @@ function PaginaDocumentosPorCobrar() {
   const sumar = (m: Moneda, campo: "monto" | "saldo") =>
     filtrados
       .filter((d) => d.moneda === m)
-      .reduce((s, d) => s + (esCredito(d.tipo) ? -d[campo] : d[campo]), 0);
+      .reduce((s, d) => s + (neto && esCredito(d.tipo) ? -d[campo] : d[campo]), 0);
   const montoUSD = sumar("USD", "monto");
   const montoCRC = sumar("CRC", "monto");
   const saldoUSD = sumar("USD", "saldo");
