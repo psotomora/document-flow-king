@@ -512,7 +512,10 @@ function ContratosDelMes() {
     return true;
   });
 
-  const pendientes = filtrados.filter((c) => !c.yaDocumentado);
+  // Los contratos marcados como pagados ya no suman en las tarjetas de "por facturar".
+  const pendientes = filtrados.filter(
+    (c) => !c.yaDocumentado && !pagados.has(`${c.contratoId}|${c.fecha}`),
+  );
   const totalUSD = pendientes
     .filter((c) => c.moneda === "USD")
     .reduce((s, c) => s + c.monto, 0);
