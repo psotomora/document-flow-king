@@ -13,6 +13,14 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.33.6",
+    fecha: "2026-09-11",
+    cambios: [
+      "Si la base de datos no permite crear la tabla de configuración de correo, ahora se explica el motivo real en lugar de 'Invalid object name'.",
+      "La creación automática también agrega el esquema flujo cuando falta.",
+    ],
+  },
+  {
     version: "1.33.5",
     fecha: "2026-09-11",
     cambios: [
