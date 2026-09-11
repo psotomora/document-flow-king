@@ -646,6 +646,77 @@ public static class RegistrosEndpoints
             return Results.Ok(new { mensaje = "Preferencia guardada." });
         });
 
+        /* --------- Histórico de contratos por facturar (meses cerrados) -------- */
+        // Tabla dedicada flujo.ContratoMesHistorico: la lista activa se mantiene
+        // pequeña y el histórico se consulta aparte, sin afectar el rendimiento.
+        g.MapGet("/contratos-mes-historico", (Db db) =>
+        {
+            using var cn = db.Abrir();
+            var filas = cn.Query<ContratoMesHistoricoDto>(
+                """
+                SELECT Mes, CONVERT(CHAR(10), ArchivadoEn, 23) AS ArchivadoEn,
+                       ContratoId, CompaniaId, Numero, Cliente, Periodicidad,
+                       CONVERT(CHAR(10), Fecha, 23) AS Fecha,
+                       Moneda, Monto, Pagado, Documento
+                FROM flujo.ContratoMesHistorico
+                ORDER BY Mes DESC, Fecha, Numero
+                """);
+            return Results.Ok(filas);
+        });
+
+        g.MapPost("/contratos-mes-historico", (ArchivoContratosMes a, HttpContext ctx, Db db) =>
+        {
+            var mes = (a.Mes ?? "").Trim();
+            if (mes.Length != 7) return Results.BadRequest(new { mensaje = "Mes inválido (formato AAAA-MM)." });
+            var lineas = a.Lineas ?? [];
+            var archivadoEn = string.IsNullOrWhiteSpace(a.ArchivadoEn)
+                ? DateTime.UtcNow.ToString("yyyy-MM-dd")
+                : a.ArchivadoEn!.Trim();
+
+            using var cn = db.Abrir();
+            using var tx = cn.BeginTransaction();
+            // Se reemplaza el mes completo para que reintentos no dupliquen filas.
+            cn.Execute("DELETE FROM flujo.ContratoMesHistorico WHERE Mes = @mes", new { mes }, tx);
+            foreach (var l in lineas)
+            {
+                cn.Execute(
+                    """
+                    INSERT INTO flujo.ContratoMesHistorico
+                        (Mes, ArchivadoEn, ContratoId, CompaniaId, Numero, Cliente,
+                         Periodicidad, Fecha, Moneda, Monto, Pagado, Documento)
+                    VALUES (@mes, @archivadoEn, @contratoId, @companiaId, @numero, @cliente,
+                            @periodicidad, @fecha, @moneda, @monto, @pagado, @documento)
+                    """,
+                    new
+                    {
+                        mes,
+                        archivadoEn,
+                        contratoId = l.ContratoId,
+                        companiaId = l.CompaniaId,
+                        numero = l.Numero,
+                        cliente = l.Cliente,
+                        periodicidad = l.Periodicidad,
+                        fecha = l.Fecha,
+                        moneda = l.Moneda,
+                        monto = l.Monto,
+                        pagado = l.Pagado,
+                        documento = l.Documento,
+                    }, tx);
+            }
+            // Depuración: se conservan los últimos 24 meses archivados.
+            cn.Execute(
+                """
+                DELETE FROM flujo.ContratoMesHistorico
+                WHERE Mes NOT IN (SELECT TOP (24) Mes FROM flujo.ContratoMesHistorico GROUP BY Mes ORDER BY Mes DESC)
+                """, transaction: tx);
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Contratos",
+                $"Histórico {mes}", "Archivo", null, $"{lineas.Count} líneas", tx);
+            tx.Commit();
+            return Results.Ok(new { mensaje = "Mes archivado en el histórico.", lineas = lineas.Count });
+        });
+
+
+
         /* ----------------------- Fuente externa: SoftlandERP ------------------ */
         g.MapGet("/pedidos/{id}/lineas", (string id, Db db, IConfiguration config) =>
         {
