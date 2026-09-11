@@ -924,11 +924,15 @@ public static class RegistrosEndpoints
                 });
 
             var nombre = string.IsNullOrWhiteSpace(e.NombreArchivo) ? "estado-cuenta.pdf" : e.NombreArchivo!;
+            // El saludo usa el nombre de la persona indicada; si no se digitó, se dirige al cliente.
+            var dirigido = string.IsNullOrWhiteSpace(e.Dirigido)
+                ? $"Estimado cliente <strong>{System.Net.WebUtility.HtmlEncode(e.Cliente)}</strong>"
+                : $"Estimado(a) <strong>{System.Net.WebUtility.HtmlEncode(e.Dirigido!.Trim())}</strong>";
             var cuerpo =
-                $"<p>Estimado cliente <strong>{System.Net.WebUtility.HtmlEncode(e.Cliente)}</strong>,</p>" +
+                $"<p>{dirigido},</p>" +
                 "<p>Adjunto encontrará su estado de cuenta con el desglose de las facturas pendientes " +
                 $"al {DateTime.Now:dd/MM/yyyy}.</p>" +
-                $"<p>Cordialmente,<br/>{System.Net.WebUtility.HtmlEncode(e.Compania ?? "Aplix")}</p>";
+                "<p>Cordialmente,<br/><strong>Administración Aplix</strong><br/>Theronix, S. A.</p>";
 
             var (ok, mensaje) = Correo.Enviar(cfg, config["Jwt:Llave"] ?? "", e.Destinatario.Trim(),
                 $"Estado de cuenta · {e.Cliente}", cuerpo, (nombre, pdf));
