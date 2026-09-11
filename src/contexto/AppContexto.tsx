@@ -722,6 +722,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           }).catch(() => undefined);
       },
       contratosDelMes,
+      contratosMesHistorico,
+      contratosMesLimpiar: parametros[PARAM_CONTRATOS_MES_LIMPIAR] === "1",
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
       facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
       documentosPagoFuenteExterna: parametros[PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA] === "1",
