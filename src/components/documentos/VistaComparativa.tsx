@@ -13,6 +13,8 @@ import {
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -39,6 +41,9 @@ type Periodo = "mes" | "anio" | "rango";
 interface Rango {
   desde: string;
   hasta: string;
+  /** Si es verdadero, devoluciones y notas de crédito restan de los totales. */
+  neto: boolean;
+  onNetoCambio: (v: boolean) => void;
 }
 
 interface Props {
@@ -49,6 +54,9 @@ interface Props {
   periodo: Periodo;
   desde: string;
   hasta: string;
+  /** Si es verdadero, devoluciones y notas de crédito restan de los totales. */
+  neto: boolean;
+  onNetoCambio: (v: boolean) => void;
 }
 
 /** Normaliza el tipo del documento (NC y N/C se tratan igual). */
@@ -85,6 +93,8 @@ export function VistaComparativa({
   periodo,
   desde,
   hasta,
+  neto,
+  onNetoCambio,
 }: Props) {
   const {
     filas: filasVisibles,
@@ -169,7 +179,7 @@ export function VistaComparativa({
   const netoPorMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
     lista
       .filter((d) => d.moneda === m)
-      .reduce((s, d) => s + (esCredito(d.tipo) ? -d.monto : d.monto), 0);
+      .reduce((s, d) => s + (neto && esCredito(d.tipo) ? -d.monto : d.monto), 0);
 
   const consolidado = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
@@ -180,7 +190,7 @@ export function VistaComparativa({
   const consolidadoNeto = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
       (s, d) => {
-        const factor = esCredito(d.tipo) ? -1 : 1;
+        const factor = neto && esCredito(d.tipo) ? -1 : 1;
         const valor = d.moneda === "USD" ? d[campo] : tipoCambio > 0 ? d[campo] / tipoCambio : 0;
         return s + factor * valor;
       },
@@ -286,6 +296,16 @@ export function VistaComparativa({
               </Select>
             </div>
           </div>
+          <div className="mt-2 flex items-center gap-2">
+            <Checkbox
+              id="comp-neto"
+              checked={neto}
+              onCheckedChange={(v) => onNetoCambio(v === true)}
+            />
+            <Label htmlFor="comp-neto" className="text-xs font-normal">
+              Rebajar devoluciones y notas de crédito
+            </Label>
+          </div>
           <p className="text-xs text-muted-foreground">
             {formatearFecha(actual.desde)} – {formatearFecha(actual.hasta)} contra{" "}
             {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
@@ -301,8 +321,9 @@ export function VistaComparativa({
           <div className="mt-2 flex items-start gap-2 rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
             <Info className="mt-0.5 size-3.5 shrink-0" />
             <span>
-              Los totales comparativos representan el monto neto: suma de facturas (FAC) menos las
-              devoluciones (DEV) y notas de crédito (NC).
+              {neto
+                ? "Los totales comparativos representan el monto neto: suma de facturas (FAC) menos las devoluciones (DEV) y notas de crédito (NC)."
+                : "Los totales comparativos representan el monto bruto: se suman todos los documentos (FAC, DEV y NC) sin rebajos."}
             </span>
           </div>
 
