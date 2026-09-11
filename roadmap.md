@@ -1,3 +1,6 @@
 - [x] Agregar privilegio por usuario para editar erogaciones
 - [x] Implementar edición auditada de erogaciones
 - [x] Aumentar versiones y verificar
+- [x] Agregar búsqueda al selector de factura asociada y ampliar el campo
+- [x] Habilitar ajuste de columnas en todos los grids
+- [x] Aumentar versiones y verificar
