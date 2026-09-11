@@ -130,6 +130,12 @@ export const documentosPorCobrar: DocumentoPorCobrar[] = [
   { id: "dc5", companiaId: "ax", cliente: "Hotelera Guanacaste", numero: "AX-2007", tipo: "FAC", fecha: "2026-06-30", fechaVence: "2026-07-30", moneda: "CRC", monto: 1600000, saldo: 0, notas: "Cobrada" },
   { id: "dc6", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-D-002", tipo: "DEV", fecha: "2026-08-29", fechaVence: "2026-08-29", moneda: "CRC", monto: 320000, saldo: 320000, notas: "Devolución por diferencia de precio" },
   { id: "dc7", companiaId: "tx", cliente: "Distribuidora del Valle", numero: "TX-NC-003", tipo: "NC", fecha: "2026-08-25", fechaVence: "2026-08-25", moneda: "USD", monto: 640, saldo: 640, notas: "Nota de crédito por descuento comercial" },
+  { id: "dc8", companiaId: "tx", cliente: "Grupo Ferretero CR", numero: "TX-0906", tipo: "FAC", fecha: "2025-08-14", fechaVence: "2025-09-13", moneda: "USD", monto: 10400, saldo: 0, notas: "Cobrada (año anterior)" },
+  { id: "dc9", companiaId: "tx", cliente: "Distribuidora del Valle", numero: "TX-0907", tipo: "FAC", fecha: "2025-07-18", fechaVence: "2025-08-17", moneda: "CRC", monto: 2950000, saldo: 0, notas: "Cobrada (año anterior)" },
+  { id: "dc10", companiaId: "tx", cliente: "Grupo Ferretero CR", numero: "TX-D-009", tipo: "DEV", fecha: "2025-08-20", fechaVence: "2025-08-20", moneda: "USD", monto: 700, saldo: 0, notas: "Devolución (año anterior)" },
+  { id: "dc11", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-1906", tipo: "FAC", fecha: "2025-08-26", fechaVence: "2025-09-25", moneda: "USD", monto: 19800, saldo: 0, notas: "Cobrada (año anterior)" },
+  { id: "dc12", companiaId: "ax", cliente: "Hotelera Guanacaste", numero: "AX-1907", tipo: "FAC", fecha: "2025-06-28", fechaVence: "2025-07-28", moneda: "CRC", monto: 1450000, saldo: 0, notas: "Cobrada (año anterior)" },
+  { id: "dc13", companiaId: "ax", cliente: "Farmacias Unidas", numero: "AX-NC-001", tipo: "NC", fecha: "2025-08-30", fechaVence: "2025-08-30", moneda: "CRC", monto: 280000, saldo: 0, notas: "Nota de crédito (año anterior)" },
 ];
 
 export const contratos: Contrato[] = [
