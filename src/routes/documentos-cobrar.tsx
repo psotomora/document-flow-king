@@ -135,8 +135,16 @@ function PaginaDocumentosPorCobrar() {
     ],
   );
 
+  // Devoluciones y notas de crédito restan, igual que en el Comparativo anual,
+  // para que un mismo periodo muestre el mismo monto neto en ambas pestañas.
+  const esCredito = (t: string) => {
+    const n = t.toUpperCase().replace("/", "").trim();
+    return n === "DEV" || n === "NC";
+  };
   const sumar = (m: Moneda, campo: "monto" | "saldo") =>
-    filtrados.filter((d) => d.moneda === m).reduce((s, d) => s + d[campo], 0);
+    filtrados
+      .filter((d) => d.moneda === m)
+      .reduce((s, d) => s + (esCredito(d.tipo) ? -d[campo] : d[campo]), 0);
   const montoUSD = sumar("USD", "monto");
   const montoCRC = sumar("CRC", "monto");
   const saldoUSD = sumar("USD", "saldo");
@@ -294,37 +302,42 @@ function PaginaDocumentosPorCobrar() {
         ) : null}
         <div className="ml-auto flex flex-wrap gap-6 text-right">
           <div>
-            <p className="text-xs text-muted-foreground">Monto USD</p>
+            <p className="text-xs text-muted-foreground">Monto neto USD</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(montoUSD, "USD")}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Monto CRC</p>
+            <p className="text-xs text-muted-foreground">Monto neto CRC</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(montoCRC, "CRC")}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Saldo USD</p>
+            <p className="text-xs text-muted-foreground">Saldo neto USD</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(saldoUSD, "USD")}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Saldo CRC</p>
+            <p className="text-xs text-muted-foreground">Saldo neto CRC</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(saldoCRC, "CRC")}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Saldo consolidado USD</p>
+            <p className="text-xs text-muted-foreground">Saldo neto consolidado USD</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(saldoConsolidadoUSD, "USD")}
             </p>
           </div>
         </div>
       </div>
+
+      <p className="text-xs text-muted-foreground">
+        Los totales son netos: suma de facturas (FAC) menos devoluciones (DEV) y notas de crédito
+        (NC), igual que en el Comparativo anual.
+      </p>
 
       <div className="flex justify-end">
         <SelectorFilas
