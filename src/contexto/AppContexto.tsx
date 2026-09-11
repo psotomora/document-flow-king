@@ -1150,6 +1150,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setErogaciones(semilla.erogaciones);
         setDocumentosPorPagar(semilla.documentosPorPagar);
         setDocumentosPorCobrar(semilla.documentosPorCobrar);
+        setDocumentosPorCobrarComparativo(semilla.documentosPorCobrar);
         setContratos(semilla.contratos);
         setPedidos(semilla.pedidos);
         setTiposCambio(semilla.tiposCambio);
