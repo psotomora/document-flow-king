@@ -656,10 +656,15 @@ function ContratosDelMes() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtrados.map((c) => (
+            {filtrados.map((c) => {
+              const facturaCoincidente = facturaPorLinea.get(`${c.contratoId}|${c.fecha}`);
+              return (
               <TableRow
                 key={`${c.contratoId}-${c.fecha}`}
-                className={cn(c.yaDocumentado && "opacity-60")}
+                className={cn(
+                  c.yaDocumentado && !facturaCoincidente && "opacity-60",
+                  facturaCoincidente && "bg-emerald-500/10 hover:bg-emerald-500/15",
+                )}
               >
                 <TableCell className="text-xs text-muted-foreground">
                   {companias.find((x) => x.id === c.companiaId)?.codigo}
