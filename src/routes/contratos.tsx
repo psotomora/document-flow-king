@@ -545,6 +545,10 @@ function ContratosDelMes() {
     const estaPagado = pagados.has(`${c.contratoId}|${c.fecha}`);
     if (!verPagados && estaPagado) return false;
     if (!verPendientes && !estaPagado) return false;
+    const clave = `${c.contratoId}|${c.fecha}`;
+    const asociada = facturaDeLinea(clave);
+    if (facturaAsociada === "con" && !asociada) return false;
+    if (facturaAsociada === "sin" && asociada) return false;
     return true;
   });
 
