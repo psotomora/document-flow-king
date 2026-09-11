@@ -862,7 +862,7 @@ public static class RegistrosEndpoints
             {
                 var companiaId = cfg.CompaniaId?.ToString() ?? "0";
                 return Results.Ok(Softland.DocumentosPorCobrar(
-                    cfg, config["Jwt:Llave"] ?? "", companiaId, soloFactura: true));
+                    cfg, config["Jwt:Llave"] ?? "", companiaId));
             }
             catch (Exception ex)
             {

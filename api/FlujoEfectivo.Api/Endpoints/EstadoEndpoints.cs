@@ -260,7 +260,10 @@ public static class EstadoEndpoints
                         var companiaId = cfg.CompaniaId?.ToString()
                             ?? companias.FirstOrDefault()?.Id ?? "0";
                         documentosPorCobrar = Softland.DocumentosPorCobrar(cfg, secreto, companiaId).ToList();
-                        documentosPorCobrarComparativo = Softland.DocumentosPorCobrar(cfg, secreto, companiaId, soloFactura: true).ToList();
+                        // El Comparativo anual usa exactamente la misma lista que el tab de
+                        // Documentos (DOCUMENTOS_CC completado con el histórico de FACTURA),
+                        // para que los totales de un mismo periodo coincidan.
+                        documentosPorCobrarComparativo = documentosPorCobrar;
                     }
                     catch (Exception ex)
                     {
