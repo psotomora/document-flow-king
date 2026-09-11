@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
-import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { DialogoLineasContrato } from "@/components/contratos/DialogoLineasContrato";
 import { toast } from "sonner";
@@ -10,8 +10,17 @@ import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -441,6 +450,7 @@ function ContratosDelMes() {
   const [verPagados, setVerPagados] = useState(guardados.verPagados);
   const [verPendientes, setVerPendientes] = useState(guardados.verPendientes);
   const [facturaAsociada, setFacturaAsociada] = useState(guardados.facturaAsociada);
+  const [comboFacturaAbierto, setComboFacturaAbierto] = useState<string | null>(null);
   const [listo, setListo] = useState(false);
 
   // Toma los filtros recordados cuando llegan del servidor.
@@ -717,7 +727,7 @@ function ContratosDelMes() {
               <TableHead>Fecha esperada</TableHead>
               <TableHead>Creación</TableHead>
               <TableHead className="text-right">Monto</TableHead>
-              <TableHead>Factura asociada</TableHead>
+              <TableHead className="min-w-72">Factura asociada</TableHead>
               <TableHead>Situación</TableHead>
               <TableHead className="text-center">Pagado</TableHead>
               <TableHead className="w-24 text-right">Acciones</TableHead>
@@ -761,27 +771,58 @@ function ContratosDelMes() {
                 </TableCell>
                 <TableCell>
                   {puedeAsignarFactura ? (
-                    <Select
-                      value={facturaAsociada || "__ninguna"}
-                      onValueChange={(v) => asignarFactura(clave, v === "__ninguna" ? "" : v)}
+                    <Popover
+                      open={comboFacturaAbierto === clave}
+                      onOpenChange={(abierto) => setComboFacturaAbierto(abierto ? clave : null)}
                     >
-                      <SelectTrigger
-                        className="h-8 w-44"
-                        aria-label={`Factura asociada al contrato ${c.numero}`}
-                      >
-                        <SelectValue placeholder="Sin factura" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-72">
-                        <SelectItem value="__ninguna">Sin factura</SelectItem>
-                        {numeros.map((n) => (
-                          <SelectItem key={n} value={n}>
-                            {n}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={comboFacturaAbierto === clave}
+                          aria-label={`Factura asociada al contrato ${c.numero}`}
+                          className="h-8 w-72 justify-between px-2 font-normal"
+                        >
+                          <span className="truncate">{facturaAsociada || "Sin factura"}</span>
+                          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Buscar número de factura…" />
+                          <CommandList>
+                            <CommandEmpty>No se encontraron facturas.</CommandEmpty>
+                            <CommandGroup>
+                              <CommandItem
+                                value="Sin factura"
+                                onSelect={() => {
+                                  asignarFactura(clave, "");
+                                  setComboFacturaAbierto(null);
+                                }}
+                              >
+                                <Check className={cn("size-4", !facturaAsociada ? "opacity-100" : "opacity-0")} />
+                                Sin factura
+                              </CommandItem>
+                              {numeros.map((n) => (
+                                <CommandItem
+                                  key={n}
+                                  value={n}
+                                  onSelect={() => {
+                                    asignarFactura(clave, n);
+                                    setComboFacturaAbierto(null);
+                                  }}
+                                >
+                                  <Check className={cn("size-4", facturaAsociada === n ? "opacity-100" : "opacity-0")} />
+                                  <span className="truncate">{n}</span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   ) : (
-                    <span className="text-xs">{facturaAsociada || "—"}</span>
+                    <span className="block min-w-64 text-xs">{facturaAsociada || "—"}</span>
                   )}
                 </TableCell>
                 <TableCell className="text-xs">
