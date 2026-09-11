@@ -814,6 +814,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setModoApi(false);
         setUsuario(semilla.usuarios[0]!);
         setUsuarios(semilla.usuarios);
+        setDocumentosPorCobrarComparativo(semilla.documentosPorCobrar);
         setAutenticado(true);
         setSesionCerrada(false);
       },
