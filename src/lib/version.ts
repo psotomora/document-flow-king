@@ -13,6 +13,14 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.33.3",
+    fecha: "2026-09-11",
+    cambios: [
+      "El envío del estado de cuenta pide el nombre de la persona a quien se dirige el correo.",
+      "El cuerpo del correo va firmado por Administración Aplix (Theronix, S. A.).",
+    ],
+  },
+  {
     version: "1.33.2",
     fecha: "2026-09-11",
     cambios: [
