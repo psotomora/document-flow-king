@@ -103,9 +103,18 @@ public static class Correo
         }
         catch (SmtpException ex)
         {
-            var detalle = ex.StatusCode == SmtpStatusCode.MustIssueStartTlsFirst
-                ? " Active la opción de conexión segura (TLS) o use el puerto 587."
-                : "";
+            var texto = ex.Message + " " + (ex.InnerException?.Message ?? "");
+            var detalle = "";
+            if (texto.Contains("5.7.139") || texto.Contains("535") || texto.Contains("not authenticated"))
+                detalle =
+                    " Microsoft 365 rechazó la autenticación. Pida al administrador de Microsoft 365 que: " +
+                    "1) habilite SMTP AUTH en el buzón (Set-CASMailbox -SmtpClientAuthenticationDisabled $false); " +
+                    "2) verifique que el usuario y la contraseña sean los del buzón remitente; " +
+                    "3) si la cuenta tiene autenticación multifactor, use una contraseña de aplicación; " +
+                    "4) revise que las políticas de acceso condicional no bloqueen el envío desde este servidor. " +
+                    "Como alternativa, use un conector SMTP interno de Exchange (puerto 25, sin usuario) desde una IP autorizada.";
+            else if (ex.StatusCode == SmtpStatusCode.MustIssueStartTlsFirst)
+                detalle = " Active la opción de conexión segura (TLS) o use el puerto 587.";
             return (false, $"No fue posible enviar el correo: {ex.Message}{detalle}");
         }
         catch (Exception ex)
