@@ -296,6 +296,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setErogaciones(estado.erogaciones);
     setDocumentosPorPagar(estado.documentosPorPagar ?? []);
     setDocumentosPorCobrar(estado.documentosPorCobrar ?? []);
+    setDocumentosPorCobrarComparativo(
+      estado.documentosPorCobrarComparativo ?? estado.documentosPorCobrar ?? [],
+    );
     setContratos(estado.contratos);
     setPedidos(estado.pedidos);
     setTiposCambio(estado.tiposCambio);
