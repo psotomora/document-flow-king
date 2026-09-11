@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConexionSoftland } from "@/components/parametros/ConexionSoftland";
+import { ServidorCorreo } from "@/components/parametros/ServidorCorreo";
 import {
   FUENTES_PEDIDOS,
   FUENTE_PEDIDOS_DEFECTO,
@@ -372,6 +373,8 @@ function PaginaParametros() {
           <ConexionSoftland habilitado={algunaFuenteExterna} />
         ) : null}
       </div>
+
+      <ServidorCorreo />
 
       <h2 className="text-sm font-semibold text-foreground">Presentación de tablas</h2>
       <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card p-4">

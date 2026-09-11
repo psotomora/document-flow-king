@@ -203,6 +203,20 @@ export interface ConexionSoftland {
   encriptar: boolean;
 }
 
+/** Datos del servidor SMTP usado para enviar estados de cuenta. */
+export interface ConfiguracionCorreo {
+  servidor: string;
+  puerto: number;
+  ssl: boolean;
+  usuario: string;
+  tieneClave: boolean;
+  remitente: string;
+  nombreRemitente: string;
+  copiaOculta: string;
+}
+
+
+
 export interface TipoCambio {
   id: string;
   valor: number;

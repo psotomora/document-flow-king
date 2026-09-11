@@ -842,6 +842,67 @@ public static class RegistrosEndpoints
             return ok ? Results.Ok(new { mensaje, pedidos }) : Results.BadRequest(new { mensaje });
         });
 
+        /* ------------------------ Servidor de correo ------------------------- */
+
+        static ConfigCorreo CombinarCorreo(ConfigCorreo? actual, CambioCorreoSmtp f, string secreto) =>
+            new()
+            {
+                Servidor = f.Servidor.Trim(),
+                Puerto = f.Puerto is > 0 and < 65536 ? f.Puerto.Value : actual?.Puerto ?? 587,
+                Ssl = f.Ssl ?? actual?.Ssl ?? true,
+                Usuario = (f.Usuario ?? "").Trim(),
+                ClaveCifrada = f.Clave is null
+                    ? actual?.ClaveCifrada ?? ""
+                    : f.Clave.Length == 0 ? "" : Softland.Cifrar(f.Clave, secreto),
+                Remitente = f.Remitente.Trim(),
+                NombreRemitente = (f.NombreRemitente ?? "").Trim(),
+                CopiaOculta = (f.CopiaOculta ?? "").Trim(),
+            };
+
+        g.MapGet("/correo/smtp", (HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            using var cn = db.Abrir();
+            var c = Correo.Leer(cn);
+            return Results.Ok(c is null
+                ? new CorreoSmtpDto("", 587, true, "", false, "", "", "")
+                : new CorreoSmtpDto(c.Servidor, c.Puerto, c.Ssl, c.Usuario,
+                    !string.IsNullOrEmpty(c.ClaveCifrada), c.Remitente, c.NombreRemitente, c.CopiaOculta));
+        });
+
+        g.MapPut("/correo/smtp", (CambioCorreoSmtp f, HttpContext ctx, Db db, IConfiguration config) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            if (string.IsNullOrWhiteSpace(f.Servidor) || string.IsNullOrWhiteSpace(f.Remitente))
+                return Results.BadRequest(new { mensaje = "El servidor SMTP y el correo remitente son obligatorios." });
+            using var cn = db.Abrir();
+            var actual = Correo.Leer(cn);
+            var nuevo = CombinarCorreo(actual, f, config["Jwt:Llave"] ?? "");
+            Correo.Guardar(cn, nuevo, ctx.User.UsuarioId());
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "Servidor de correo",
+                "Modificación",
+                actual is null ? null : $"{actual.Servidor}:{actual.Puerto} ({actual.Remitente})",
+                $"{nuevo.Servidor}:{nuevo.Puerto} ({nuevo.Remitente})");
+            return Results.Ok(new { mensaje = "Servidor de correo guardado." });
+        });
+
+        g.MapPost("/correo/smtp/probar", (CambioCorreoSmtp f, HttpContext ctx, Db db, IConfiguration config) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            using var cn = db.Abrir();
+            var secreto = config["Jwt:Llave"] ?? "";
+            var cfg = CombinarCorreo(Correo.Leer(cn), f, secreto);
+            var destino = string.IsNullOrWhiteSpace(f.Destinatario) ? cfg.Remitente : f.Destinatario.Trim();
+            var (ok, mensaje) = Correo.Enviar(cfg, secreto, destino,
+                "Prueba de correo · Aplix Cash Flow Insights",
+                """
+                <p>Este es un mensaje de prueba enviado desde <strong>Aplix Cash Flow Insights</strong>.</p>
+                <p>Si lo recibió, el servidor de correo está configurado correctamente y ya es posible
+                enviar los estados de cuenta.</p>
+                """);
+            return ok ? Results.Ok(new { mensaje }) : Results.BadRequest(new { mensaje });
+        });
+
         /* --------------------------- Carga inicial --------------------------- */
         g.MapPost("/importacion/lote", (LoteImportacion lote, HttpContext ctx, Db db) =>
         {
