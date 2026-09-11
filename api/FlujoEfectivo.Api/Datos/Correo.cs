@@ -24,14 +24,45 @@ public sealed class ConfigCorreo
 /// </summary>
 public static class Correo
 {
-    public static ConfigCorreo? Leer(IDbConnection cn) =>
-        cn.QueryFirstOrDefault<ConfigCorreo>(
+    /// <summary>DDL de la tabla de configuración; se reutiliza en la migración de arranque.</summary>
+    public const string SqlTabla =
+        """
+        IF OBJECT_ID('flujo.ConfiguracionCorreo', 'U') IS NULL
+            CREATE TABLE flujo.ConfiguracionCorreo
+            (
+                Id              INT           NOT NULL CONSTRAINT PK_ConfiguracionCorreo PRIMARY KEY,
+                Servidor        NVARCHAR(200) NOT NULL CONSTRAINT DF_Correo_Servidor DEFAULT '',
+                Puerto          INT           NOT NULL CONSTRAINT DF_Correo_Puerto DEFAULT (587),
+                Ssl             BIT           NOT NULL CONSTRAINT DF_Correo_Ssl DEFAULT (1),
+                Usuario         NVARCHAR(200) NOT NULL CONSTRAINT DF_Correo_Usuario DEFAULT '',
+                ClaveCifrada    NVARCHAR(400) NOT NULL CONSTRAINT DF_Correo_Clave DEFAULT '',
+                Remitente       NVARCHAR(200) NOT NULL CONSTRAINT DF_Correo_Remitente DEFAULT '',
+                NombreRemitente NVARCHAR(200) NOT NULL CONSTRAINT DF_Correo_Nombre DEFAULT '',
+                CopiaOculta     NVARCHAR(400) NOT NULL CONSTRAINT DF_Correo_Bcc DEFAULT '',
+                Actualizado     DATETIME2(0)  NOT NULL CONSTRAINT DF_Correo_Actualizado DEFAULT SYSUTCDATETIME(),
+                UsuarioId       INT           NULL
+            );
+        """;
+
+    /// <summary>Crea la tabla si la base viene de una versión anterior a 1.32.0.</summary>
+    public static void Asegurar(IDbConnection cn)
+    {
+        try { cn.Execute(SqlTabla); } catch { /* sin permisos de DDL: se reporta al leer */ }
+    }
+
+    public static ConfigCorreo? Leer(IDbConnection cn)
+    {
+        Asegurar(cn);
+        return cn.QueryFirstOrDefault<ConfigCorreo>(
             """
             SELECT Servidor, Puerto, Ssl, Usuario, ClaveCifrada, Remitente, NombreRemitente, CopiaOculta
             FROM flujo.ConfiguracionCorreo WHERE Id = 1
             """);
+    }
 
-    public static void Guardar(IDbConnection cn, ConfigCorreo c, int usuarioId) =>
+    public static void Guardar(IDbConnection cn, ConfigCorreo c, int usuarioId)
+    {
+        Asegurar(cn);
         cn.Execute(
             """
             MERGE flujo.ConfiguracionCorreo AS d
@@ -51,6 +82,9 @@ public static class Correo
                 c.Servidor, c.Puerto, c.Ssl, c.Usuario, c.ClaveCifrada, c.Remitente,
                 c.NombreRemitente, c.CopiaOculta, usuarioId,
             });
+    }
+
+
 
     /// <summary>Envía un mensaje HTML. Devuelve (ok, mensaje) sin lanzar excepciones.</summary>
     public static (bool ok, string mensaje) Enviar(
