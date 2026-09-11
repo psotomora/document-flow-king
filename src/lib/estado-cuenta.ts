@@ -70,7 +70,7 @@ export async function generarEstadoCuenta(
   doc.text("Estado de cuenta", logo ? 108 : 40, 54);
   doc.setFontSize(9);
   doc.setTextColor(110);
-  doc.text(compania || "Aplix", logo ? 108 : 40, 70);
+  doc.text("Theronix, S. A.", logo ? 108 : 40, 70);
   doc.text(`Fecha de emisión: ${formatearFecha(hoy.toISOString().slice(0, 10))}`, logo ? 108 : 40, 84);
 
   doc.setFontSize(11);
@@ -117,6 +117,35 @@ export async function generarEstadoCuenta(
     y += 16;
   }
 
+  y += 24;
+  doc.setFontSize(10);
+  doc.setTextColor(30, 41, 59);
+  doc.text("THERONIX 3-101-915319", 40, y);
+  y += 16;
+
+  doc.setFontSize(9);
+  doc.text("CUENTAS BAC", 40, y);
+  y += 14;
+  doc.text("USD", 60, y);
+  doc.text("969456300", 120, y);
+  doc.text("CR 3701 0200 0096 9456 3006", 220, y);
+  y += 12;
+  doc.text("CRC", 60, y);
+  doc.text("969456318", 120, y);
+  doc.text("CR 3801 0200 0096 9456 3182", 220, y);
+  y += 18;
+
+  doc.text("CUENTAS PROMERICA", 40, y);
+  y += 14;
+  doc.text("USD", 60, y);
+  doc.text("40000007774545", 120, y);
+  doc.text("CR80011610400077745454", 220, y);
+  y += 12;
+  doc.text("CRC", 60, y);
+  doc.text("30000007774537", 120, y);
+  doc.text("CR90011610300077745376", 220, y);
+  y += 18;
+
   doc.setFontSize(8);
   doc.setTextColor(130);
   doc.text(
@@ -125,7 +154,7 @@ export async function generarEstadoCuenta(
       minute: "2-digit",
     })} por ${usuario}`,
     40,
-    y + 12,
+    y,
   );
 
   const blob = doc.output("blob") as Blob;
