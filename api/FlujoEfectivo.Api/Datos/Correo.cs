@@ -48,7 +48,18 @@ public static class Correo
     /// <summary>Crea la tabla si la base viene de una versión anterior a 1.32.0.</summary>
     public static void Asegurar(IDbConnection cn)
     {
-        try { cn.Execute(SqlTabla); } catch { /* sin permisos de DDL: se reporta al leer */ }
+        try
+        {
+            cn.Execute(SqlTabla);
+        }
+        catch (Exception ex)
+        {
+            // Sin permisos de DDL el mensaje "Invalid object name" no explica nada: se reporta el motivo real.
+            throw new InvalidOperationException(
+                "No fue posible crear la tabla flujo.ConfiguracionCorreo en la base de datos de producción. " +
+                "El usuario de la aplicación necesita permisos para crear tablas, o bien ejecute el script " +
+                "database/13_correo_smtp.sql en SQL Server. Detalle: " + ex.Message, ex);
+        }
     }
 
     public static ConfigCorreo? Leer(IDbConnection cn)
