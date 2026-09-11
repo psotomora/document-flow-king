@@ -196,8 +196,8 @@ export function VistaComparativa({
   // El grid muestra el detalle del año anterior según el filtro seleccionado.
   const docsGrid = docsAnterior;
 
-  // Diagnóstico: fecha más antigua disponible en los datos cargados. Si es posterior
-  // al periodo anterior, la fuente no está entregando documentos de ese año.
+  // Diagnóstico según los filtros aplicados. No atribuye el resultado a una tabla concreta,
+  // porque el API combina el histórico de FACTURA con saldo/vencimiento de DOCUMENTOS_CC.
   const fechaMasAntigua = useMemo(() => {
     const fechas = base.map((d) => d.fecha.slice(0, 10)).sort();
     return fechas[0] ?? "";
@@ -235,9 +235,10 @@ export function VistaComparativa({
           </p>
           {sinDatosDelAnioAnterior ? (
             <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
-              No se recibió ningún documento con fecha anterior a{" "}
-              {formatearFecha(fechaMasAntigua)}. El origen de datos no está entregando documentos
-              del periodo {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
+              Con los filtros aplicados, el documento más antiguo recibido tiene fecha{" "}
+              {formatearFecha(fechaMasAntigua)}. No se recibieron documentos del periodo{" "}
+              {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}. Verifique que la
+              API instalada sea la versión 1.34.4 o posterior y que FACTURA contenga ese periodo.
             </div>
           ) : null}
           <div className="mt-2 flex items-start gap-2 rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">

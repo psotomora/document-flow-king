@@ -460,6 +460,7 @@ public static partial class Softland
             new { t = $"{e}.CLIENTE" }) == 1;
         var lista = new List<DocumentoPorCobrarDto>();
         var porDocumento = new Dictionary<string, DocumentoPorCobrarDto>(StringComparer.OrdinalIgnoreCase);
+        var facturasPorNumero = new Dictionary<string, List<DocumentoPorCobrarDto>>(StringComparer.OrdinalIgnoreCase);
 
         // FACTURA conserva el histórico que DOCUMENTOS_CC puede depurar al cancelar saldos.
         var tieneFactura = cn.ExecuteScalar<int>(
@@ -489,19 +490,23 @@ public static partial class Softland
                 var d = (IDictionary<string, object?>)fila;
                 var numero = Texto(d["Numero"]);
                 var tipo = TipoDesdeFactura(Texto(d["TipoDocumento"]));
-                var clave = tipo.Replace("/", "") + "|" + numero;
+                var fecha = Texto(d["Fecha"]);
+                // Softland puede reutilizar la numeración entre periodos. La fecha forma parte
+                // de la clave para no eliminar silenciosamente documentos de años anteriores.
+                var claveNumero = tipo.Replace("/", "") + "|" + numero;
+                var clave = claveNumero + "|" + fecha;
                 if (porDocumento.ContainsKey(clave)) continue;
                 var monto = Numero(d["Monto"]);
                 var cobrada = Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
                 var codigo = Texto(d["Codigo"]);
                 var documento = new DocumentoPorCobrarDto
                 {
-                    Id = PrefijoId + "fac-" + tipo + "-" + numero,
+                    Id = PrefijoId + "fac-" + tipo + "-" + numero + "-" + fecha,
                     CompaniaId = companiaId,
                     Cliente = Texto(d["Cliente"]),
                     Numero = numero,
                     Tipo = tipo,
-                    Fecha = Texto(d["Fecha"]),
+                    Fecha = fecha,
                     FechaVence = null,
                     Moneda = MapearMoneda(Texto(d["Moneda"])),
                     Monto = monto,
@@ -512,6 +517,12 @@ public static partial class Softland
                         : "Histórico de facturación",
                 };
                 porDocumento[clave] = documento;
+                if (!facturasPorNumero.TryGetValue(claveNumero, out var coincidencias))
+                {
+                    coincidencias = [];
+                    facturasPorNumero[claveNumero] = coincidencias;
+                }
+                coincidencias.Add(documento);
                 lista.Add(documento);
             }
         }
@@ -544,8 +555,15 @@ public static partial class Softland
                 var numero = Texto(d["Numero"]);
                 var tipo = Texto(d["Tipo"]);
                 if (tipo.Length == 0) tipo = "FAC";
-                var clave = tipo.Replace("/", "") + "|" + numero;
-                if (porDocumento.TryGetValue(clave, out var historico))
+                var fecha = Texto(d["Fecha"]);
+                var claveNumero = tipo.Replace("/", "") + "|" + numero;
+                var clave = claveNumero + "|" + fecha;
+                DocumentoPorCobrarDto? historico = null;
+                if (!porDocumento.TryGetValue(clave, out historico)
+                    && facturasPorNumero.TryGetValue(claveNumero, out var coincidencias)
+                    && coincidencias.Count == 1)
+                    historico = coincidencias[0];
+                if (historico is not null)
                 {
                     // Se conserva la fecha original de FACTURA para el comparativo histórico.
                     historico.FechaVence = Texto(d["FechaVence"]) is { Length: > 0 } vence ? vence : null;
@@ -555,12 +573,12 @@ public static partial class Softland
 
                 var documento = new DocumentoPorCobrarDto
                 {
-                    Id = PrefijoId + "cc-" + tipo + "-" + numero,
+                    Id = PrefijoId + "cc-" + tipo + "-" + numero + "-" + fecha,
                     CompaniaId = companiaId,
                     Cliente = Texto(d["Cliente"]),
                     Numero = numero,
                     Tipo = tipo,
-                    Fecha = Texto(d["Fecha"]),
+                    Fecha = fecha,
                     FechaVence = Texto(d["FechaVence"]) is { Length: > 0 } fv ? fv : null,
                     Moneda = MapearMoneda(Texto(d["Moneda"])),
                     Monto = Numero(d["Monto"]),
