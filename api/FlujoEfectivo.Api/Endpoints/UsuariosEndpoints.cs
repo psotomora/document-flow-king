@@ -16,6 +16,22 @@ public static class UsuariosEndpoints
         cn.QueryFirstOrDefault<int?>("SELECT PerfilId FROM flujo.Perfil WHERE Codigo = @codigo",
             new { codigo });
 
+    /// <summary>Devuelve el mensaje de rechazo cuando la licencia no admite otro usuario activo.</summary>
+    private static string? LimiteUsuarios(System.Data.IDbConnection cn, IConfiguration config, int? excluir)
+    {
+        var estado = Licencias.Estado(cn, config);
+        if (!estado.Requerida || estado.MaxUsuarios <= 0) return null;
+        var activos = cn.ExecuteScalar<int>(
+            "SELECT COUNT(1) FROM flujo.Usuario WHERE Activo = 1 AND (@e IS NULL OR UsuarioId <> @e)",
+            new { e = excluir });
+        return activos + 1 > estado.MaxUsuarios
+            ? $"La licencia permite {estado.MaxUsuarios} usuarios activos y ya hay {activos}. "
+              + "Inactive un usuario o solicite la ampliación de la licencia."
+            : null;
+    }
+
+            new { codigo });
+
     public static void MapUsuarios(this IEndpointRouteBuilder grupo)
     {
         var g = grupo.MapGroup("").RequireAuthorization();
