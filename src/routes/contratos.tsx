@@ -420,7 +420,7 @@ function ContratosDelMes() {
   const guardados = useMemo(() => {
     try {
       const bruto = preferencias[PREF_CONTRATOS_MES_FILTROS];
-      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true };
+      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
       const p = JSON.parse(bruto) as Record<string, unknown>;
       return {
         busqueda: typeof p["busqueda"] === "string" ? p["busqueda"] : "",
@@ -428,9 +428,10 @@ function ContratosDelMes() {
         fechaFin: typeof p["fechaFin"] === "string" ? p["fechaFin"] : "",
         verPagados: typeof p["verPagados"] === "boolean" ? p["verPagados"] : true,
         verPendientes: typeof p["verPendientes"] === "boolean" ? p["verPendientes"] : true,
+        facturaAsociada: typeof p["facturaAsociada"] === "string" ? p["facturaAsociada"] : "todas",
       };
     } catch {
-      return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true };
+      return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
     }
   }, [preferencias]);
 
@@ -439,6 +440,7 @@ function ContratosDelMes() {
   const [fechaFin, setFechaFin] = useState(guardados.fechaFin);
   const [verPagados, setVerPagados] = useState(guardados.verPagados);
   const [verPendientes, setVerPendientes] = useState(guardados.verPendientes);
+  const [facturaAsociada, setFacturaAsociada] = useState(guardados.facturaAsociada);
   const [listo, setListo] = useState(false);
 
   // Toma los filtros recordados cuando llegan del servidor.
@@ -448,18 +450,19 @@ function ContratosDelMes() {
     setFechaFin(guardados.fechaFin);
     setVerPagados(guardados.verPagados);
     setVerPendientes(guardados.verPendientes);
+    setFacturaAsociada(guardados.facturaAsociada);
     setListo(true);
   }, [guardados]);
 
   // Guarda los filtros del usuario para la próxima vez que entre.
   useEffect(() => {
     if (!listo) return;
-    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin, verPagados, verPendientes });
+    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada });
     if (actual === JSON.stringify(guardados)) return;
     const id = window.setTimeout(() => actualizarPreferencia(PREF_CONTRATOS_MES_FILTROS, actual), 600);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busqueda, fechaInicio, fechaFin, verPagados, verPendientes, listo]);
+  }, [busqueda, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada, listo]);
 
   // Marcas de "pagado": solo histórico, no generan facturas ni afectan la proyección.
   const pagados = useMemo(() => {
