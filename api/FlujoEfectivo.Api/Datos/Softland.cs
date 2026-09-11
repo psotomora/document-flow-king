@@ -63,7 +63,7 @@ public static partial class Softland
             """,
             new
             {
-                f = Fuente, c.Servidor, c.BaseDatos, c.Esquema, c.Usuario, c.ClaveCifrada,
+                f = fuente ?? Fuente, c.Servidor, c.BaseDatos, c.Esquema, c.Usuario, c.ClaveCifrada,
                 c.CompaniaId, c.Encriptar, usuarioId,
             });
 
