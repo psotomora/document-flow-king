@@ -382,6 +382,8 @@ function PaginaContratos() {
       />
 
       <ContratosDelMes />
+
+      <HistoricoContratosMes />
     </div>
   );
 }
