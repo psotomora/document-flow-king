@@ -80,6 +80,9 @@ function PaginaUsuario() {
   const [editarErogaciones, setEditarErogaciones] = useState(
     actual?.editarErogaciones ?? true,
   );
+  const [asignarFacturaContrato, setAsignarFacturaContrato] = useState(
+    actual?.asignarFacturaContrato ?? false,
+  );
 
   const volver = () => void navigate({ to: "/acceso" });
 
@@ -129,6 +132,7 @@ function PaginaUsuario() {
           ...(contrasena ? { contrasena } : {}),
           ...visibilidad,
           editarErogaciones,
+          asignarFacturaContrato,
         });
         toast.success("Usuario creado");
       } else {
@@ -141,6 +145,7 @@ function PaginaUsuario() {
           ...(contrasena ? { contrasena } : {}),
           ...visibilidad,
           editarErogaciones,
+          asignarFacturaContrato,
         });
         toast.success("Usuario actualizado");
       }
@@ -261,6 +266,19 @@ function PaginaUsuario() {
                 checked={perfil === "administrador" ? true : editarErogaciones}
                 disabled={perfil === "administrador"}
                 onCheckedChange={setEditarErogaciones}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md bg-muted/40 p-2.5">
+              <div>
+                <p className="text-sm font-medium">Asignar factura a contratos del mes</p>
+                <p className="text-xs text-muted-foreground">
+                  Permite cambiar la factura asociada a cada contrato por facturar del mes.
+                </p>
+              </div>
+              <Switch
+                checked={perfil === "administrador" ? true : asignarFacturaContrato}
+                disabled={perfil === "administrador"}
+                onCheckedChange={setAsignarFacturaContrato}
               />
             </div>
           </div>
