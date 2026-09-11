@@ -39,6 +39,13 @@ public static class UsuariosEndpoints
             var perfilId = PerfilId(cn, datos.Perfil);
             if (perfilId is null) return Results.BadRequest(new { mensaje = "Perfil no válido." });
 
+            if (datos.Activo)
+            {
+                var limite = LimiteUsuarios(cn, config, null);
+                if (limite is not null) return Results.BadRequest(new { mensaje = limite });
+            }
+
+
             if (cn.QueryFirstOrDefault<int?>(
                     "SELECT UsuarioId FROM flujo.Usuario WHERE NombreUsuario = @n",
                     new { n = datos.NombreUsuario }) is not null)
