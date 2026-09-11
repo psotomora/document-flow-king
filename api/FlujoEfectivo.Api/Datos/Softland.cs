@@ -434,9 +434,22 @@ public static partial class Softland
 
     /* ------------------------- Documentos por cobrar ------------------------- */
 
+    /// <summary>Traduce TIPO_DOCUMENTO de FACTURA al tipo usado en cuentas por cobrar.</summary>
+    private static string TipoDesdeFactura(string tipoDocumento) =>
+        tipoDocumento.Trim().ToUpperInvariant() switch
+        {
+            "F" or "FAC" or "" => "FAC",
+            "D" or "DEV" => "DEV",
+            "C" or "N" or "NC" or "N/C" => "NC",
+            var otro => otro,
+        };
+
     /// <summary>
-    /// Documentos de cuentas por cobrar (tabla DOCUMENTOS_CC) de tipo FAC y DEV que no estén
+    /// Documentos de cuentas por cobrar (tabla DOCUMENTOS_CC) de tipo FAC, DEV y NC que no estén
     /// anulados. Incluye los ya cobrados (saldo cero) porque es una vista de consulta.
+    /// Como cuentas por cobrar suele depurar los documentos cancelados de periodos anteriores,
+    /// se completa el histórico con la tabla FACTURA para los documentos que ya no están en
+    /// DOCUMENTOS_CC; así el comparativo anual sí encuentra el periodo del año pasado.
     /// El nombre del cliente se resuelve contra la tabla CLIENTE cuando existe.
     /// </summary>
     public static IEnumerable<DocumentoPorCobrarDto> DocumentosPorCobrar(
@@ -451,46 +464,106 @@ public static partial class Softland
             ? $"ISNULL((SELECT TOP 1 cl.NOMBRE FROM [{e}].[CLIENTE] cl WHERE cl.CLIENTE = d.CLIENTE), d.CLIENTE)"
             : "d.CLIENTE";
 
-        var filas = cn.Query(
-            $"""
-            SELECT d.CLIENTE AS Codigo,
-                   {nombre} AS Cliente,
-                   d.DOCUMENTO AS Numero,
-                   d.TIPO AS Tipo,
-                   CONVERT(CHAR(10), ISNULL(d.FECHA_DOCUMENTO, d.FECHA), 23) AS Fecha,
-                   CONVERT(CHAR(10), d.FECHA_VENCE, 23) AS FechaVence,
-                   d.MONEDA AS Moneda,
-                   d.MONTO AS Monto,
-                   d.SALDO AS Saldo
-            FROM [{e}].[DOCUMENTOS_CC] d
-            WHERE d.TIPO IN ('FAC', 'DEV', 'NC', 'N/C')
-              AND d.FECHA_ANUL IS NULL
-            ORDER BY ISNULL(d.FECHA_DOCUMENTO, d.FECHA) DESC, d.DOCUMENTO DESC
-            """);
-
         var lista = new List<DocumentoPorCobrarDto>();
-        foreach (var fila in filas)
+        var vistos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (HayCuentasPorCobrar(cn, e))
         {
-            var d = (IDictionary<string, object?>)fila;
-            var numero = Texto(d["Numero"]);
-            var tipo = Texto(d["Tipo"]);
-            lista.Add(new DocumentoPorCobrarDto
+            var filas = cn.Query(
+                $"""
+                SELECT d.CLIENTE AS Codigo,
+                       {nombre} AS Cliente,
+                       d.DOCUMENTO AS Numero,
+                       d.TIPO AS Tipo,
+                       CONVERT(CHAR(10), ISNULL(d.FECHA_DOCUMENTO, d.FECHA), 23) AS Fecha,
+                       CONVERT(CHAR(10), d.FECHA_VENCE, 23) AS FechaVence,
+                       d.MONEDA AS Moneda,
+                       d.MONTO AS Monto,
+                       d.SALDO AS Saldo
+                FROM [{e}].[DOCUMENTOS_CC] d
+                WHERE d.TIPO IN ('FAC', 'DEV', 'NC', 'N/C')
+                  AND d.FECHA_ANUL IS NULL
+                ORDER BY ISNULL(d.FECHA_DOCUMENTO, d.FECHA) DESC, d.DOCUMENTO DESC
+                """);
+
+            foreach (var fila in filas)
             {
-                Id = PrefijoId + "cc-" + tipo + "-" + numero,
-                CompaniaId = companiaId,
-                Cliente = Texto(d["Cliente"]),
-                Numero = numero,
-                Tipo = tipo.Length > 0 ? tipo : "FAC",
-                Fecha = Texto(d["Fecha"]),
-                FechaVence = Texto(d["FechaVence"]) is { Length: > 0 } fv ? fv : null,
-                Moneda = MapearMoneda(Texto(d["Moneda"])),
-                Monto = Numero(d["Monto"]),
-                Saldo = Numero(d["Saldo"]),
-                Origen = Fuente,
-                Notas = Texto(d["Codigo"]) is { Length: > 0 } cod ? $"Cliente {cod}" : null,
-            });
+                var d = (IDictionary<string, object?>)fila;
+                var numero = Texto(d["Numero"]);
+                var tipo = Texto(d["Tipo"]);
+                if (tipo.Length == 0) tipo = "FAC";
+                vistos.Add(tipo.Replace("/", "") + "|" + numero);
+                lista.Add(new DocumentoPorCobrarDto
+                {
+                    Id = PrefijoId + "cc-" + tipo + "-" + numero,
+                    CompaniaId = companiaId,
+                    Cliente = Texto(d["Cliente"]),
+                    Numero = numero,
+                    Tipo = tipo,
+                    Fecha = Texto(d["Fecha"]),
+                    FechaVence = Texto(d["FechaVence"]) is { Length: > 0 } fv ? fv : null,
+                    Moneda = MapearMoneda(Texto(d["Moneda"])),
+                    Monto = Numero(d["Monto"]),
+                    Saldo = Numero(d["Saldo"]),
+                    Origen = Fuente,
+                    Notas = Texto(d["Codigo"]) is { Length: > 0 } cod ? $"Cliente {cod}" : null,
+                });
+            }
         }
-        return lista;
+
+        // Histórico: documentos que ya no viven en cuentas por cobrar se recuperan de FACTURA.
+        var tieneFactura = cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{e}.FACTURA" }) == 1;
+        if (tieneFactura)
+        {
+            var filasFac = cn.Query(
+                $"""
+                SELECT f.CLIENTE AS Codigo,
+                       ISNULL(NULLIF(LTRIM(RTRIM(f.NOMBRE_CLIENTE)), ''), f.CLIENTE) AS Cliente,
+                       f.FACTURA AS Numero,
+                       f.TIPO_DOCUMENTO AS TipoDocumento,
+                       CONVERT(CHAR(10), f.FECHA, 23) AS Fecha,
+                       f.MONEDA_FACTURA AS Moneda,
+                       f.TOTAL_FACTURA AS Monto,
+                       f.COBRADA AS Cobrada
+                FROM [{e}].[FACTURA] f
+                WHERE ISNULL(f.ANULADA, 'N') <> 'S'
+                ORDER BY f.FECHA DESC, f.FACTURA DESC
+                """);
+
+            foreach (var fila in filasFac)
+            {
+                var d = (IDictionary<string, object?>)fila;
+                var numero = Texto(d["Numero"]);
+                var tipo = TipoDesdeFactura(Texto(d["TipoDocumento"]));
+                if (!vistos.Add(tipo.Replace("/", "") + "|" + numero)) continue;
+                var monto = Numero(d["Monto"]);
+                var cobrada = Texto(d["Cobrada"]).Equals("S", StringComparison.OrdinalIgnoreCase);
+                var codigo = Texto(d["Codigo"]);
+                var notas = codigo.Length > 0 ? $"Cliente {codigo} · Histórico de facturación" : "Histórico de facturación";
+                lista.Add(new DocumentoPorCobrarDto
+                {
+                    Id = PrefijoId + "fac-" + tipo + "-" + numero,
+                    CompaniaId = companiaId,
+                    Cliente = Texto(d["Cliente"]),
+                    Numero = numero,
+                    Tipo = tipo,
+                    Fecha = Texto(d["Fecha"]),
+                    FechaVence = null,
+                    Moneda = MapearMoneda(Texto(d["Moneda"])),
+                    Monto = monto,
+                    Saldo = cobrada ? 0m : monto,
+                    Origen = Fuente,
+                    Notas = notas,
+                });
+            }
+        }
+
+        return lista
+            .OrderByDescending(x => x.Fecha, StringComparer.Ordinal)
+            .ThenByDescending(x => x.Numero, StringComparer.Ordinal)
+            .ToList();
     }
 
     /* -------------------------------- Contratos ------------------------------ */
