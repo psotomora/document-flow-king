@@ -76,6 +76,7 @@ function PaginaParametros() {
     documentosPagoFuenteExterna,
     documentosCobroFuenteExterna,
     contratosFuenteExterna,
+    contratosMesLimpiar,
     pedidosFuenteOrigen,
     parametros,
     actualizarParametro,
