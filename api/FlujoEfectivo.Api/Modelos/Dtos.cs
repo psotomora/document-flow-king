@@ -309,7 +309,8 @@ public record EstadoDto(
     IEnumerable<BitacoraDto> Bitacora,
     Dictionary<string, string> Parametros,
     string? AvisoFuenteExterna = null,
-    Dictionary<string, string>? Preferencias = null);
+    Dictionary<string, string>? Preferencias = null,
+    IEnumerable<DocumentoPorCobrarDto>? DocumentosPorCobrarComparativo = null);
 
 /* ------------------------- Entradas ------------------------- */
 
