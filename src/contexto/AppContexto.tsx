@@ -689,12 +689,23 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         ...(c.documento ? { documento: c.documento } : {}),
       }));
       if (lineas.length > 0) {
-        const historico = [
-          { mes: mesAnterior, archivadoEn: hoy, lineas },
-          ...contratosMesHistorico.filter((h) => h.mes !== mesAnterior),
-        ].slice(0, 24);
-        guardarPreferencia(PREF_CONTRATOS_MES_HISTORICO, JSON.stringify(historico));
+        if (hayApi()) {
+          // Se archiva en la tabla histórica de SQL Server.
+          void api("/contratos-mes-historico", {
+            metodo: "POST",
+            cuerpo: { mes: mesAnterior, archivadoEn: hoy, lineas },
+          })
+            .then(() => cargarHistorico())
+            .catch(() => undefined);
+        } else {
+          const historico = [
+            { mes: mesAnterior, archivadoEn: hoy, lineas },
+            ...contratosMesHistorico.filter((h) => h.mes !== mesAnterior),
+          ].slice(0, 24);
+          guardarPreferencia(PREF_CONTRATOS_MES_HISTORICO, JSON.stringify(historico));
+        }
       }
+
       // La lista principal conserva solo las marcas del mes corriente.
       guardarPreferencia(
         PREF_CONTRATOS_MES_PAGADOS,
