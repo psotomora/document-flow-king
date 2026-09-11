@@ -13,6 +13,17 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.36.0",
+    fecha: "2026-09-12",
+    cambios: [
+      "Licenciamiento: archivo de licencia firmado por cliente, con vencimiento, compañías, usuarios permitidos y huella del servidor.",
+      "Parámetros muestra el estado de la licencia, la huella del servidor y permite cargar el archivo .lic.",
+      "Nueva pantalla interna de emisión de licencias con historial y generación del par de llaves.",
+      "Aviso anticipado antes del vencimiento y bloqueo del sistema al agotarse el periodo de gracia.",
+    ],
+  },
+
+  {
     version: "1.35.5",
     fecha: "2026-09-11",
     cambios: [
