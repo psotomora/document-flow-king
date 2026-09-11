@@ -89,7 +89,7 @@ export function VistaComparativa({
     estiloTabla,
     establecer: establecerFilas,
   } = useFilasVisibles("documentos-cobrar-comparativo");
-  const { documentosPorCobrar, companias, companiaActiva, tipoCambio, usuario } = useApp();
+  const { documentosPorCobrarComparativo, companias, companiaActiva, tipoCambio, usuario } = useApp();
 
   const [monedaConsolidado, setMonedaConsolidado] = useState<Moneda>("USD");
 
