@@ -84,7 +84,7 @@ public static class UsuariosEndpoints
             return Results.Ok(new { id = id.ToString() });
         });
 
-        g.MapPut("/usuarios/{id}", (string id, CambioUsuario datos, HttpContext ctx, Db db) =>
+        g.MapPut("/usuarios/{id}", (string id, CambioUsuario datos, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
             if (!int.TryParse(id, out var usuarioId))
