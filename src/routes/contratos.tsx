@@ -554,6 +554,7 @@ function ContratosDelMes() {
           <p className="text-sm text-muted-foreground">
             Lista de consulta generada al primer ingreso del mes ({hoy.slice(0, 7)}). Los contratos
             que ya tienen pedido o factura se muestran marcados y no suman en el saldo proyectado.
+            Las líneas en verde tienen una factura coincidente, lista para marcarse como pagada.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
