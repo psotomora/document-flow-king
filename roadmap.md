@@ -4,3 +4,5 @@
 - [x] Agregar búsqueda al selector de factura asociada y ampliar el campo
 - [x] Habilitar ajuste de columnas en todos los grids
 - [x] Aumentar versiones y verificar
+- [ ] Usar FACTURA como fuente histórica principal del comparativo anual
+- [ ] Verificar periodo anterior y aumentar versión
