@@ -81,12 +81,39 @@ export const PREF_CONTRATOS_MES_REVISADO = "contratosMesRevisado";
 export const PREF_CONTRATOS_MES_FILTROS = "contratosMesFiltros";
 /** Marcas históricas de contratos del mes indicados como pagados por el usuario. */
 export const PREF_CONTRATOS_MES_PAGADOS = "contratosMesPagados";
+/** Histórico de meses cerrados de contratos por facturar. */
+export const PREF_CONTRATOS_MES_HISTORICO = "contratosMesHistorico";
+/** Parámetro: al cambio de mes se archivan los contratos del mes anterior y se limpia la lista. */
+export const PARAM_CONTRATOS_MES_LIMPIAR = "contratosMesLimpiar";
+
+/** Línea archivada de un mes ya cerrado. */
+export interface LineaHistoricoContrato {
+  contratoId: string;
+  companiaId: string;
+  numero: string;
+  cliente: string;
+  periodicidad: string;
+  fecha: string;
+  moneda: string;
+  monto: number;
+  pagado: boolean;
+  documento?: string;
+}
+
+/** Mes cerrado de contratos por facturar. */
+export interface MesHistoricoContratos {
+  mes: string;
+  archivadoEn: string;
+  lineas: LineaHistoricoContrato[];
+}
+
 const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
   [PARAM_FACTURAS_FUENTE_EXTERNA]: "0",
   [PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA]: "0",
   [PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA]: "0",
   [PARAM_CONTRATOS_FUENTE_EXTERNA]: "0",
+  [PARAM_CONTRATOS_MES_LIMPIAR]: "0",
   [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
 };
 
@@ -119,6 +146,10 @@ interface EstadoApp {
   actualizarPreferencia: (clave: string, valor: string) => void;
   /** Contratos activos que deben facturarse en el mes corriente. */
   contratosDelMes: ContratoDelMes[];
+  /** Meses ya cerrados y archivados de contratos por facturar. */
+  contratosMesHistorico: MesHistoricoContratos[];
+  /** Si está activo, al cambio de mes se archiva y limpia la lista del mes anterior. */
+  contratosMesLimpiar: boolean;
   pedidosFuenteExterna: boolean;
   facturasFuenteExterna: boolean;
   documentosPagoFuenteExterna: boolean;
@@ -551,6 +582,27 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     return contratosPorFacturarDelMes(contratos, documentos, hoy.slice(0, 7));
   }, [contratos, pedidos, facturas, hoy]);
 
+  // Histórico de meses cerrados de contratos por facturar.
+  const contratosMesHistorico = useMemo<MesHistoricoContratos[]>(() => {
+    try {
+      const bruto = preferencias[PREF_CONTRATOS_MES_HISTORICO];
+      if (!bruto) return [];
+      const datos = JSON.parse(bruto) as MesHistoricoContratos[];
+      return Array.isArray(datos) ? datos : [];
+    } catch {
+      return [];
+    }
+  }, [preferencias]);
+
+  const guardarPreferencia = useCallback((clave: string, valorPref: string) => {
+    setPreferencias((prev) => ({ ...prev, [clave]: valorPref }));
+    if (hayApi())
+      void api(`/preferencias/${encodeURIComponent(clave)}`, {
+        metodo: "PUT",
+        cuerpo: { valor: valorPref },
+      }).catch(() => undefined);
+  }, []);
+
   // Al primer ingreso de cada mes se revisa la lista y se avisa al usuario.
   const mesRevisado = useRef<string | null>(null);
   useEffect(() => {
@@ -561,13 +613,56 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       mesRevisado.current = mes;
       return;
     }
+    const mesAnterior = preferencias[PREF_CONTRATOS_MES_REVISADO];
     mesRevisado.current = mes;
-    setPreferencias((prev) => ({ ...prev, [PREF_CONTRATOS_MES_REVISADO]: mes }));
-    if (hayApi())
-      void api(`/preferencias/${PREF_CONTRATOS_MES_REVISADO}`, {
-        metodo: "PUT",
-        cuerpo: { valor: mes },
-      }).catch(() => undefined);
+
+    // Si el parámetro está encendido, el mes anterior se archiva y la lista queda limpia.
+    if (parametros[PARAM_CONTRATOS_MES_LIMPIAR] === "1" && mesAnterior && mesAnterior !== mes) {
+      let pagados: string[] = [];
+      try {
+        const bruto = preferencias[PREF_CONTRATOS_MES_PAGADOS];
+        if (bruto) pagados = JSON.parse(bruto) as string[];
+      } catch {
+        pagados = [];
+      }
+      const documentos = [
+        ...pedidos
+          .filter((p) => p.estado !== "Anulado")
+          .map((p) => ({ numero: p.numero, fecha: p.fechaCreacion })),
+        ...facturas.map((f) => ({ numero: f.numero, fecha: f.fechaEmision })),
+      ];
+      const lineas: LineaHistoricoContrato[] = contratosPorFacturarDelMes(
+        contratos,
+        documentos,
+        mesAnterior,
+      ).map((c) => ({
+        contratoId: c.contratoId,
+        companiaId: c.companiaId,
+        numero: c.numero,
+        cliente: c.cliente,
+        periodicidad: c.periodicidad,
+        fecha: c.fecha,
+        moneda: c.moneda,
+        monto: c.monto,
+        pagado: pagados.includes(`${c.contratoId}|${c.fecha}`),
+        ...(c.documento ? { documento: c.documento } : {}),
+      }));
+      if (lineas.length > 0) {
+        const historico = [
+          { mes: mesAnterior, archivadoEn: hoy, lineas },
+          ...contratosMesHistorico.filter((h) => h.mes !== mesAnterior),
+        ].slice(0, 24);
+        guardarPreferencia(PREF_CONTRATOS_MES_HISTORICO, JSON.stringify(historico));
+      }
+      // La lista principal conserva solo las marcas del mes corriente.
+      guardarPreferencia(
+        PREF_CONTRATOS_MES_PAGADOS,
+        JSON.stringify(pagados.filter((k) => (k.split("|")[1] ?? "").slice(0, 7) === mes)),
+      );
+      toast.info(`Los contratos de ${mesAnterior} se archivaron en el histórico.`);
+    }
+
+    guardarPreferencia(PREF_CONTRATOS_MES_REVISADO, mes);
     const porFacturar = contratosDelMes.filter((c) => !c.yaDocumentado).length;
     if (porFacturar > 0)
       toast.info(
@@ -575,7 +670,19 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           ? "1 contrato debe facturarse este mes. Vea Contratos por facturar del mes."
           : `${porFacturar} contratos deben facturarse este mes. Vea Contratos por facturar del mes.`,
       );
-  }, [autenticado, cargando, hoy, preferencias, contratosDelMes]);
+  }, [
+    autenticado,
+    cargando,
+    hoy,
+    preferencias,
+    parametros,
+    contratos,
+    pedidos,
+    facturas,
+    contratosDelMes,
+    contratosMesHistorico,
+    guardarPreferencia,
+  ]);
 
   const valor = useMemo<EstadoApp>(() => {
     const puedeEditar = usuario.perfil !== "consulta";
@@ -615,6 +722,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           }).catch(() => undefined);
       },
       contratosDelMes,
+      contratosMesHistorico,
+      contratosMesLimpiar: parametros[PARAM_CONTRATOS_MES_LIMPIAR] === "1",
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
       facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
       documentosPagoFuenteExterna: parametros[PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA] === "1",
@@ -1000,6 +1109,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     parametros,
     preferencias,
     contratosDelMes,
+    contratosMesHistorico,
     pedidos,
     recargar,
     tipoCambio,

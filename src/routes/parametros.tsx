@@ -34,6 +34,7 @@ import {
   PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA,
   PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA,
   PARAM_CONTRATOS_FUENTE_EXTERNA,
+  PARAM_CONTRATOS_MES_LIMPIAR,
   useApp,
 } from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
@@ -75,6 +76,7 @@ function PaginaParametros() {
     documentosPagoFuenteExterna,
     documentosCobroFuenteExterna,
     contratosFuenteExterna,
+    contratosMesLimpiar,
     pedidosFuenteOrigen,
     parametros,
     actualizarParametro,
@@ -142,6 +144,16 @@ function PaginaParametros() {
         : "Los contratos se tomarán del registro interno.",
     );
   };
+
+  const cambiarLimpiezaMensual = (activo: boolean) => {
+    actualizarParametro(PARAM_CONTRATOS_MES_LIMPIAR, activo ? "1" : "0");
+    toast.success(
+      activo
+        ? "Al cambio de mes los contratos del mes anterior pasarán al histórico."
+        : "Los contratos del mes se mantendrán en la lista principal.",
+    );
+  };
+
 
   const algunaFuenteExterna =
     pedidosFuenteExterna ||
@@ -297,6 +309,29 @@ function PaginaParametros() {
               id="contratos-externos"
               checked={contratosFuenteExterna}
               onCheckedChange={cambiarContratosExternos}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="contratos-mes-limpiar">
+              Limpiar los contratos del mes al cambio de mes
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Si está en Sí, al primer ingreso de un mes nuevo los contratos del mes anterior se
+              guardan en el histórico y la lista principal queda solo con los del mes corriente. Si
+              está en No, todo se mantiene en la lista principal.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {contratosMesLimpiar ? "Sí" : "No"}
+            </span>
+            <Switch
+              id="contratos-mes-limpiar"
+              checked={contratosMesLimpiar}
+              onCheckedChange={cambiarLimpiezaMensual}
               disabled={!esAdministrador}
             />
           </div>
