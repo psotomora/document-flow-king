@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
+import { AvisoLicencia } from "@/components/comunes/AvisoLicencia";
+
 import { formatearFecha, formatearNumero } from "@/lib/formato";
 import { opcionDeRuta, puedeVer } from "@/lib/permisos";
 import { cn } from "@/lib/utils";
