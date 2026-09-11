@@ -41,9 +41,6 @@ type Periodo = "mes" | "anio" | "rango";
 interface Rango {
   desde: string;
   hasta: string;
-  /** Si es verdadero, devoluciones y notas de crédito restan de los totales. */
-  neto: boolean;
-  onNetoCambio: (v: boolean) => void;
 }
 
 interface Props {
