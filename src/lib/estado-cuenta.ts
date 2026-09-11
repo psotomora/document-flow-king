@@ -148,14 +148,11 @@ export async function generarEstadoCuenta(
 
   doc.setFontSize(8);
   doc.setTextColor(130);
-  doc.text(
-    `Generado el ${hoy.toLocaleDateString("es-CR")} a las ${hoy.toLocaleTimeString("es-CR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })} por ${usuario}`,
-    40,
-    y,
-  );
+  const fechaHora = `${hoy.toLocaleDateString("es-CR")} ${hoy.toLocaleTimeString("es-CR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+  doc.text(`Generado el ${fechaHora}. Departamento de Contabilidad.`, 40, y);
 
   const blob = doc.output("blob") as Blob;
   const datos = doc.output("datauristring");
