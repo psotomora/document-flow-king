@@ -13,6 +13,14 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.31.0",
+    fecha: "2026-09-11",
+    cambios: [
+      "Nuevo parámetro para limpiar los contratos del mes al cambio de mes, archivando el mes anterior en un histórico.",
+      "Nueva subsección 'Histórico de contratos por facturar' con exportación a Excel.",
+    ],
+  },
+  {
     version: "1.30.7",
     fecha: "2026-09-11",
     cambios: [
