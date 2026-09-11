@@ -307,33 +307,45 @@ function PaginaDocumentosPorCobrar() {
             </div>
           </>
         ) : null}
+        <div className="flex items-center gap-2 self-end pb-1">
+          <Checkbox
+            id="dc-neto"
+            checked={neto}
+            onCheckedChange={(v) => setNeto(v === true)}
+          />
+          <Label htmlFor="dc-neto" className="text-xs font-normal">
+            Rebajar devoluciones y notas de crédito
+          </Label>
+        </div>
         <div className="ml-auto flex flex-wrap gap-6 text-right">
           <div>
-            <p className="text-xs text-muted-foreground">Monto neto USD</p>
+            <p className="text-xs text-muted-foreground">Monto {neto ? "neto" : "bruto"} USD</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(montoUSD, "USD")}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Monto neto CRC</p>
+            <p className="text-xs text-muted-foreground">Monto {neto ? "neto" : "bruto"} CRC</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(montoCRC, "CRC")}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Saldo neto USD</p>
+            <p className="text-xs text-muted-foreground">Saldo {neto ? "neto" : "bruto"} USD</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(saldoUSD, "USD")}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Saldo neto CRC</p>
+            <p className="text-xs text-muted-foreground">Saldo {neto ? "neto" : "bruto"} CRC</p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(saldoCRC, "CRC")}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Saldo neto consolidado USD</p>
+            <p className="text-xs text-muted-foreground">
+              Saldo {neto ? "neto" : "bruto"} consolidado USD
+            </p>
             <p className="font-mono font-semibold tabular-nums">
               {formatearMoneda(saldoConsolidadoUSD, "USD")}
             </p>
@@ -342,8 +354,9 @@ function PaginaDocumentosPorCobrar() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Los totales son netos: suma de facturas (FAC) menos devoluciones (DEV) y notas de crédito
-        (NC), igual que en el Comparativo anual.
+        {neto
+          ? "Los totales son netos: suma de facturas (FAC) menos devoluciones (DEV) y notas de crédito (NC)."
+          : "Los totales son brutos: se suman todos los documentos (FAC, DEV y NC) sin rebajos."}
       </p>
 
       <div className="flex justify-end">
