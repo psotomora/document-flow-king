@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/table";
 import { ConexionSoftland } from "@/components/parametros/ConexionSoftland";
 import { ServidorCorreo } from "@/components/parametros/ServidorCorreo";
+import { TarjetaLicencia } from "@/components/parametros/TarjetaLicencia";
+
 import {
   FUENTES_PEDIDOS,
   FUENTE_PEDIDOS_DEFECTO,
