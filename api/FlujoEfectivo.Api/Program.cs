@@ -93,6 +93,46 @@ app.Use(async (ctx, next) =>
     }
 });
 
+// Licenciamiento: si la licencia está vencida (sin gracia), es de otro servidor o falta,
+// la API responde 402 y solo deja pasar salud, autenticación y las rutas de licencia.
+app.Use(async (ctx, next) =>
+{
+    var ruta = ctx.Request.Path.Value ?? "";
+    var exenta = !ruta.StartsWith("/api", StringComparison.OrdinalIgnoreCase)
+        || ruta.StartsWith("/api/salud", StringComparison.OrdinalIgnoreCase)
+        || ruta.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase)
+        || ruta.StartsWith("/api/licencia", StringComparison.OrdinalIgnoreCase)
+        || HttpMethods.IsOptions(ctx.Request.Method);
+
+    if (!exenta)
+    {
+        try
+        {
+            var estado = LicenciaEndpoints.EstadoCacheado(
+                ctx.RequestServices.GetRequiredService<Db>(), app.Configuration);
+            if (estado.Bloquea)
+            {
+                ctx.Response.StatusCode = 402;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    mensaje = estado.Mensaje,
+                    licencia = estado,
+                });
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Un fallo al leer la licencia nunca debe dejar el sistema inoperante.
+            app.Logger.LogWarning(ex, "No fue posible verificar la licencia");
+        }
+    }
+
+    await next();
+});
+
+
+
 
 // Auto-reparación de esquema: cada paso corre por separado para que el fallo de uno
 // (por ejemplo, una tabla ausente en una base antigua) no impida los siguientes.
