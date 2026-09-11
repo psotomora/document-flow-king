@@ -13,7 +13,7 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
-    version: "1.32.0",
+    version: "1.32.1",
     fecha: "2026-09-11",
     cambios: [
       "Parámetros: nueva sección Servidor de correo (SMTP) para el envío de estados de cuenta, con contraseña cifrada y bitácora.",
