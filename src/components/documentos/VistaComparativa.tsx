@@ -233,6 +233,13 @@ export function VistaComparativa({
             {formatearFecha(actual.desde)} – {formatearFecha(actual.hasta)} contra{" "}
             {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
           </p>
+          {sinDatosDelAnioAnterior ? (
+            <div className="mt-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-400">
+              No se recibió ningún documento con fecha anterior a{" "}
+              {formatearFecha(fechaMasAntigua)}. El origen de datos no está entregando documentos
+              del periodo {formatearFecha(anterior.desde)} – {formatearFecha(anterior.hasta)}.
+            </div>
+          ) : null}
           <div className="mt-2 flex items-start gap-2 rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
             <Info className="mt-0.5 size-3.5 shrink-0" />
             <span>
