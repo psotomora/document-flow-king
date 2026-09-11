@@ -396,6 +396,7 @@ function ContratosDelMes() {
   const {
     contratosDelMes,
     contratos,
+    facturas,
     companias,
     companiaActiva,
     tipoCambio,
