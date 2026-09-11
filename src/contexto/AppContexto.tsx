@@ -734,6 +734,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     contratosDelMes,
     contratosMesHistorico,
     guardarPreferencia,
+    cargarHistorico,
+
   ]);
 
   const valor = useMemo<EstadoApp>(() => {
