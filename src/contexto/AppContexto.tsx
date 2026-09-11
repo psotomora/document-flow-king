@@ -447,6 +447,14 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const pedidosGenerados = useRef(new Set<string>());
   useEffect(() => {
     if (!autenticado || cargando || contratos.length === 0) return;
+    // Con contratos o pedidos de fuente externa no se generan pedidos: la lista
+    // visible no refleja la tabla local y la próxima facturación no es editable,
+    // lo que provocaba intentos repetidos con números duplicados.
+    if (
+      parametros[PARAM_CONTRATOS_FUENTE_EXTERNA] === "1" ||
+      parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1"
+    )
+      return;
     const pendientes = pedidosPendientesDeContratos(contratos, pedidos, hoy).filter(
       (g) => !pedidosGenerados.current.has(g.pedido.numero),
     );
