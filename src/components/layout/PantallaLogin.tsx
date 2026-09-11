@@ -212,10 +212,14 @@ export function PantallaLogin() {
             )}
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
             <Tag className="size-3.5" aria-hidden />
             <span>
-              Versión {APP_VERSION} — {APP_FECHA_VERSION}
+              Versión app {APP_VERSION} — {APP_FECHA_VERSION}
+            </span>
+            <span aria-hidden>·</span>
+            <span>
+              {versionApi ? `Versión API ${versionApi}` : "API no detectada"}
             </span>
           </div>
         </CardContent>
