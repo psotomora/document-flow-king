@@ -31,6 +31,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
   const { companias, companiaActiva, usuario, modoApi } = useApp();
   const [abierto, setAbierto] = useState(false);
   const [cliente, setCliente] = useState("");
+  const [dirigido, setDirigido] = useState("");
   const [correo, setCorreo] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [descargando, setDescargando] = useState(false);
@@ -104,6 +105,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
         cuerpo: {
           destinatario: correo.trim(),
           cliente,
+          dirigido: dirigido.trim() || null,
           compania: nombreCompania,
           documentos: seleccionadas.length,
           nombreArchivo: pdf.nombreArchivo,
@@ -113,6 +115,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       toast.success(r.mensaje);
       setAbierto(false);
       setCorreo("");
+      setDirigido("");
     } catch (e) {
       toast.error(
         e instanceof ErrorApi || e instanceof Error ? e.message : "No fue posible enviar el correo.",
@@ -176,6 +179,19 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
               </p>
             </div>
           ) : null}
+
+          <div className="space-y-1.5">
+            <Label htmlFor="ec-dirigido">Dirigido a</Label>
+            <Input
+              id="ec-dirigido"
+              value={dirigido}
+              onChange={(e) => setDirigido(e.target.value)}
+              placeholder="Nombre de la persona"
+            />
+            <p className="text-xs text-muted-foreground">
+              Aparece en el saludo del correo. Si se deja vacío se dirige al cliente.
+            </p>
+          </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="ec-correo">Correo del destinatario</Label>

@@ -578,4 +578,6 @@ public record EnvioEstadoCuenta(
     string? Compania,
     int? Documentos,
     string? NombreArchivo,
-    string ArchivoBase64);
+    string ArchivoBase64,
+    /// <summary>Nombre de la persona a quien se dirige el correo.</summary>
+    string? Dirigido = null);
