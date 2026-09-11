@@ -81,12 +81,39 @@ export const PREF_CONTRATOS_MES_REVISADO = "contratosMesRevisado";
 export const PREF_CONTRATOS_MES_FILTROS = "contratosMesFiltros";
 /** Marcas históricas de contratos del mes indicados como pagados por el usuario. */
 export const PREF_CONTRATOS_MES_PAGADOS = "contratosMesPagados";
+/** Histórico de meses cerrados de contratos por facturar. */
+export const PREF_CONTRATOS_MES_HISTORICO = "contratosMesHistorico";
+/** Parámetro: al cambio de mes se archivan los contratos del mes anterior y se limpia la lista. */
+export const PARAM_CONTRATOS_MES_LIMPIAR = "contratosMesLimpiar";
+
+/** Línea archivada de un mes ya cerrado. */
+export interface LineaHistoricoContrato {
+  contratoId: string;
+  companiaId: string;
+  numero: string;
+  cliente: string;
+  periodicidad: string;
+  fecha: string;
+  moneda: string;
+  monto: number;
+  pagado: boolean;
+  documento?: string;
+}
+
+/** Mes cerrado de contratos por facturar. */
+export interface MesHistoricoContratos {
+  mes: string;
+  archivadoEn: string;
+  lineas: LineaHistoricoContrato[];
+}
+
 const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_PEDIDOS_FUENTE_EXTERNA]: "0",
   [PARAM_FACTURAS_FUENTE_EXTERNA]: "0",
   [PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA]: "0",
   [PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA]: "0",
   [PARAM_CONTRATOS_FUENTE_EXTERNA]: "0",
+  [PARAM_CONTRATOS_MES_LIMPIAR]: "0",
   [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
 };
 
