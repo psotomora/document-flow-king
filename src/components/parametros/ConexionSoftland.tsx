@@ -33,7 +33,18 @@ const VACIA: Conexion = {
  * Solo el administrador puede verlas y modificarlas; la clave se guarda cifrada
  * en la base de datos y nunca se devuelve al navegador.
  */
-export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
+export function ConexionSoftland({
+  habilitado,
+  fuente = "softland",
+  titulo = "Conexión 1 a fuente externa",
+}: {
+  habilitado: boolean;
+  /** Clave de la conexión: "softland" (1) o "softland2" (2). */
+  fuente?: "softland" | "softland2";
+  titulo?: string;
+}) {
+  const ruta = `/fuentes-externas/${fuente}`;
+  const idc = (n: string) => `${fuente}-${n}`;
   const { modoApi, esAdministrador, companias, recargar } = useApp();
   const [datos, setDatos] = useState<Conexion>(VACIA);
   const [clave, setClave] = useState("");
@@ -45,13 +56,13 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
   useEffect(() => {
     if (!modoApi || !esAdministrador) return;
     setCargando(true);
-    api<Conexion>("/fuentes-externas/softland")
+    api<Conexion>(ruta)
       .then((c) => setDatos({ ...VACIA, ...c }))
       .catch((e: unknown) =>
-        toast.error(e instanceof Error ? e.message : "No se pudo leer la conexión a SoftlandERP"),
+        toast.error(e instanceof Error ? e.message : "No se pudo leer la conexión externa"),
       )
       .finally(() => setCargando(false));
-  }, [modoApi, esAdministrador]);
+  }, [modoApi, esAdministrador, ruta]);
 
   const cuerpo = () => ({
     servidor: datos.servidor,
@@ -72,7 +83,7 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
     setResultado(null);
     try {
       const r = await api<{ mensaje: string; pedidos: number }>(
-        "/fuentes-externas/softland/probar",
+        `${ruta}/probar`,
         { metodo: "POST", cuerpo: cuerpo() },
       );
       setResultado({ ok: true, mensaje: r.mensaje });
@@ -89,10 +100,10 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
     try {
       const solicitud = cuerpo();
       const prueba = await api<{ mensaje: string; pedidos: number }>(
-        "/fuentes-externas/softland/probar",
+        `${ruta}/probar`,
         { metodo: "POST", cuerpo: solicitud },
       );
-      await api("/fuentes-externas/softland", { metodo: "PUT", cuerpo: solicitud });
+      await api(ruta, { metodo: "PUT", cuerpo: solicitud });
       setResultado({ ok: true, mensaje: prueba.mensaje });
       toast.success("Conexión comprobada y guardada.");
       setClave("");
@@ -115,7 +126,7 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
       className={`mt-4 space-y-4 border-l-2 border-border pl-4 ${habilitado ? "" : "opacity-50"}`}
     >
       <div>
-        <p className="text-sm font-medium text-foreground">Conexión a SoftlandERP</p>
+        <p className="text-sm font-medium text-foreground">{titulo}</p>
         <p className="text-xs text-muted-foreground">
           Base de datos de la que se leen las tablas PEDIDO, PEDIDO_LINEA, FACTURA y FACTURA_LINEA. El esquema corresponde a
           la compañía dentro del ERP (por ejemplo <code>capa</code>). La clave se guarda cifrada y
@@ -130,9 +141,9 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
 
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         <div className="space-y-1.5">
-          <Label htmlFor="sl-servidor">Servidor</Label>
+          <Label htmlFor={idc("servidor")}>Servidor</Label>
           <Input
-            id="sl-servidor"
+            id={idc("servidor")}
             placeholder="SERVIDOR\INSTANCIA o host,puerto"
             value={datos.servidor}
             onChange={campo("servidor")}
@@ -140,9 +151,9 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="sl-base">Base de datos</Label>
+          <Label htmlFor={idc("base")}>Base de datos</Label>
           <Input
-            id="sl-base"
+            id={idc("base")}
             placeholder="Softland"
             value={datos.baseDatos}
             onChange={campo("baseDatos")}
@@ -150,9 +161,9 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="sl-esquema">Esquema (compañía Softland)</Label>
+          <Label htmlFor={idc("esquema")}>Esquema (compañía Softland)</Label>
           <Input
-            id="sl-esquema"
+            id={idc("esquema")}
             placeholder="capa"
             value={datos.esquema}
             onChange={campo("esquema")}
@@ -160,9 +171,9 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="sl-usuario">Usuario SQL</Label>
+          <Label htmlFor={idc("usuario")}>Usuario SQL</Label>
           <Input
-            id="sl-usuario"
+            id={idc("usuario")}
             placeholder="Vacío = autenticación de Windows"
             value={datos.usuario}
             onChange={campo("usuario")}
@@ -170,9 +181,9 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="sl-clave">Clave</Label>
+          <Label htmlFor={idc("clave")}>Clave</Label>
           <CampoContrasena
-            id="sl-clave"
+            id={idc("clave")}
             value={clave}
             onChange={(e) => setClave(e.target.value)}
             placeholder={datos.tieneClave ? "•••••••• (guardada; escriba para cambiar)" : ""}
@@ -180,13 +191,13 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="sl-compania">Compañía en esta aplicación</Label>
+          <Label htmlFor={idc("compania")}>Compañía en esta aplicación</Label>
           <Select
             value={datos.companiaId ?? ""}
             onValueChange={(v) => setDatos((d) => ({ ...d, companiaId: v }))}
             disabled={bloqueado || cargando}
           >
-            <SelectTrigger id="sl-compania">
+            <SelectTrigger id={idc("compania")}>
               <SelectValue placeholder="Seleccione la compañía" />
             </SelectTrigger>
             <SelectContent>
@@ -203,12 +214,12 @@ export function ConexionSoftland({ habilitado }: { habilitado: boolean }) {
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex items-center gap-2">
           <Switch
-            id="sl-encriptar"
+            id={idc("encriptar")}
             checked={datos.encriptar}
             onCheckedChange={(v) => setDatos((d) => ({ ...d, encriptar: v }))}
             disabled={bloqueado || cargando}
           />
-          <Label htmlFor="sl-encriptar" className="text-xs">
+          <Label htmlFor={idc("encriptar")} className="text-xs">
             Cifrar conexión (Encrypt)
           </Label>
         </div>
