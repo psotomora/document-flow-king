@@ -28,16 +28,27 @@ public static partial class Softland
 {
     public const string Fuente = "SoftlandERP";
 
+    /// <summary>Segunda conexión a fuente externa, con las mismas credenciales y estructuras.</summary>
+    public const string Fuente2 = "SoftlandERP2";
+
+    /// <summary>Traduce la clave de ruta (softland / softland2) al nombre almacenado.</summary>
+    public static string? NombreFuente(string clave) => clave?.ToLowerInvariant() switch
+    {
+        "softland" => Fuente,
+        "softland2" => Fuente2,
+        _ => null,
+    };
+
     /* ----------------------------- Configuración ----------------------------- */
 
-    public static ConfigSoftland? Leer(IDbConnection cn) =>
+    public static ConfigSoftland? Leer(IDbConnection cn, string? fuente = null) =>
         cn.QueryFirstOrDefault<ConfigSoftland>(
             """
             SELECT Servidor, BaseDatos, Esquema, Usuario, ClaveCifrada, CompaniaId, Encriptar
             FROM flujo.FuenteExterna WHERE Fuente = @f
-            """, new { f = Fuente });
+            """, new { f = fuente ?? Fuente });
 
-    public static void Guardar(IDbConnection cn, ConfigSoftland c, int usuarioId) =>
+    public static void Guardar(IDbConnection cn, ConfigSoftland c, int usuarioId, string? fuente = null) =>
         cn.Execute(
             """
             MERGE flujo.FuenteExterna AS d
