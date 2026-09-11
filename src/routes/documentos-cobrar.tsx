@@ -90,6 +90,8 @@ function PaginaDocumentosPorCobrar() {
   const [periodo, setPeriodo] = useState<"mes" | "anio" | "rango">("anio");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
+  // Cuando está activo, las devoluciones y notas de crédito restan (monto neto).
+  const [neto, setNeto] = useState(true);
   const [nuevo, setNuevo] = useState(false);
   const [enEdicion, setEnEdicion] = useState<DocumentoPorCobrar | null>(null);
 
