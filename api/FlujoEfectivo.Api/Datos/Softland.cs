@@ -456,15 +456,14 @@ public static partial class Softland
         };
 
     /// <summary>
-    /// Histórico de documentos de clientes. FACTURA es la fuente principal para conservar los
-    /// periodos anteriores; DOCUMENTOS_CC completa saldo y vencimiento y agrega documentos que
-    /// todavía no existan en FACTURA. Incluye FAC, DEV y NC no anulados.
-    /// El nombre del cliente se resuelve contra la tabla CLIENTE cuando existe.
-    /// Cuando <paramref name="soloFactura"/> es true, se omite DOCUMENTOS_CC y el origen es
-    /// exclusivamente la tabla FACTURA (usado por el Comparativo anual).
+    /// Histórico de documentos de clientes tomado exclusivamente de la tabla FACTURA, en ambas
+    /// fuentes externas. Incluye FAC, DEV y NC no anulados.
+    /// Solo si <paramref name="soloFactura"/> es false se complementa con DOCUMENTOS_CC
+    /// (saldo y vencimiento); por omisión no se usa, para que Documentos y Comparativo
+    /// muestren siempre los mismos totales.
     /// </summary>
     public static IEnumerable<DocumentoPorCobrarDto> DocumentosPorCobrar(
-        ConfigSoftland c, string secreto, string companiaId, bool soloFactura = false)
+        ConfigSoftland c, string secreto, string companiaId, bool soloFactura = true)
     {
         using var cn = Abrir(c, secreto);
         var e = c.Esquema;
