@@ -535,7 +535,12 @@ function ContratosDelMes() {
         Moneda: c.moneda,
         Monto: c.monto,
         Documento: c.documento ?? "",
-        Situación: c.yaDocumentado ? "Ya facturado o con pedido" : "Por facturar",
+        "Factura coincidente": facturaPorLinea.get(`${c.contratoId}|${c.fecha}`) ?? "",
+        Situación: facturaPorLinea.has(`${c.contratoId}|${c.fecha}`)
+          ? "Factura encontrada"
+          : c.yaDocumentado
+            ? "Ya facturado o con pedido"
+            : "Por facturar",
         Pagado: pagados.has(`${c.contratoId}|${c.fecha}`) ? "Sí" : "No",
       })),
       usuario.nombre,
