@@ -484,33 +484,58 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           `Generado automáticamente del contrato ${g.numeroContrato}`,
         );
       });
-    } else {
-      void (async () => {
-        try {
-          for (const g of pendientes) {
+      toast.info(
+        pendientes.length === 1
+          ? `Se generó 1 pedido a partir de contratos vigentes.`
+          : `Se generaron ${pendientes.length} pedidos a partir de contratos vigentes.`,
+      );
+      return;
+    }
+
+    void (async () => {
+      let creados = 0;
+      let duplicados = 0;
+      try {
+        for (const g of pendientes) {
+          try {
             await api("/pedidos", { metodo: "POST", cuerpo: g.pedido });
+            creados++;
+          } catch (e) {
+            // Si el pedido ya existe en la base (número repetido) se omite en
+            // silencio: no es un error, simplemente ya fue generado antes.
+            const mensaje = e instanceof Error ? e.message : String(e);
+            if (/UNIQUE|duplicate|duplicad/i.test(mensaje)) {
+              duplicados++;
+              continue;
+            }
+            throw e;
           }
-          for (const [contratoId, proximaFacturacion] of ultimaPorContrato) {
+        }
+        for (const [contratoId, proximaFacturacion] of ultimaPorContrato) {
+          try {
             await api(`/contratos/${contratoId}`, {
               metodo: "PUT",
               cuerpo: { proximaFacturacion, facturado: false },
             });
+          } catch {
+            // El contrato puede no ser editable; no interrumpe la generación.
           }
-          await recargar();
-        } catch (e) {
-          toast.error(
-            e instanceof Error ? e.message : "No se pudieron generar los pedidos de contratos",
-          );
         }
-      })();
-    }
-
-    toast.info(
-      pendientes.length === 1
-        ? `Se generó 1 pedido a partir de contratos vigentes.`
-        : `Se generaron ${pendientes.length} pedidos a partir de contratos vigentes.`,
-    );
-  }, [anotar, autenticado, cargando, contratos, hoy, pedidos, recargar]);
+        if (creados > 0 || duplicados > 0) await recargar();
+      } catch (e) {
+        toast.error(
+          e instanceof Error ? e.message : "No se pudieron generar los pedidos de contratos",
+        );
+      }
+      if (creados > 0) {
+        toast.info(
+          creados === 1
+            ? `Se generó 1 pedido a partir de contratos vigentes.`
+            : `Se generaron ${creados} pedidos a partir de contratos vigentes.`,
+        );
+      }
+    })();
+  }, [anotar, autenticado, cargando, contratos, hoy, parametros, pedidos, recargar]);
 
 
   // Contratos activos que deben facturarse en el mes corriente (RF-011).
