@@ -935,8 +935,10 @@ public static class RegistrosEndpoints
 
             if (!ok) return Results.BadRequest(new { mensaje });
 
+            // La bitácora solo admite las operaciones de CK_Bitacora_Operacion; el envío se registra como Exportación.
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Facturas", "Estado de cuenta",
-                "Envío", null, $"{e.Cliente} → {e.Destinatario} ({e.Documentos ?? 0} documentos)");
+                "Exportación", null,
+                $"Envío por correo: {e.Cliente} → {e.Destinatario} ({e.Documentos ?? 0} documentos)");
             return Results.Ok(new { mensaje });
         });
 
