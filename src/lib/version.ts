@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.36.2";
+export const APP_VERSION = "1.36.3";
 export const APP_FECHA_VERSION = "2026-09-12";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.36.3",
+    fecha: "2026-09-12",
+    cambios: [
+      "Los contratos del mes marcados como pagados ya no suman en el saldo proyectado del tablero ni del consolidado.",
+      "Nuevo botón Trasladar en contratos por facturar del mes: mueve al histórico las líneas marcadas como pagadas.",
+      "Nuevo permiso por usuario 'Trasladar contratos pagados al histórico', configurable desde la ficha del usuario.",
+    ],
+  },
   {
     version: "1.36.2",
     fecha: "2026-09-12",
