@@ -13,6 +13,14 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.36.6",
+    fecha: "2026-09-12",
+    cambios: [
+      "El servidor de producción ahora deja registrado el motivo cuando la API no logra iniciar.",
+      "Guía de instalación ampliada con las causas del error 500.30 y cómo resolverlas.",
+    ],
+  },
+  {
     version: "1.36.5",
     fecha: "2026-09-12",
     cambios: [
