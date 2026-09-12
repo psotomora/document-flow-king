@@ -700,6 +700,63 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       }).catch(() => undefined);
   }, []);
 
+  /**
+   * Traslado manual al histórico de las líneas ya marcadas como pagadas.
+   * El endpoint reemplaza el mes completo, así que se envía la unión de lo ya
+   * archivado con las líneas nuevas. Las claves trasladadas salen de la lista activa.
+   */
+  const trasladarContratosMes = useCallback(
+    async (lineas: LineaHistoricoContrato[]) => {
+      if (lineas.length === 0) return;
+      const mes = hoy.slice(0, 7);
+      const previas = contratosMesHistorico.find((h) => h.mes === mes)?.lineas ?? [];
+      const mapa = new Map(previas.map((l) => [`${l.contratoId}|${l.fecha}`, l]));
+      for (const l of lineas) mapa.set(`${l.contratoId}|${l.fecha}`, l);
+      const todas = [...mapa.values()];
+
+      if (hayApi()) {
+        await api("/contratos-mes-historico", {
+          metodo: "POST",
+          cuerpo: { mes, archivadoEn: hoy, lineas: todas },
+        });
+        await cargarHistorico();
+      } else {
+        const historico = [
+          { mes, archivadoEn: hoy, lineas: todas },
+          ...contratosMesHistorico.filter((h) => h.mes !== mes),
+        ].slice(0, 24);
+        guardarPreferencia(PREF_CONTRATOS_MES_HISTORICO, JSON.stringify(historico));
+      }
+
+      const claves = lineas.map((l) => `${l.contratoId}|${l.fecha}`);
+      guardarPreferencia(
+        PREF_CONTRATOS_MES_TRASLADADOS,
+        JSON.stringify([...new Set([...contratosMesTrasladados, ...claves])]),
+      );
+      guardarPreferencia(
+        PREF_CONTRATOS_MES_PAGADOS,
+        JSON.stringify([...contratosMesPagados].filter((k) => !claves.includes(k))),
+      );
+      anotar(
+        "Contratos",
+        `Contratos del mes ${mes}`,
+        "Modificación",
+        `${lineas.length} contrato(s) pagados trasladados al histórico`,
+      );
+    },
+    [
+      hoy,
+      contratosMesHistorico,
+      contratosMesPagados,
+      contratosMesTrasladados,
+      cargarHistorico,
+      guardarPreferencia,
+      anotar,
+    ],
+  );
+
+
+
   // Al primer ingreso de cada mes se revisa la lista y se avisa al usuario.
   const mesRevisado = useRef<string | null>(null);
   useEffect(() => {
