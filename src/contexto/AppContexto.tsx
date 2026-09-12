@@ -594,6 +594,33 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     })();
   }, [anotar, autenticado, cargando, contratos, hoy, parametros, pedidos, recargar]);
 
+  /** Lee una preferencia que guarda una lista de claves `contratoId|fecha`. */
+  const leerClaves = useCallback(
+    (clave: string) => {
+      try {
+        const bruto = preferencias[clave];
+        const lista = bruto ? (JSON.parse(bruto) as unknown) : [];
+        return new Set(
+          Array.isArray(lista) ? lista.filter((x): x is string => typeof x === "string") : [],
+        );
+      } catch {
+        return new Set<string>();
+      }
+    },
+    [preferencias],
+  );
+
+  // Marcas de "pagado" de las líneas del mes (solo histórico del usuario).
+  const contratosMesPagados = useMemo(
+    () => leerClaves(PREF_CONTRATOS_MES_PAGADOS),
+    [leerClaves],
+  );
+
+  // Líneas ya trasladadas manualmente al histórico: salen de la lista activa.
+  const contratosMesTrasladados = useMemo(
+    () => leerClaves(PREF_CONTRATOS_MES_TRASLADADOS),
+    [leerClaves],
+  );
 
   // Contratos activos que deben facturarse en el mes corriente (RF-011).
   // Se calcula igual con datos locales o con origen externo (SoftlandERP),
@@ -605,8 +632,11 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         .map((p) => ({ numero: p.numero, fecha: p.fechaCreacion })),
       ...facturas.map((f) => ({ numero: f.numero, fecha: f.fechaEmision })),
     ];
-    return contratosPorFacturarDelMes(contratos, documentos, hoy.slice(0, 7));
-  }, [contratos, pedidos, facturas, hoy]);
+    return contratosPorFacturarDelMes(contratos, documentos, hoy.slice(0, 7)).filter(
+      (c) => !contratosMesTrasladados.has(`${c.contratoId}|${c.fecha}`),
+    );
+  }, [contratos, pedidos, facturas, hoy, contratosMesTrasladados]);
+
 
   // Histórico de meses cerrados de contratos por facturar.
   // Con SQL Server vive en la tabla flujo.ContratoMesHistorico (se consulta
