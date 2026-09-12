@@ -50,6 +50,7 @@ function PaginaConsolidado() {
     pedidosFuenteExterna,
     facturasFuenteExterna,
     contratosDelMes,
+    contratosMesPagados,
   } = useApp();
 
   const origenPedidos = pedidosFuenteExterna ? "SoftlandERP" : "registro local";
@@ -58,7 +59,7 @@ function PaginaConsolidado() {
   // Contratos del mes que aún no tienen pedido ni factura, en dólares.
   const contratosMesUSD = useMemo(() => {
     const pendientes = filtrarPorCompania(contratosDelMes, companiaActiva).filter(
-      (c) => !c.yaDocumentado,
+      (c) => !c.yaDocumentado && !contratosMesPagados.has(`${c.contratoId}|${c.fecha}`),
     );
     return (
       pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
@@ -66,7 +67,7 @@ function PaginaConsolidado() {
         ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
         : 0)
     );
-  }, [contratosDelMes, companiaActiva, tipoCambio]);
+  }, [contratosDelMes, contratosMesPagados, companiaActiva, tipoCambio]);
 
   const proyeccion = useMemo(() => {
     const bancosVisibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);

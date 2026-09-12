@@ -68,6 +68,8 @@ function Tablero() {
     erogaciones,
     pedidos,
     contratos,
+    contratosDelMes,
+    contratosMesPagados,
     companiaActiva,
     tipoCambio,
     hoy,
@@ -81,6 +83,19 @@ function Tablero() {
 
   const indicadores = useMemo(() => indicadoresPorMoneda(facturas, moneda), [facturas, moneda]);
 
+  // Contratos del mes pendientes: sin pedido ni factura y sin marca de pagado.
+  const contratosMesUSD = useMemo(() => {
+    const pendientes = filtrarPorCompania(contratosDelMes, companiaActiva).filter(
+      (c) => !c.yaDocumentado && !contratosMesPagados.has(`${c.contratoId}|${c.fecha}`),
+    );
+    return (
+      pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
+      (tipoCambio > 0
+        ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
+        : 0)
+    );
+  }, [contratosDelMes, contratosMesPagados, companiaActiva, tipoCambio]);
+
   const proyeccion = useMemo(() => {
     const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
     return calcularSaldoProyectado(
@@ -89,9 +104,10 @@ function Tablero() {
       facturas,
       filtrarPorCompania(pedidos, companiaActiva),
       tipoCambio,
+      contratosMesUSD,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bancos, pagos, erogaciones, facturas, pedidos, companiaActiva, tipoCambio]);
+  }, [bancos, pagos, erogaciones, facturas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
 
   const tramos = useMemo(() => proyeccionPorTramos(facturas, moneda), [facturas, moneda]);
 
