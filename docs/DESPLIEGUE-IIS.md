@@ -159,12 +159,22 @@ Invoke-RestMethod http://localhost:5080/api/salud
 
 No elimine `appsettings.Production.json`. Confirme que la salida indique `versionApi: 1.16.3` y `crearUsuarios: true` antes de probar la pantalla de usuarios.
 
-Si aparece **HTTP 500.30 / 500.31**:
+Si aparece **HTTP 500.30 / 500.31** (la API no logra iniciar):
 
-1. Edite `C:\inetpub\FlujoEfectivoApi\web.config` y cambie `stdoutLogEnabled="false"` por `"true"`.
-2. Recargue la página y lea el archivo en `C:\inetpub\FlujoEfectivoApi\logs\`.
-3. Causas típicas: Hosting Bundle no instalado (reinstale y `iisreset`), cadena de conexión incorrecta, login SQL sin permisos.
-4. También puede probar fuera de IIS: `cd C:\inetpub\FlujoEfectivoApi` y `dotnet FlujoEfectivo.Api.dll` para ver el error en consola.
+Desde la versión 1.36.6 el `web.config` publicado ya trae `stdoutLogEnabled="true"` y errores detallados, así que el motivo queda escrito en disco.
+
+1. Cree la carpeta `C:\inetpub\FlujoEfectivoApi\logs` y dé permiso de escritura a `IIS AppPool\FlujoEfectivoApi`.
+2. Reintente la petición y abra el archivo más reciente de `C:\inetpub\FlujoEfectivoApi\logs\stdout_*.log`: la última línea indica la causa exacta.
+3. La forma más rápida de verlo: `cd C:\inetpub\FlujoEfectivoApi` y ejecutar `dotnet FlujoEfectivo.Api.dll`; el error aparece en pantalla.
+4. Causas típicas:
+   - Falta `appsettings.Production.json` (se conserva entre publicaciones; si se borró, vuelva a crearlo con la cadena de conexión, `Jwt:Llave` y `Licencia`).
+   - JSON mal formado en `appsettings.Production.json` (una coma de más impide el arranque).
+   - Falta `Jwt:Llave` o tiene menos de 32 caracteres.
+   - ASP.NET Core Hosting Bundle ausente o desactualizado (instalar y `iisreset`).
+   - Cadena de conexión incorrecta o login SQL sin permisos.
+   - El grupo de aplicaciones no está en "Sin código administrado" o no tiene permiso de lectura sobre la carpeta.
+5. Después de corregir: `iisreset` o reinicie el grupo de aplicaciones y pruebe `http://flujoefectivo.local/api/salud`.
+
 
 ---
 
