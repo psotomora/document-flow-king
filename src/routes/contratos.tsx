@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronsUpDown, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { Archive, Check, ChevronsUpDown, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { DialogoLineasContrato } from "@/components/contratos/DialogoLineasContrato";
 import { toast } from "sonner";
@@ -53,6 +53,7 @@ import {
   PREF_CONTRATOS_MES_PAGADOS,
   PREF_CONTRATOS_MES_FACTURAS,
 } from "@/contexto/AppContexto";
+import type { LineaHistoricoContrato } from "@/contexto/AppContexto";
 import type { Contrato, EstadoContrato, Moneda, Periodicidad } from "@/data/tipos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
@@ -103,6 +104,8 @@ function PaginaContratos() {
     usuario,
     contratosFuenteExterna,
     modoApi,
+    contratosMesPagados: pagados,
+    trasladarContratosMes,
   } = useApp();
   // Con la fuente externa activa los contratos son de solo lectura.
   const soloLectura = modoApi && contratosFuenteExterna;
@@ -422,6 +425,8 @@ function ContratosDelMes() {
     actualizarPreferencia,
     contratosFuenteExterna,
     modoApi,
+    contratosMesPagados: pagados,
+    trasladarContratosMes,
   } = useApp();
   const soloLectura = modoApi && contratosFuenteExterna;
   const [enEdicion, setEnEdicion] = useState<string | null>(null);
@@ -473,17 +478,6 @@ function ContratosDelMes() {
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busqueda, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada, listo]);
-
-  // Marcas de "pagado": solo histórico, no generan facturas ni afectan la proyección.
-  const pagados = useMemo(() => {
-    try {
-      const bruto = preferencias[PREF_CONTRATOS_MES_PAGADOS];
-      const lista = bruto ? (JSON.parse(bruto) as unknown) : [];
-      return new Set(Array.isArray(lista) ? lista.filter((x): x is string => typeof x === "string") : []);
-    } catch {
-      return new Set<string>();
-    }
-  }, [preferencias]);
 
   // Revisa cada línea del mes contra las facturas registradas: coincide cuando
   // el número de la factura contiene el número del contrato, o cuando el
