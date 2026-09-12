@@ -249,7 +249,7 @@ public static class Licencias
             var cuerpo = DeBase64Url(partes[1]);
             var firma = DeBase64Url(partes[2]);
             using var rsa = RSA.Create();
-            rsa.ImportFromPem(llavePublicaPem);
+            rsa.ImportFromPem(NormalizarLlave(llavePublicaPem, false));
             if (!rsa.VerifyData(cuerpo, firma, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
                 return (null, "La firma de la licencia no es válida: el archivo fue alterado o proviene de otro emisor.");
 
