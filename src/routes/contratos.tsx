@@ -531,6 +531,10 @@ function ContratosDelMes() {
   /** Factura vigente de la línea: la asignada manualmente o la sugerida. */
   const facturaDeLinea = (clave: string) => asignaciones[clave] ?? facturaPorLinea.get(clave) ?? "";
 
+  const puedeTrasladar =
+    esAdministrador || (puedeEditar && usuario.trasladarContratosHistorico === true);
+  const [trasladando, setTrasladando] = useState(false);
+
   const marcarPagado = (clave: string, valor: boolean) => {
     const siguiente = new Set(pagados);
     if (valor) siguiente.add(clave);
@@ -565,6 +569,44 @@ function ContratosDelMes() {
     .filter((c) => c.moneda === "CRC")
     .reduce((s, c) => s + c.monto, 0);
   const totalEnUsd = totalUSD + (tipoCambio > 0 ? totalCRC / tipoCambio : 0);
+
+  // Líneas pagadas visibles en la compañía activa: candidatas al traslado manual.
+  const pagadosDelMes = filtrarPorCompania(contratosDelMes, companiaActiva).filter((c) =>
+    pagados.has(`${c.contratoId}|${c.fecha}`),
+  );
+
+  const trasladar = async () => {
+    if (pagadosDelMes.length === 0) return;
+    const confirmado = window.confirm(
+      `Se trasladarán ${pagadosDelMes.length} contrato(s) pagados al histórico y saldrán de esta lista. ¿Continuar?`,
+    );
+    if (!confirmado) return;
+    setTrasladando(true);
+    try {
+      const lineas: LineaHistoricoContrato[] = pagadosDelMes.map((c) => ({
+        contratoId: c.contratoId,
+        companiaId: c.companiaId,
+        numero: c.numero,
+        cliente: c.cliente,
+        periodicidad: c.periodicidad,
+        fecha: c.fecha,
+        moneda: c.moneda,
+        monto: c.monto,
+        pagado: true,
+        ...(c.documento ? { documento: c.documento } : {}),
+      }));
+      await trasladarContratosMes(lineas);
+      toast.success(
+        lineas.length === 1
+          ? "1 contrato pagado se trasladó al histórico."
+          : `${lineas.length} contratos pagados se trasladaron al histórico.`,
+      );
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No fue posible trasladar los contratos.");
+    } finally {
+      setTrasladando(false);
+    }
+  };
 
   const exportar = () =>
     exportarExcel(
@@ -603,9 +645,23 @@ function ContratosDelMes() {
             Las líneas en verde tienen una factura coincidente, lista para marcarse como pagada.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
-          <FileDown className="size-4" /> Exportar Excel
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
+            <FileDown className="size-4" /> Exportar Excel
+          </Button>
+          {puedeTrasladar ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              disabled={trasladando || pagadosDelMes.length === 0}
+              title="Traslada manualmente los contratos que ya fueron marcados como pagados al histórico"
+              onClick={() => void trasladar()}
+            >
+              <Archive className="size-4" /> Trasladar
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -888,8 +944,8 @@ function ContratosDelMes() {
 
 /** Subsección: meses ya cerrados que se archivaron al cambio de mes. */
 function HistoricoContratosMes() {
-  const { contratosMesHistorico, contratosMesLimpiar, companias, usuario } = useApp();
-  if (!contratosMesLimpiar || contratosMesHistorico.length === 0) return null;
+  const { contratosMesHistorico, companias, usuario } = useApp();
+  if (contratosMesHistorico.length === 0) return null;
 
   const lineas = contratosMesHistorico.flatMap((h) =>
     h.lineas.map((l) => ({ ...l, mes: h.mes })),
@@ -920,8 +976,8 @@ function HistoricoContratosMes() {
         <div>
           <h2 className="text-lg font-semibold">Histórico de contratos por facturar</h2>
           <p className="text-sm text-muted-foreground">
-            Meses ya cerrados. Se archivan automáticamente al primer ingreso de cada mes nuevo
-            mientras el parámetro de limpieza mensual esté activo.
+            Contratos archivados: los que se trasladan manualmente con el botón Trasladar y los
+            meses que se cierran automáticamente cuando el parámetro de limpieza mensual está activo.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
