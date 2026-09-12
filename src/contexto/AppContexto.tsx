@@ -1296,6 +1296,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     preferencias,
     contratosDelMes,
     contratosMesHistorico,
+    contratosMesPagados,
+    trasladarContratosMes,
+
     pedidos,
     recargar,
     tipoCambio,
