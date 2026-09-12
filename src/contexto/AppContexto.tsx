@@ -787,7 +787,12 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           void api(`/preferencias/${encodeURIComponent(clave)}`, {
             metodo: "PUT",
             cuerpo: { valor: nuevoValor },
-          }).catch(() => undefined);
+          }).catch((error: unknown) => {
+            const detalle = error instanceof Error ? error.message : "";
+            toast.error("No fue posible guardar la preferencia", {
+              description: detalle || "El cambio se perderá al recargar la página.",
+            });
+          });
       },
       contratosDelMes,
       contratosMesHistorico,
