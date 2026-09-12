@@ -7,6 +7,7 @@ import {
   CalendarClock,
   FileSpreadsheet,
   FileText,
+  KeyRound,
   Landmark,
   LogOut,
   PiggyBank,
@@ -69,6 +70,13 @@ const navegacion = [
   },
 ] as const;
 
+/** Opción exclusiva del servidor propio (emisor); no se muestra en instalaciones de cliente. */
+const OPCION_LICENCIAS = {
+  to: "/licencias",
+  etiqueta: "Licencias",
+  icono: KeyRound,
+} as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
   const {
     companias,
@@ -80,6 +88,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     hoy,
     tipoCambio,
     modoApi,
+    esAdministrador,
+    instalacionCliente,
     cerrarSesion,
   } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -89,6 +99,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     const opcion = opcionDeRuta(item.to);
     return !opcion || puedeVer(usuario, opcion.clave);
   };
+  // La emisión de licencias solo aparece en la instalación propia y para administradores.
+  const mostrarLicencias = esAdministrador && !instalacionCliente;
+  const secciones = navegacion.map((seccion) =>
+    seccion.grupo === "Administración" && mostrarLicencias
+      ? { grupo: seccion.grupo, items: [...seccion.items, OPCION_LICENCIAS] }
+      : { grupo: seccion.grupo, items: [...seccion.items] },
+  );
+
   const opcionActual = opcionDeRuta(pathname);
   const accesoDenegado = !!opcionActual && !puedeVer(usuario, opcionActual.clave);
 
@@ -110,7 +128,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
-          {navegacion.map((seccion) => (
+          {secciones.map((seccion) => (
             <div key={seccion.grupo}>
               <p className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
                 {seccion.grupo}
