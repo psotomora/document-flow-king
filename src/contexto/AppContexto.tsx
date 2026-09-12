@@ -896,6 +896,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       },
       contratosDelMes,
       contratosMesHistorico,
+      contratosMesPagados,
+      trasladarContratosMes,
       contratosMesLimpiar: parametros[PARAM_CONTRATOS_MES_LIMPIAR] === "1",
       instalacionCliente: parametros[PARAM_INSTALACION_CLIENTE] === "1",
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
