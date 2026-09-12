@@ -710,7 +710,7 @@ public static class RegistrosEndpoints
                 WHERE Mes NOT IN (SELECT TOP (24) Mes FROM flujo.ContratoMesHistorico GROUP BY Mes ORDER BY Mes DESC)
                 """, transaction: tx);
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Contratos",
-                $"Histórico {mes}", "Archivo", null, $"{lineas.Count} líneas", tx);
+                $"Histórico {mes}", "Modificación", null, $"Archivado: {lineas.Count} líneas", tx);
             tx.Commit();
             return Results.Ok(new { mensaje = "Mes archivado en el histórico.", lineas = lineas.Count });
         });
