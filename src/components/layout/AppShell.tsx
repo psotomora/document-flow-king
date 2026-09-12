@@ -10,6 +10,7 @@ import {
   KeyRound,
   Landmark,
   LogOut,
+  Menu,
   PiggyBank,
   Receipt,
   Settings2,
@@ -17,7 +18,7 @@ import {
   TrendingUp,
   Upload,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import { AvisoLicencia } from "@/components/comunes/AvisoLicencia";
 
@@ -32,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import { VersionApp } from "@/components/layout/VersionApp";
 const LOGO_APLIX_URL =
@@ -93,6 +95,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     cerrarSesion,
   } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  // El panel móvil se cierra al cambiar de pantalla.
+  useEffect(() => setMenuAbierto(false), [pathname]);
 
   // Opciones ocultas para el usuario según sus permisos de visibilidad.
   const rutaVisible = (item: { to: string }) => {
@@ -111,9 +116,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const accesoDenegado = !!opcionActual && !puedeVer(usuario, opcionActual.clave);
 
 
-  return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+  /** Contenido del menú, compartido por la barra fija de escritorio y el panel móvil. */
+  const ContenidoMenu = ({ alNavegar }: { alNavegar?: () => void }) => (
+    <>
         <div className="flex flex-col items-center border-b border-sidebar-border px-5 py-4">
           <img
             src={LOGO_APLIX_URL}
@@ -141,6 +146,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   return (
                     <li key={item.to}>
                       <Link
+                        onClick={alNavegar}
                         to={item.to}
                         className={cn(
                           "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
@@ -173,17 +179,44 @@ export function AppShell({ children }: { children: ReactNode }) {
           <VersionApp />
         </div>
 
+    </>
+  );
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+        <ContenidoMenu />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b border-border bg-card/95 px-4 py-3 backdrop-blur lg:px-6">
-          <div className="flex items-center gap-2">
+          <Sheet open={menuAbierto} onOpenChange={setMenuAbierto}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                aria-label="Abrir menú de navegación"
+              >
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="flex w-[17rem] flex-col border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+            >
+              <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
+              <ContenidoMenu alNavegar={() => setMenuAbierto(false)} />
+            </SheetContent>
+          </Sheet>
+
+          <div className="flex min-w-0 items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">Compañía</span>
             <Select
               value={companiaActiva}
               onValueChange={(v) => setCompaniaActiva(v as string)}
             >
-              <SelectTrigger className="h-8 w-44">
+              <SelectTrigger className="h-8 w-full max-w-[11rem] sm:w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
