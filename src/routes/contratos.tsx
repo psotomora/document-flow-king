@@ -104,8 +104,6 @@ function PaginaContratos() {
     usuario,
     contratosFuenteExterna,
     modoApi,
-    contratosMesPagados: pagados,
-    trasladarContratosMes,
   } = useApp();
   // Con la fuente externa activa los contratos son de solo lectura.
   const soloLectura = modoApi && contratosFuenteExterna;
