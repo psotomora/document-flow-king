@@ -117,7 +117,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 
   /** Contenido del menú, compartido por la barra fija de escritorio y el panel móvil. */
-  const ContenidoMenu = ({ alNavegar }: { alNavegar?: () => void }) => (
+  const contenidoMenu = (alNavegar?: () => void) => (
     <>
         <div className="flex flex-col items-center border-b border-sidebar-border px-5 py-4">
           <img
@@ -185,7 +185,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-        <ContenidoMenu />
+        {contenidoMenu()}
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -206,7 +206,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="flex w-[17rem] flex-col border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
             >
               <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
-              <ContenidoMenu alNavegar={() => setMenuAbierto(false)} />
+              {contenidoMenu(() => setMenuAbierto(false))}
             </SheetContent>
           </Sheet>
 
