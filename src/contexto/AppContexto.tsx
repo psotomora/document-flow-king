@@ -87,6 +87,8 @@ export const PREF_CONTRATOS_MES_PAGADOS = "contratosMesPagados";
 export const PREF_CONTRATOS_MES_FACTURAS = "contratosMesFacturas";
 /** Histórico de meses cerrados de contratos por facturar. */
 export const PREF_CONTRATOS_MES_HISTORICO = "contratosMesHistorico";
+/** Líneas del mes trasladadas manualmente al histórico (salen de la lista activa). */
+export const PREF_CONTRATOS_MES_TRASLADADOS = "contratosMesTrasladados";
 /** Parámetro: al cambio de mes se archivan los contratos del mes anterior y se limpia la lista. */
 export const PARAM_CONTRATOS_MES_LIMPIAR = "contratosMesLimpiar";
 /** Parámetro: la instalación corresponde a un equipo o servidor del cliente. */
@@ -156,6 +158,10 @@ interface EstadoApp {
   contratosDelMes: ContratoDelMes[];
   /** Meses ya cerrados y archivados de contratos por facturar. */
   contratosMesHistorico: MesHistoricoContratos[];
+  /** Claves `contratoId|fecha` de líneas del mes marcadas como pagadas. */
+  contratosMesPagados: Set<string>;
+  /** Traslada al histórico las líneas indicadas y las saca de la lista del mes. */
+  trasladarContratosMes: (lineas: LineaHistoricoContrato[]) => Promise<void>;
   /** Si está activo, al cambio de mes se archiva y limpia la lista del mes anterior. */
   contratosMesLimpiar: boolean;
   /** Si está activo, la instalación es de un cliente y no muestra la emisión de licencias. */
@@ -195,6 +201,7 @@ interface EstadoApp {
     verCatalogos?: boolean;
     editarErogaciones?: boolean;
     asignarFacturaContrato?: boolean;
+    trasladarContratosHistorico?: boolean;
   }) => Promise<void>;
   actualizarUsuario: (
     id: string,
@@ -212,6 +219,7 @@ interface EstadoApp {
       verCatalogos?: boolean;
       editarErogaciones?: boolean;
       asignarFacturaContrato?: boolean;
+      trasladarContratosHistorico?: boolean;
     },
   ) => Promise<void>;
   eliminarUsuario: (id: string) => Promise<void>;
@@ -870,6 +878,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           verCatalogos: datos.verCatalogos ?? true,
           editarErogaciones: datos.editarErogaciones ?? true,
           asignarFacturaContrato: datos.asignarFacturaContrato ?? false,
+          trasladarContratosHistorico: datos.trasladarContratosHistorico ?? false,
         };
         setUsuarios((prev) => [...prev, nuevo]);
         anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
@@ -896,6 +905,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
             : {}),
           ...(cambios.asignarFacturaContrato !== undefined
             ? { asignarFacturaContrato: cambios.asignarFacturaContrato }
+            : {}),
+          ...(cambios.trasladarContratosHistorico !== undefined
+            ? { trasladarContratosHistorico: cambios.trasladarContratosHistorico }
             : {}),
         };
         setUsuarios((prev) =>
