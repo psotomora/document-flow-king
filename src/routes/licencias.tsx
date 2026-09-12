@@ -61,7 +61,7 @@ const VACIO: DatosEmision = {
 };
 
 function PaginaLicencias() {
-  const { esAdministrador } = useApp();
+  const { esAdministrador, instalacionCliente } = useApp();
   const [datos, setDatos] = useState<DatosEmision>(VACIO);
   const [historial, setHistorial] = useState<LicenciaEmitida[]>([]);
   const [emisor, setEmisor] = useState(false);
@@ -80,6 +80,18 @@ function PaginaLicencias() {
       }
     })();
   }, []);
+
+  if (instalacionCliente) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-6">
+        <p className="text-sm font-medium">Opción no disponible</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Esta instalación está marcada como equipo del cliente. La emisión de licencias solo se
+          realiza desde el servidor propio.
+        </p>
+      </div>
+    );
+  }
 
   if (!esAdministrador) {
     return (

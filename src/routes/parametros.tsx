@@ -40,6 +40,7 @@ import {
   PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA,
   PARAM_CONTRATOS_FUENTE_EXTERNA,
   PARAM_CONTRATOS_MES_LIMPIAR,
+  PARAM_INSTALACION_CLIENTE,
   useApp,
 } from "@/contexto/AppContexto";
 import { formatearFechaHora, formatearNumero } from "@/lib/formato";
@@ -82,6 +83,7 @@ function PaginaParametros() {
     documentosCobroFuenteExterna,
     contratosFuenteExterna,
     contratosMesLimpiar,
+    instalacionCliente,
     pedidosFuenteOrigen,
     parametros,
     actualizarParametro,
@@ -190,6 +192,15 @@ function PaginaParametros() {
     );
   };
 
+
+  const cambiarInstalacionCliente = (activo: boolean) => {
+    actualizarParametro(PARAM_INSTALACION_CLIENTE, activo ? "1" : "0");
+    toast.success(
+      activo
+        ? "Esta instalación queda marcada como equipo del cliente."
+        : "Esta instalación queda marcada como servidor propio.",
+    );
+  };
 
   const algunaFuenteExterna =
     pedidosFuenteExterna ||
@@ -349,6 +360,26 @@ function PaginaParametros() {
               id="contratos-externos"
               checked={contratosFuenteExterna}
               onCheckedChange={cambiarContratosExternos}
+              disabled={!esAdministrador}
+            />
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <Label htmlFor="instalacion-cliente">Instalación en equipo del cliente</Label>
+            <p className="text-xs text-muted-foreground">
+              Si está en Sí, esta instalación se identifica como del cliente y no muestra la
+              emisión de licencias. Déjelo en No únicamente en el servidor propio.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {instalacionCliente ? "Sí" : "No"}
+            </span>
+            <Switch
+              id="instalacion-cliente"
+              checked={instalacionCliente}
+              onCheckedChange={cambiarInstalacionCliente}
               disabled={!esAdministrador}
             />
           </div>

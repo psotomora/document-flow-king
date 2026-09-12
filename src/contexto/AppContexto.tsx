@@ -89,6 +89,8 @@ export const PREF_CONTRATOS_MES_FACTURAS = "contratosMesFacturas";
 export const PREF_CONTRATOS_MES_HISTORICO = "contratosMesHistorico";
 /** Parámetro: al cambio de mes se archivan los contratos del mes anterior y se limpia la lista. */
 export const PARAM_CONTRATOS_MES_LIMPIAR = "contratosMesLimpiar";
+/** Parámetro: la instalación corresponde a un equipo o servidor del cliente. */
+export const PARAM_INSTALACION_CLIENTE = "instalacionCliente";
 
 /** Línea archivada de un mes ya cerrado. */
 export interface LineaHistoricoContrato {
@@ -118,6 +120,7 @@ const PARAMETROS_DEFECTO: Record<string, string> = {
   [PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA]: "0",
   [PARAM_CONTRATOS_FUENTE_EXTERNA]: "0",
   [PARAM_CONTRATOS_MES_LIMPIAR]: "0",
+  [PARAM_INSTALACION_CLIENTE]: "0",
   [PARAM_PEDIDOS_FUENTE_ORIGEN]: FUENTE_PEDIDOS_DEFECTO,
 };
 
@@ -155,6 +158,8 @@ interface EstadoApp {
   contratosMesHistorico: MesHistoricoContratos[];
   /** Si está activo, al cambio de mes se archiva y limpia la lista del mes anterior. */
   contratosMesLimpiar: boolean;
+  /** Si está activo, la instalación es de un cliente y no muestra la emisión de licencias. */
+  instalacionCliente: boolean;
   pedidosFuenteExterna: boolean;
   facturasFuenteExterna: boolean;
   documentosPagoFuenteExterna: boolean;
@@ -797,6 +802,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       contratosDelMes,
       contratosMesHistorico,
       contratosMesLimpiar: parametros[PARAM_CONTRATOS_MES_LIMPIAR] === "1",
+      instalacionCliente: parametros[PARAM_INSTALACION_CLIENTE] === "1",
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
       facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
       documentosPagoFuenteExterna: parametros[PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA] === "1",
