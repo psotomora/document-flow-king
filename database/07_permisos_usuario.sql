@@ -41,3 +41,9 @@ IF COL_LENGTH('flujo.Usuario', 'AsignarFacturaContrato') IS NULL
     ALTER TABLE flujo.Usuario ADD AsignarFacturaContrato BIT NOT NULL
         CONSTRAINT DF_Usuario_AsignarFacturaContrato DEFAULT 0;
 GO
+
+-- Permite trasladar manualmente al histórico los contratos del mes ya pagados.
+IF COL_LENGTH('flujo.Usuario', 'TrasladarContratosHistorico') IS NULL
+    ALTER TABLE flujo.Usuario ADD TrasladarContratosHistorico BIT NOT NULL
+        CONSTRAINT DF_Usuario_TrasladarContratosHistorico DEFAULT 0;
+GO

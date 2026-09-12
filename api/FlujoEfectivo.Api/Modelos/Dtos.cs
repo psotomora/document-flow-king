@@ -20,6 +20,7 @@ public class UsuarioAdminDto
     public bool VerCatalogos { get; set; } = true;
     public bool EditarErogaciones { get; set; } = true;
     public bool AsignarFacturaContrato { get; set; }
+    public bool TrasladarContratosHistorico { get; set; }
 }
 
 public class CompaniaDto
@@ -329,7 +330,8 @@ public record NuevoUsuario(
     bool? VerProyeccion = null,
     bool? VerCatalogos = null,
     bool? EditarErogaciones = null,
-    bool? AsignarFacturaContrato = null);
+    bool? AsignarFacturaContrato = null,
+    bool? TrasladarContratosHistorico = null);
 
 public record CambioUsuario(
     string? Nombre,
@@ -344,7 +346,8 @@ public record CambioUsuario(
     bool? VerProyeccion = null,
     bool? VerCatalogos = null,
     bool? EditarErogaciones = null,
-    bool? AsignarFacturaContrato = null);
+    bool? AsignarFacturaContrato = null,
+    bool? TrasladarContratosHistorico = null);
 
 public record LoginResponse(string Token, UsuarioDto Usuario, DateTime Expira);
 

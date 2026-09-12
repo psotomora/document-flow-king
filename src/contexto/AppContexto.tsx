@@ -87,6 +87,8 @@ export const PREF_CONTRATOS_MES_PAGADOS = "contratosMesPagados";
 export const PREF_CONTRATOS_MES_FACTURAS = "contratosMesFacturas";
 /** Histórico de meses cerrados de contratos por facturar. */
 export const PREF_CONTRATOS_MES_HISTORICO = "contratosMesHistorico";
+/** Líneas del mes trasladadas manualmente al histórico (salen de la lista activa). */
+export const PREF_CONTRATOS_MES_TRASLADADOS = "contratosMesTrasladados";
 /** Parámetro: al cambio de mes se archivan los contratos del mes anterior y se limpia la lista. */
 export const PARAM_CONTRATOS_MES_LIMPIAR = "contratosMesLimpiar";
 /** Parámetro: la instalación corresponde a un equipo o servidor del cliente. */
@@ -156,6 +158,10 @@ interface EstadoApp {
   contratosDelMes: ContratoDelMes[];
   /** Meses ya cerrados y archivados de contratos por facturar. */
   contratosMesHistorico: MesHistoricoContratos[];
+  /** Claves `contratoId|fecha` de líneas del mes marcadas como pagadas. */
+  contratosMesPagados: Set<string>;
+  /** Traslada al histórico las líneas indicadas y las saca de la lista del mes. */
+  trasladarContratosMes: (lineas: LineaHistoricoContrato[]) => Promise<void>;
   /** Si está activo, al cambio de mes se archiva y limpia la lista del mes anterior. */
   contratosMesLimpiar: boolean;
   /** Si está activo, la instalación es de un cliente y no muestra la emisión de licencias. */
@@ -195,6 +201,7 @@ interface EstadoApp {
     verCatalogos?: boolean;
     editarErogaciones?: boolean;
     asignarFacturaContrato?: boolean;
+    trasladarContratosHistorico?: boolean;
   }) => Promise<void>;
   actualizarUsuario: (
     id: string,
@@ -212,6 +219,7 @@ interface EstadoApp {
       verCatalogos?: boolean;
       editarErogaciones?: boolean;
       asignarFacturaContrato?: boolean;
+      trasladarContratosHistorico?: boolean;
     },
   ) => Promise<void>;
   eliminarUsuario: (id: string) => Promise<void>;
@@ -586,6 +594,33 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     })();
   }, [anotar, autenticado, cargando, contratos, hoy, parametros, pedidos, recargar]);
 
+  /** Lee una preferencia que guarda una lista de claves `contratoId|fecha`. */
+  const leerClaves = useCallback(
+    (clave: string) => {
+      try {
+        const bruto = preferencias[clave];
+        const lista = bruto ? (JSON.parse(bruto) as unknown) : [];
+        return new Set(
+          Array.isArray(lista) ? lista.filter((x): x is string => typeof x === "string") : [],
+        );
+      } catch {
+        return new Set<string>();
+      }
+    },
+    [preferencias],
+  );
+
+  // Marcas de "pagado" de las líneas del mes (solo histórico del usuario).
+  const contratosMesPagados = useMemo(
+    () => leerClaves(PREF_CONTRATOS_MES_PAGADOS),
+    [leerClaves],
+  );
+
+  // Líneas ya trasladadas manualmente al histórico: salen de la lista activa.
+  const contratosMesTrasladados = useMemo(
+    () => leerClaves(PREF_CONTRATOS_MES_TRASLADADOS),
+    [leerClaves],
+  );
 
   // Contratos activos que deben facturarse en el mes corriente (RF-011).
   // Se calcula igual con datos locales o con origen externo (SoftlandERP),
@@ -597,8 +632,11 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         .map((p) => ({ numero: p.numero, fecha: p.fechaCreacion })),
       ...facturas.map((f) => ({ numero: f.numero, fecha: f.fechaEmision })),
     ];
-    return contratosPorFacturarDelMes(contratos, documentos, hoy.slice(0, 7));
-  }, [contratos, pedidos, facturas, hoy]);
+    return contratosPorFacturarDelMes(contratos, documentos, hoy.slice(0, 7)).filter(
+      (c) => !contratosMesTrasladados.has(`${c.contratoId}|${c.fecha}`),
+    );
+  }, [contratos, pedidos, facturas, hoy, contratosMesTrasladados]);
+
 
   // Histórico de meses cerrados de contratos por facturar.
   // Con SQL Server vive en la tabla flujo.ContratoMesHistorico (se consulta
@@ -661,6 +699,63 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         cuerpo: { valor: valorPref },
       }).catch(() => undefined);
   }, []);
+
+  /**
+   * Traslado manual al histórico de las líneas ya marcadas como pagadas.
+   * El endpoint reemplaza el mes completo, así que se envía la unión de lo ya
+   * archivado con las líneas nuevas. Las claves trasladadas salen de la lista activa.
+   */
+  const trasladarContratosMes = useCallback(
+    async (lineas: LineaHistoricoContrato[]) => {
+      if (lineas.length === 0) return;
+      const mes = hoy.slice(0, 7);
+      const previas = contratosMesHistorico.find((h) => h.mes === mes)?.lineas ?? [];
+      const mapa = new Map(previas.map((l) => [`${l.contratoId}|${l.fecha}`, l]));
+      for (const l of lineas) mapa.set(`${l.contratoId}|${l.fecha}`, l);
+      const todas = [...mapa.values()];
+
+      if (hayApi()) {
+        await api("/contratos-mes-historico", {
+          metodo: "POST",
+          cuerpo: { mes, archivadoEn: hoy, lineas: todas },
+        });
+        await cargarHistorico();
+      } else {
+        const historico = [
+          { mes, archivadoEn: hoy, lineas: todas },
+          ...contratosMesHistorico.filter((h) => h.mes !== mes),
+        ].slice(0, 24);
+        guardarPreferencia(PREF_CONTRATOS_MES_HISTORICO, JSON.stringify(historico));
+      }
+
+      const claves = lineas.map((l) => `${l.contratoId}|${l.fecha}`);
+      guardarPreferencia(
+        PREF_CONTRATOS_MES_TRASLADADOS,
+        JSON.stringify([...new Set([...contratosMesTrasladados, ...claves])]),
+      );
+      guardarPreferencia(
+        PREF_CONTRATOS_MES_PAGADOS,
+        JSON.stringify([...contratosMesPagados].filter((k) => !claves.includes(k))),
+      );
+      anotar(
+        "Contratos",
+        `Contratos del mes ${mes}`,
+        "Modificación",
+        `${lineas.length} contrato(s) pagados trasladados al histórico`,
+      );
+    },
+    [
+      hoy,
+      contratosMesHistorico,
+      contratosMesPagados,
+      contratosMesTrasladados,
+      cargarHistorico,
+      guardarPreferencia,
+      anotar,
+    ],
+  );
+
+
 
   // Al primer ingreso de cada mes se revisa la lista y se avisa al usuario.
   const mesRevisado = useRef<string | null>(null);
@@ -801,6 +896,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       },
       contratosDelMes,
       contratosMesHistorico,
+      contratosMesPagados,
+      trasladarContratosMes,
       contratosMesLimpiar: parametros[PARAM_CONTRATOS_MES_LIMPIAR] === "1",
       instalacionCliente: parametros[PARAM_INSTALACION_CLIENTE] === "1",
       pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
@@ -870,6 +967,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           verCatalogos: datos.verCatalogos ?? true,
           editarErogaciones: datos.editarErogaciones ?? true,
           asignarFacturaContrato: datos.asignarFacturaContrato ?? false,
+          trasladarContratosHistorico: datos.trasladarContratosHistorico ?? false,
         };
         setUsuarios((prev) => [...prev, nuevo]);
         anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
@@ -896,6 +994,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
             : {}),
           ...(cambios.asignarFacturaContrato !== undefined
             ? { asignarFacturaContrato: cambios.asignarFacturaContrato }
+            : {}),
+          ...(cambios.trasladarContratosHistorico !== undefined
+            ? { trasladarContratosHistorico: cambios.trasladarContratosHistorico }
             : {}),
         };
         setUsuarios((prev) =>
@@ -1195,6 +1296,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     preferencias,
     contratosDelMes,
     contratosMesHistorico,
+    contratosMesPagados,
+    trasladarContratosMes,
+
     pedidos,
     recargar,
     tipoCambio,

@@ -83,6 +83,9 @@ function PaginaUsuario() {
   const [asignarFacturaContrato, setAsignarFacturaContrato] = useState(
     actual?.asignarFacturaContrato ?? false,
   );
+  const [trasladarContratosHistorico, setTrasladarContratosHistorico] = useState(
+    actual?.trasladarContratosHistorico ?? false,
+  );
 
   const volver = () => void navigate({ to: "/acceso" });
 
@@ -133,6 +136,7 @@ function PaginaUsuario() {
           ...visibilidad,
           editarErogaciones,
           asignarFacturaContrato,
+          trasladarContratosHistorico,
         });
         toast.success("Usuario creado");
       } else {
@@ -146,6 +150,7 @@ function PaginaUsuario() {
           ...visibilidad,
           editarErogaciones,
           asignarFacturaContrato,
+          trasladarContratosHistorico,
         });
         toast.success("Usuario actualizado");
       }
@@ -279,6 +284,19 @@ function PaginaUsuario() {
                 checked={perfil === "administrador" ? true : asignarFacturaContrato}
                 disabled={perfil === "administrador"}
                 onCheckedChange={setAsignarFacturaContrato}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md bg-muted/40 p-2.5">
+              <div>
+                <p className="text-sm font-medium">Trasladar contratos pagados al histórico</p>
+                <p className="text-xs text-muted-foreground">
+                  Habilita el botón Trasladar en los contratos por facturar del mes.
+                </p>
+              </div>
+              <Switch
+                checked={perfil === "administrador" ? true : trasladarContratosHistorico}
+                disabled={perfil === "administrador"}
+                onCheckedChange={setTrasladarContratosHistorico}
               />
             </div>
           </div>

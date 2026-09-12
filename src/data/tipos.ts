@@ -256,4 +256,6 @@ export interface Usuario {
   editarErogaciones?: boolean;
   /** Permite asignar o cambiar la factura sugerida en los contratos por facturar del mes. */
   asignarFacturaContrato?: boolean;
+  /** Permite trasladar manualmente al histórico los contratos del mes ya pagados. */
+  trasladarContratosHistorico?: boolean;
 }
