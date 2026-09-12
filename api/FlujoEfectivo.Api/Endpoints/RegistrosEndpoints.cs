@@ -629,7 +629,7 @@ public static class RegistrosEndpoints
             if (string.IsNullOrWhiteSpace(clave) || clave.Length > 60)
                 return Results.BadRequest(new { mensaje = "Clave de preferencia inválida." });
             var valor = (p.Valor ?? "").Trim();
-            if (valor.Length > 400)
+            if (valor.Length > 1_000_000)
                 return Results.BadRequest(new { mensaje = "El valor de la preferencia es demasiado largo." });
             using var cn = db.Abrir();
             cn.Execute(
