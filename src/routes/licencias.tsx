@@ -249,10 +249,45 @@ function PaginaLicencias() {
             llave pública en la configuración de cada aplicación cliente (Licencia:LlavePublica).
             Estas llaves no se almacenan en la base de datos.
           </p>
-          <Textarea readOnly rows={6} value={llaves.privada} className="font-mono text-xs" />
-          <Textarea readOnly rows={4} value={llaves.publica} className="font-mono text-xs" />
+          <p className="text-xs text-amber-900">
+            Cada llave viene en una sola línea: péguela completa, tal cual, entre comillas en
+            appsettings.json. No agregue saltos de línea.
+          </p>
+          {(
+            [
+              { etiqueta: "Llave privada (solo servidor propio)", valor: llaves.privada },
+              { etiqueta: "Llave pública (todas las instalaciones)", valor: llaves.publica },
+            ] as const
+          ).map((llave) => (
+            <div key={llave.etiqueta} className="space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-xs text-amber-900">{llave.etiqueta}</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    void navigator.clipboard
+                      .writeText(llave.valor)
+                      .then(() => toast.success("Llave copiada al portapapeles"))
+                      .catch(() => toast.error("No fue posible copiar la llave"));
+                  }}
+                >
+                  Copiar
+                </Button>
+              </div>
+              <Textarea
+                readOnly
+                rows={3}
+                value={llave.valor}
+                onFocus={(e) => e.currentTarget.select()}
+                className="font-mono text-xs break-all"
+              />
+            </div>
+          ))}
         </div>
       ) : null}
+
 
       <div className="rounded-lg border border-border bg-card">
         <Table>

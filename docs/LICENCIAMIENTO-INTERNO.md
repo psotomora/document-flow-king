@@ -35,6 +35,11 @@ Aplica a Aplix Cash Flow Insights y a las demás aplicaciones que usen el mismo 
 }
 ```
 
+> **Formato de las llaves (1.36.7).** El generador entrega cada llave en **una sola línea**.
+> Péguela completa entre comillas, sin saltos de línea y sin las líneas `-----BEGIN ...-----`.
+> La API también acepta el formato antiguo con encabezados, pero en JSON los saltos de línea
+> rompen el archivo y la API no inicia (error 500.30). Use el botón **Copiar** de la pantalla de Licencias.
+
 6. Reinicie la API (servicio NSSM o el grupo de aplicaciones en IIS).
 7. Vuelva a **Licencias**: el mensaje “Este servidor no está configurado como emisor” debe desaparecer.
 

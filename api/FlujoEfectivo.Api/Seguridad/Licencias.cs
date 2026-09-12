@@ -152,12 +152,74 @@ public static class Licencias
         return Convert.FromBase64String(s);
     }
 
+    /// <summary>
+    /// Acepta la llave en cualquier formato: PEM con saltos de línea reales, PEM con "\n"
+    /// escritos literalmente, o solo el contenido Base64 en una sola línea (sin encabezados).
+    /// Siempre devuelve un PEM válido para RSA.ImportFromPem.
+    /// </summary>
+    public static string NormalizarLlave(string? llave, bool privada)
+    {
+        var texto = (llave ?? "").Trim();
+        if (texto.Length == 0) return "";
+
+        // Saltos de línea escritos como texto dentro del JSON de configuración.
+        texto = texto.Replace("\\r\\n", "\n").Replace("\\n", "\n").Replace("\r\n", "\n").Replace('\r', '\n');
+
+        if (texto.Contains("-----BEGIN"))
+        {
+            // PEM completo pero posiblemente en una sola línea: se reconstruye.
+            var inicio = texto.IndexOf("-----BEGIN", StringComparison.Ordinal);
+            var finEncabezado = texto.IndexOf("-----", inicio + 10, StringComparison.Ordinal);
+            if (finEncabezado < 0) return texto;
+            var encabezado = texto[inicio..(finEncabezado + 5)];
+            var etiqueta = encabezado.Replace("-----BEGIN ", "").Replace("-----", "").Trim();
+            var resto = texto[(finEncabezado + 5)..];
+            var finCuerpo = resto.IndexOf("-----END", StringComparison.Ordinal);
+            var cuerpo = finCuerpo >= 0 ? resto[..finCuerpo] : resto;
+            return ArmarPem(etiqueta, LimpiarBase64(cuerpo));
+        }
+
+        // Solo Base64 en una sola línea.
+        return ArmarPem(privada ? "PRIVATE KEY" : "PUBLIC KEY", LimpiarBase64(texto));
+    }
+
+    private static string LimpiarBase64(string texto) =>
+        new(texto.Where(c => !char.IsWhiteSpace(c)).ToArray());
+
+    private static string ArmarPem(string etiqueta, string base64)
+    {
+        var sb = new StringBuilder();
+        sb.Append("-----BEGIN ").Append(etiqueta).Append("-----\n");
+        for (var i = 0; i < base64.Length; i += 64)
+            sb.Append(base64, i, Math.Min(64, base64.Length - i)).Append('\n');
+        sb.Append("-----END ").Append(etiqueta).Append("-----\n");
+        return sb.ToString();
+    }
+
+    /// <summary>Devuelve la llave en una sola línea (solo Base64), para copiar y pegar sin errores.</summary>
+    public static string EnUnaLinea(string pem)
+    {
+        var limpio = pem;
+        var inicio = limpio.IndexOf("-----BEGIN", StringComparison.Ordinal);
+        if (inicio >= 0)
+        {
+            var finEncabezado = limpio.IndexOf("-----", inicio + 10, StringComparison.Ordinal);
+            if (finEncabezado >= 0)
+            {
+                limpio = limpio[(finEncabezado + 5)..];
+                var fin = limpio.IndexOf("-----END", StringComparison.Ordinal);
+                if (fin >= 0) limpio = limpio[..fin];
+            }
+        }
+        return LimpiarBase64(limpio);
+    }
+
     /// <summary>Firma un contenido y devuelve el texto del archivo .lic.</summary>
     public static string Firmar(ContenidoLicencia contenido, string llavePrivadaPem)
     {
         var cuerpo = JsonSerializer.SerializeToUtf8Bytes(contenido, Json);
         using var rsa = RSA.Create();
-        rsa.ImportFromPem(llavePrivadaPem);
+        rsa.ImportFromPem(NormalizarLlave(llavePrivadaPem, true));
         var firma = rsa.SignData(cuerpo, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         return $"{Prefijo}.{Base64Url(cuerpo)}.{Base64Url(firma)}";
     }
@@ -166,8 +228,10 @@ public static class Licencias
     public static (string privada, string publica) GenerarLlaves()
     {
         using var rsa = RSA.Create(3072);
-        return (rsa.ExportPkcs8PrivateKeyPem(), rsa.ExportSubjectPublicKeyInfoPem());
+        // Se entregan en una sola línea: así se pegan en appsettings.json sin romper el archivo.
+        return (EnUnaLinea(rsa.ExportPkcs8PrivateKeyPem()), EnUnaLinea(rsa.ExportSubjectPublicKeyInfoPem()));
     }
+
 
     /// <summary>Verifica firma y formato. Devuelve el contenido o el motivo del rechazo.</summary>
     public static (ContenidoLicencia? contenido, string? error) Verificar(string archivo, string llavePublicaPem)
@@ -185,7 +249,7 @@ public static class Licencias
             var cuerpo = DeBase64Url(partes[1]);
             var firma = DeBase64Url(partes[2]);
             using var rsa = RSA.Create();
-            rsa.ImportFromPem(llavePublicaPem);
+            rsa.ImportFromPem(NormalizarLlave(llavePublicaPem, false));
             if (!rsa.VerifyData(cuerpo, firma, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
                 return (null, "La firma de la licencia no es válida: el archivo fue alterado o proviene de otro emisor.");
 
