@@ -249,6 +249,13 @@ string[] pasosEsquema =
         );
     """,
     """
+    -- Preferencias sin límite de longitud (v1.36.1): las asignaciones de
+    -- factura por contrato superan fácilmente los 400 caracteres.
+    IF OBJECT_ID('flujo.PreferenciaUsuario', 'U') IS NOT NULL
+       AND COL_LENGTH('flujo.PreferenciaUsuario', 'Valor') <> -1
+        ALTER TABLE flujo.PreferenciaUsuario ALTER COLUMN Valor NVARCHAR(MAX) NOT NULL;
+    """,
+    """
     -- Documentos por pagar internos (09_documentos_por_pagar.sql).
     IF OBJECT_ID('flujo.DocumentoPorPagar', 'U') IS NULL
         CREATE TABLE flujo.DocumentoPorPagar

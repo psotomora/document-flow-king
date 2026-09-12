@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.36.0";
+export const APP_VERSION = "1.36.1";
 export const APP_FECHA_VERSION = "2026-09-12";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.36.1",
+    fecha: "2026-09-12",
+    cambios: [
+      "Contratos por facturar del mes: las facturas asociadas y las marcas de pagado ya no se pierden al recargar, sin importar cuántas líneas se marquen.",
+      "Si una preferencia no se puede guardar, ahora se avisa en pantalla en lugar de descartarse en silencio.",
+    ],
+  },
   {
     version: "1.36.0",
     fecha: "2026-09-12",
