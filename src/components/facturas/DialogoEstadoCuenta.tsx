@@ -84,13 +84,28 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
     }
   };
 
+  /** Correos digitados, separados por punto y coma (o coma). */
+  const destinatarios = useMemo(
+    () =>
+      correo
+        .split(/[;,]/)
+        .map((c) => c.trim())
+        .filter(Boolean),
+    [correo],
+  );
+
   const enviar = async () => {
     if (!cliente) {
       toast.error("Seleccione el cliente.");
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
-      toast.error("Indique un correo de destinatario válido.");
+    const invalidos = destinatarios.filter((c) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c));
+    if (destinatarios.length === 0 || invalidos.length > 0) {
+      toast.error(
+        invalidos.length > 0
+          ? `Revise el correo: ${invalidos[0]}`
+          : "Indique al menos un correo de destinatario.",
+      );
       return;
     }
     if (!modoApi) {
@@ -103,9 +118,10 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       const r = await api<{ mensaje: string }>("/correo/estado-cuenta", {
         metodo: "POST",
         cuerpo: {
-          destinatario: correo.trim(),
+          destinatario: destinatarios.join(";"),
           cliente,
           dirigido: dirigido.trim() || null,
+          mensaje: mensaje.trim().slice(0, 300) || null,
           compania: nombreCompania,
           documentos: seleccionadas.length,
           nombreArchivo: pdf.nombreArchivo,
@@ -116,6 +132,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       setAbierto(false);
       setCorreo("");
       setDirigido("");
+      setMensaje("");
     } catch (e) {
       toast.error(
         e instanceof ErrorApi || e instanceof Error ? e.message : "No fue posible enviar el correo.",
@@ -124,6 +141,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       setEnviando(false);
     }
   };
+
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
