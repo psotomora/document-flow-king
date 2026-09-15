@@ -213,8 +213,27 @@ npm run build:node
 > aplicó: borre la carpeta `.output` y repita.
 >
 > Con esto, los estilos, los scripts y la navegación usan el prefijo
-> `/cashflow`. En IIS, cree la aplicación virtual `cashflow` (o la regla de
-> proxy `^cashflow/(.*)` hacia `http://localhost:3000/cashflow/{R:1}`).
+> `/cashflow`. **Configuración en IIS (elija según su caso):**
+> - *Si el sitio de IIS solo publica esta aplicación* (todo se reenvía al
+>   proceso Node): **no se requiere ningún cambio**. La regla `ReverseProxy`
+>   del `web.config` ya conserva el prefijo: `/cashflow/...` llega a Node como
+>   `http://localhost:3000/cashflow/...`.
+> - *Si el mismo sitio también publica otras páginas en la raíz*: agregue en el
+>   `web.config` de la **raíz del sitio** una regla que solo reenvíe la
+>   subcarpeta (y comente la regla `ReverseProxy` general):
+>
+>   ```xml
+>   <rule name="CashflowSubcarpeta" stopProcessing="true">
+>     <match url="^cashflow/(.*)" />
+>     <action type="Rewrite" url="http://localhost:3000/cashflow/{R:1}" />
+>   </rule>
+>   ```
+>
+>   Requiere **URL Rewrite** y **ARR** con el proxy habilitado (paso 0.4).
+>   Como alternativa a la regla, puede crear en IIS una *aplicación virtual*
+>   llamada `cashflow` que apunte a una carpeta con el `web.config` del sitio;
+>   con la aplicación virtual no hace falta regla.
+>
 > Si la aplicación se publica en la raíz del sitio, **no** use ninguna de las dos.
 
 > No hace falta definir `NITRO_PRESET`: el proyecto ya compila siempre como
