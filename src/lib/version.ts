@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.36.11";
+export const APP_VERSION = "1.36.12";
 export const APP_FECHA_VERSION = "2026-09-15";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
