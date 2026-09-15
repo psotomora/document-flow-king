@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.36.11",
+    fecha: "2026-09-15",
+    cambios: [
+      "Reporte de documentos y Comparativo anual: sin rebajar, los totales suman solo facturas (FAC); DEV y NC nunca se suman.",
+    ],
+  },
+  {
     version: "1.36.10",
     fecha: "2026-09-15",
     cambios: [
