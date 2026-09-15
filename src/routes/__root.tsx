@@ -96,9 +96,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      // Ruta estable: evita que el enlace CSS desaparezca del HTML generado
-      // al ejecutar el servidor Node detrás de IIS en /cashflow.
-      { rel: "stylesheet", href: appCssHref },
+      // En desarrollo Vite inyecta styles.css directamente. En producción se
+      // enlaza el archivo estable generado para IIS y la subcarpeta /cashflow.
+      ...(!import.meta.env.DEV ? [{ rel: "stylesheet", href: appCssHref }] : []),
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
