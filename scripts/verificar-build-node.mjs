@@ -19,6 +19,7 @@ function leerRutaBase() {
 
 const rutaBase = leerRutaBase();
 const estilos = resolve(raiz, ".output/public/assets/app.css");
+const favicon = resolve(raiz, ".output/public/favicon.png");
 
 function fallar(mensaje) {
   console.error("\n[verificar-build-node] " + mensaje);
@@ -44,6 +45,12 @@ if (!existsSync(estilos)) {
   );
 }
 
+if (!existsSync(favicon)) {
+  fallar(
+    `No se encontró ${favicon}; la publicación quedaría sin el ícono de Aplix.`,
+  );
+}
+
 const contenido = readFileSync(servidor, "utf8");
 const pareceWorker = /export\s+default\s*\{[\s\S]{0,200}fetch\s*\(/.test(contenido);
 const pareceNode = /listen\s*\(/.test(contenido) || contenido.includes("node-server");
@@ -55,5 +62,5 @@ if (pareceWorker && !pareceNode) {
 }
 
 console.log(
-  `[verificar-build-node] OK: servidor Node y assets/app.css generados; URL pública /${rutaBase ? `${rutaBase}/` : ""}assets/app.css.`,
+  `[verificar-build-node] OK: servidor Node, estilos e ícono generados; URLs públicas /${rutaBase ? `${rutaBase}/` : ""}assets/app.css y /${rutaBase ? `${rutaBase}/` : ""}favicon.png.`,
 );
