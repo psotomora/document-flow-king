@@ -273,6 +273,10 @@ npm run build:node
 
 > Si PowerShell bloquea `npm`: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`.
 
+> Desde la versión 1.36.13 el logotipo se empaqueta dentro de la aplicación
+> (pantallas, favicon y PDF de estado de cuenta), por lo que la publicación no
+> depende de ningún dominio externo.
+
 La salida queda en la carpeta `.output\`:
 
 - `.output\server\index.mjs` → servidor Node
