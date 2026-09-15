@@ -56,6 +56,7 @@ public static class Licencias
 {
     public const string Prefijo = "FLUJO-LIC-1";
     public const string ParamRequerida = "licenciaRequerida";
+    public const string ParamLlavePublica = "licenciaLlavePublica";
     private const int AvisoDias = 30;
 
     private static readonly JsonSerializerOptions Json = new()
