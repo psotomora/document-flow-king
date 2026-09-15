@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.36.15";
+export const APP_VERSION = "1.36.16";
 export const APP_FECHA_VERSION = "2026-09-15";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,13 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.36.16",
+    fecha: "2026-09-15",
+    cambios: [
+      "La compilación sincroniza la ruta /cashflow entre Vite y el servidor Node para servir correctamente todos los archivos CSS y JavaScript.",
+    ],
+  },
   {
     version: "1.36.15",
     fecha: "2026-09-15",

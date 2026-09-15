@@ -208,8 +208,8 @@ npm run build:node
 > npm run build:node
 > ```
 >
-> Al iniciar la compilación debe leerse en pantalla:
-> `[vite] Ruta base de la aplicación: /cashflow`. Si dice `/`, la variable no se
+> Al iniciar la compilación debe leerse:
+> `[vite] Ruta base de la aplicación: /cashflow`. Si dice `/`, la ruta no se
 > aplicó: borre la carpeta `.output` y repita.
 >
 > Con esto, los estilos, los scripts y la navegación usan el prefijo
@@ -252,35 +252,20 @@ npm run build:node
 >      `https://apps.aplix.cr` a `Cors:Origenes` y reinicie el grupo de
 >      aplicaciones de la API; sin esto el navegador bloquea las llamadas.
 >
-> **MUY IMPORTANTE — estilos e imágenes en subcarpeta.** El servidor Node
-> publica los archivos estáticos en `/assets/...` **sin** el prefijo, mientras
-> que las páginas los piden como `/cashflow/assets/...`. Si no se ajusta, la
-> aplicación abre **sin estilos** (solo texto). Elija una de las dos opciones:
+> **MUY IMPORTANTE — archivos en subcarpeta.** Desde la versión 1.36.16, la
+> compilación configura la misma ruta `/cashflow` tanto para Vite como para
+> Nitro. No configure `NITRO_APP_BASE_URL` en NSSM y no agregue una regla
+> separada para `cashflow/assets`. La regla `CashflowSubcarpeta` debe conservar
+> el prefijo completo.
 >
-> - **Opción 1 (recomendada): variable del servicio.** Agregue al servicio
->   NSSM/Windows la variable de entorno `NITRO_APP_BASE_URL=/cashflow` y
->   reinicie el servicio. Con NSSM:
+> Al finalizar, `build:node` verifica que exista físicamente
+> `.output\public\assets\app.css`; Nitro la expone públicamente como
+> `/cashflow/assets/app.css`. Si no existe, la compilación termina
+> con error para impedir una publicación incompleta.
 >
->   ```powershell
->   nssm set FlujoEfectivoWeb AppEnvironmentExtra NITRO_APP_BASE_URL=/cashflow
->   nssm restart FlujoEfectivoWeb
->   ```
->
-> - **Opción 2: regla adicional en IIS** que quite el prefijo solo a los
->   estáticos. Colóquela **antes** de `CashflowSubcarpeta`:
->
->   ```xml
->   <rule name="CashflowEstaticos" stopProcessing="true">
->     <match url="^cashflow/assets/(.*)" />
->     <action type="Rewrite" url="http://localhost:3000/assets/{R:1}" />
->   </rule>
->   ```
->
-> Para comprobarlo: abra `https://apps.aplix.cr/cashflow/assets/` en el
-> navegador; el archivo `.css` que aparece en el código fuente de la página debe
-> descargarse (no dar 404).
->
-> Si la aplicación se publica en la raíz del sitio, **no** use ninguna de las dos.
+> Para comprobar la publicación, copie de la consola del navegador la dirección
+> exacta de cualquier `.js` o `.css` y ábrala en una pestaña. Debe responder 200,
+> no 404.
 
 > No hace falta definir `NITRO_PRESET`: el proyecto ya compila siempre como
 > servidor Node fuera del entorno de Lovable, y `build:node` verifica el
