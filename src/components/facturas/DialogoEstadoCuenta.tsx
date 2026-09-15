@@ -36,6 +36,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
   const [dirigido, setDirigido] = useState("");
   const [correo, setCorreo] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
 
   const [enviando, setEnviando] = useState(false);
   const [descargando, setDescargando] = useState(false);
