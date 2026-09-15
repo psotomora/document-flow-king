@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Download, Loader2, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
+import { MensajeCorreo, separarMensajeCorreo } from "@/components/comunes/MensajeCorreo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
