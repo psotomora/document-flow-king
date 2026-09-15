@@ -415,7 +415,7 @@ export function VistaComparativa({
             <span>
               {neto
                 ? "Los totales comparativos representan el monto neto: suma de facturas (FAC) menos las devoluciones (DEV) y notas de crédito (NC)."
-                : "Los totales comparativos representan el monto bruto: se suman todos los documentos (FAC, DEV y NC) sin rebajos."}
+                : "Los totales comparativos consideran únicamente las facturas (FAC); las devoluciones (DEV) y notas de crédito (NC) quedan excluidas."}
             </span>
           </div>
         </div>
