@@ -173,10 +173,13 @@ export function VistaComparativa({
   const porMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
     lista.filter((d) => d.moneda === m).reduce((s, d) => s + d.monto, 0);
 
+  // Los créditos (DEV/NC) nunca suman: restan cuando se rebajan y se excluyen cuando no.
+  const factorDoc = (t: string) => (esCredito(t) ? (neto ? -1 : 0) : 1);
+
   const netoPorMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
     lista
       .filter((d) => d.moneda === m)
-      .reduce((s, d) => s + (neto && esCredito(d.tipo) ? -d.monto : d.monto), 0);
+      .reduce((s, d) => s + factorDoc(d.tipo) * d.monto, 0);
 
   const consolidado = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
