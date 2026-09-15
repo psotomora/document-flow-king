@@ -273,6 +273,10 @@ npm run build:node
 
 > Si PowerShell bloquea `npm`: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`.
 
+> Desde la versión 1.36.13 el logotipo se empaqueta dentro de la aplicación
+> (pantallas, favicon y PDF de estado de cuenta), por lo que la publicación no
+> depende de ningún dominio externo.
+
 La salida queda en la carpeta `.output\`:
 
 - `.output\server\index.mjs` → servidor Node
@@ -325,15 +329,49 @@ Abra `http://SRV-APP` desde otro equipo: debe cargar la pantalla de inicio de se
 
 ---
 
-## 4. Conectar la aplicación con la API y verificar
+## 4. Registrar la URL de la API y verificar
 
-1. Abra `http://SRV-APP` en el navegador.
-2. En la pantalla de inicio de sesión, en la parte inferior, use la opción de **conexión a la API** e ingrese `http://SRV-APP:5080` (la dirección **que el navegador del usuario puede alcanzar**, no `localhost`). Guarde; el sistema prueba `/api/salud` antes de aceptar.
-3. Inicie sesión con el usuario administrador creado por `02_datos_iniciales.sql` / `04_seguridad.sql` y cambie su contraseña.
-4. Verifique: Tablero, Bancos, Parámetros (tipo de cambio) y creación de un usuario nuevo.
-5. La versión publicada se muestra al pie de la pantalla de inicio de sesión.
+La aplicación web y la API son dos sitios distintos: cada navegador debe saber
+dónde está la API. La dirección se registra una sola vez por navegador.
 
-> Esa dirección de la API se guarda en el navegador de cada usuario. Si prefiere que quede fija, puede publicar la API como aplicación virtual `/api` dentro del sitio web (IIS Manager → clic derecho en `FlujoEfectivoWeb` → *Agregar aplicación*, alias `api`, ruta `C:\inetpub\FlujoEfectivoApi`, grupo `FlujoEfectivoApi`) y usar `http://SRV-APP` como URL de la API. En ese caso, agregue en `web.config` del sitio web una regla `<rule name="Api" stopProcessing="true"><match url="^api/.*" /><action type="None" /></rule>` **antes** de `ReverseProxy` para que IIS no reenvíe `/api` a Node.
+1. Abra la aplicación (`http://SRV-APP` o `https://apps.aplix.cr/cashflow`).
+2. En la pantalla de inicio de sesión, al pie, donde dice **Servidor**, escriba
+   la dirección de la API y presione **Guardar**. La aplicación prueba
+   `/salud` antes de aceptarla.
+   - Debe terminar en **`/api`**, por ejemplo `https://apps.aplix.cr/api` o
+     `http://SRV-APP:5080/api`.
+   - Debe ser una dirección **alcanzable desde el equipo del usuario**, nunca
+     `localhost`.
+3. Inicie sesión con el usuario administrador creado por
+   `02_datos_iniciales.sql` / `04_seguridad.sql` y cambie su contraseña.
+4. Verifique: Tablero, Bancos, Parámetros (tipo de cambio) y creación de un
+   usuario nuevo.
+5. Las versiones de la aplicación y de la API se muestran al pie de la pantalla
+   de inicio de sesión y en **Parámetros → Integración**.
+
+### 4.1 Reglas que debe cumplir la dirección
+
+| Situación | Dirección a registrar | Requisito |
+| --- | --- | --- |
+| API en su propio puerto | `http://SRV-APP:5080/api` | Puerto abierto en el firewall |
+| API como aplicación virtual del mismo sitio | `https://apps.aplix.cr/api` | Regla `Api` con `<action type="None" />` antes del proxy |
+| Aplicación publicada en HTTPS | **La API también debe ser HTTPS** | El navegador bloquea llamadas HTTP desde una página HTTPS |
+
+- **CORS**: en `appsettings.Production.json` de la API, `Cors:Origenes` debe
+  incluir la dirección exacta desde la que los usuarios abren la aplicación
+  (por ejemplo `https://apps.aplix.cr`), sin barra final. Reinicie el grupo de
+  aplicaciones de la API tras cambiarla.
+- **Comprobación**: abra `https://apps.aplix.cr/api/salud` en el navegador; debe
+  devolver un JSON con `"estado": "ok"`. Si eso responde, el campo *Servidor*
+  aceptará la misma dirección.
+
+> Si publica la API como aplicación virtual `/api` dentro del sitio web
+> (IIS Manager → clic derecho en el sitio → *Agregar aplicación*, alias `api`,
+> ruta `C:\inetpub\FlujoEfectivoApi`, grupo `FlujoEfectivoApi`), agregue en el
+> `web.config` del sitio, **antes** de la regla de proxy:
+> `<rule name="Api" stopProcessing="true"><match url="^api/.*" /><action type="None" /></rule>`
+> para que IIS no reenvíe `/api` al proceso Node.
+
 
 ---
 
@@ -379,10 +417,13 @@ Los usuarios deben refrescar con **Ctrl+F5**.
 | --- | --- | --- |
 | API: 500.30/500.31 | Falta Hosting Bundle o error al iniciar | Instalar Hosting Bundle, `iisreset`, activar `stdoutLogEnabled` |
 | API: `Login failed for user` | Login SQL o autenticación mixta | Revisar paso 1 y cadena de conexión |
-| Web: "Unexpected token '<' … not valid JSON" | URL de la API apunta al sitio web, no a la API | Usar `http://SRV-APP:5080` |
+| Web: "Unexpected token '<' … not valid JSON" | URL de la API apunta al sitio web, no a la API | Usar `http://SRV-APP:5080/api` |
 | Web: error de CORS en consola (F12) | Origen no está en `Cors:Origenes` | Agregar la URL exacta y reiniciar el grupo de la API |
 | Web: 502.3 / 404 al abrir | Servicio Node detenido o proxy ARR no habilitado | `nssm status FlujoEfectivoWeb`, paso 0.4 |
 | Web: refrescar `/facturas` da 404 | `web.config` no está en la raíz del sitio | Copiar `public\web.config` |
+| Web: sin estilos y 404 en `/cashflow/assets/*` | Se compiló sin la ruta base | Compilar con `ruta-base.txt` = `/cashflow` (debe leerse `[vite] Ruta base de la aplicación: /cashflow`), copiar toda `.output` y reiniciar el servicio |
+| Web: "Mixed Content" o la API no responde en HTTPS | Sitio en `https` llamando una API en `http` | Publicar la API por HTTPS y registrar `https://.../api` en el campo *Servidor* |
+| Web: campo *Servidor* rechaza la dirección | Falta el sufijo `/api` o `/salud` no responde | Probar `.../api/salud` en el navegador antes de guardar |
 
 ## Licenciamiento (1.36.0)
 
