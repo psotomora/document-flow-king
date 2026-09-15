@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import appCss from "../styles.css?url";
+import "../styles.css";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ProveedorApp, useApp } from "@/contexto/AppContexto";
 import { AppShell } from "@/components/layout/AppShell";
@@ -17,6 +17,8 @@ import { PantallaLogin } from "@/components/layout/PantallaLogin";
 import { PantallaSesionCerrada } from "@/components/layout/PantallaSesionCerrada";
 import { Toaster } from "@/components/ui/sonner";
 import logoAplix from "@/assets/aplix-isotipo.png";
+
+const appCssHref = `${import.meta.env.BASE_URL}assets/app.css`;
 
 function NotFoundComponent() {
   return (
@@ -94,7 +96,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
+      // En desarrollo Vite inyecta styles.css directamente. En producción se
+      // enlaza el archivo estable generado para IIS y la subcarpeta /cashflow.
+      ...(!import.meta.env.DEV ? [{ rel: "stylesheet", href: appCssHref }] : []),
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

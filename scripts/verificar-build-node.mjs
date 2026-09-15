@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 const raiz = process.cwd();
 const servidor = resolve(raiz, ".output/server/index.mjs");
 const wrangler = resolve(raiz, ".output/server/wrangler.json");
+const estilos = resolve(raiz, ".output/public/assets/app.css");
 
 function fallar(mensaje) {
   console.error("\n[verificar-build-node] " + mensaje);
@@ -25,6 +26,12 @@ if (existsSync(wrangler)) {
   );
 }
 
+if (!existsSync(estilos)) {
+  fallar(
+    "No se encontró .output/public/assets/app.css; la publicación quedaría sin estilos.",
+  );
+}
+
 const contenido = readFileSync(servidor, "utf8");
 const pareceWorker = /export\s+default\s*\{[\s\S]{0,200}fetch\s*\(/.test(contenido);
 const pareceNode = /listen\s*\(/.test(contenido) || contenido.includes("node-server");
@@ -36,5 +43,5 @@ if (pareceWorker && !pareceNode) {
 }
 
 console.log(
-  "[verificar-build-node] OK: .output/server/index.mjs es un servidor Node autónomo.",
+  "[verificar-build-node] OK: servidor Node y hoja assets/app.css generados correctamente.",
 );
