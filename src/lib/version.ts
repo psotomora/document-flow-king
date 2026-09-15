@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.36.12",
+    fecha: "2026-09-15",
+    cambios: [
+      "Se puede publicar la aplicación dentro de una subcarpeta del sitio (por ejemplo /cashflow) definiendo APP_BASE_PATH al compilar.",
+    ],
+  },
+  {
     version: "1.36.11",
     fecha: "2026-09-15",
     cambios: [
