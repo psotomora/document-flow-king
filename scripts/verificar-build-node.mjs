@@ -6,7 +6,19 @@ import { resolve } from "node:path";
 const raiz = process.cwd();
 const servidor = resolve(raiz, ".output/server/index.mjs");
 const wrangler = resolve(raiz, ".output/server/wrangler.json");
-const estilos = resolve(raiz, ".output/public/assets/app.css");
+
+function leerRutaBase() {
+  const archivo = resolve(raiz, "ruta-base.txt");
+  const valor = (
+    process.env["APP_BASE_PATH"] ||
+    (existsSync(archivo) ? readFileSync(archivo, "utf8").split("\n")[0] : "") ||
+    "/"
+  ).trim();
+  return valor === "/" ? "" : valor.replace(/^\/+|\/+$/g, "");
+}
+
+const rutaBase = leerRutaBase();
+const estilos = resolve(raiz, ".output/public", rutaBase, "assets/app.css");
 
 function fallar(mensaje) {
   console.error("\n[verificar-build-node] " + mensaje);
@@ -28,7 +40,7 @@ if (existsSync(wrangler)) {
 
 if (!existsSync(estilos)) {
   fallar(
-    "No se encontró .output/public/assets/app.css; la publicación quedaría sin estilos.",
+    `No se encontró ${estilos}; la publicación quedaría sin estilos.`,
   );
 }
 
@@ -43,5 +55,5 @@ if (pareceWorker && !pareceNode) {
 }
 
 console.log(
-  "[verificar-build-node] OK: servidor Node y hoja assets/app.css generados correctamente.",
+  `[verificar-build-node] OK: servidor Node y ${rutaBase ? `${rutaBase}/` : ""}assets/app.css generados correctamente.`,
 );
