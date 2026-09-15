@@ -145,32 +145,112 @@ public static class Correo
         }
         catch (InvalidOperationException ex)
         {
-            return (false, ex.Message);
+            return (false, Redactar(
+                "No se pudo preparar el envío con la configuración guardada.",
+                ["Revise Parámetros → Servidor de correo y vuelva a guardar la contraseña."],
+                c, destinatario, ex, null));
         }
         catch (SmtpFailedRecipientException ex)
         {
-            return (false, $"El servidor rechazó el destinatario: {ex.Message}");
+            return (false, Redactar(
+                "El servidor de correo rechazó la dirección del destinatario.",
+                [
+                    $"Verifique que la dirección «{ex.FailedRecipient}» esté bien escrita.",
+                    "Si son varios destinatarios, sepárelos con punto y coma y revise cada uno.",
+                ],
+                c, destinatario, ex, ex.StatusCode.ToString()));
         }
         catch (SmtpException ex)
         {
             var texto = ex.Message + " " + (ex.InnerException?.Message ?? "");
-            var detalle = "";
-            if (texto.Contains("5.7.139") || texto.Contains("535") || texto.Contains("not authenticated"))
-                detalle =
-                    " Microsoft 365 rechazó la autenticación. Pida al administrador de Microsoft 365 que: " +
-                    "1) habilite SMTP AUTH en el buzón (Set-CASMailbox -SmtpClientAuthenticationDisabled $false); " +
-                    "2) verifique que el usuario y la contraseña sean los del buzón remitente; " +
-                    "3) si la cuenta tiene autenticación multifactor, use una contraseña de aplicación; " +
-                    "4) revise que las políticas de acceso condicional no bloqueen el envío desde este servidor. " +
-                    "Como alternativa, use un conector SMTP interno de Exchange (puerto 25, sin usuario) desde una IP autorizada.";
+            string resumen;
+            string[] acciones;
+
+            if (texto.Contains("5.7.139") || texto.Contains("535") || texto.Contains("5.7.57") ||
+                texto.Contains("not authenticated") || ex.StatusCode == SmtpStatusCode.ClientNotPermitted)
+            {
+                resumen = "El servidor de correo no aceptó el usuario y la contraseña configurados.";
+                acciones =
+                [
+                    "Confirme el usuario y la contraseña del buzón remitente en Parámetros → Servidor de correo.",
+                    "En Microsoft 365, pida al administrador habilitar SMTP AUTH del buzón: Set-CASMailbox -Identity <buzón> -SmtpClientAuthenticationDisabled $false",
+                    "Si el buzón usa autenticación multifactor, genere y use una contraseña de aplicación.",
+                    "Revise que las políticas de acceso condicional permitan el envío desde este servidor.",
+                    "Alternativa: usar un conector SMTP interno de Exchange (puerto 25, sin usuario) desde una IP autorizada.",
+                ];
+            }
             else if (ex.StatusCode == SmtpStatusCode.MustIssueStartTlsFirst)
-                detalle = " Active la opción de conexión segura (TLS) o use el puerto 587.";
-            return (false, $"No fue posible enviar el correo: {ex.Message}{detalle}");
+            {
+                resumen = "El servidor de correo exige una conexión segura que no está activada.";
+                acciones =
+                [
+                    "Active «Conexión segura (TLS)» en Parámetros → Servidor de correo.",
+                    "Use el puerto 587; el puerto 465 no está soportado.",
+                ];
+            }
+            else if (texto.Contains("timed out") || texto.Contains("Failure sending mail") ||
+                     texto.Contains("No such host") || texto.Contains("actively refused"))
+            {
+                resumen = "No se pudo establecer la comunicación con el servidor de correo.";
+                acciones =
+                [
+                    $"Verifique que el nombre «{c.Servidor}» y el puerto {c.Puerto} sean correctos.",
+                    "Revise que el firewall del servidor permita la salida hacia ese puerto.",
+                ];
+            }
+            else if (texto.Contains("5.7.60") || texto.Contains("send as") || texto.Contains("SendAsDenied"))
+            {
+                resumen = "El buzón autenticado no tiene permiso para enviar con el correo remitente configurado.";
+                acciones =
+                [
+                    $"Use como remitente el mismo buzón del usuario, o conceda el permiso «Enviar como» sobre {c.Remitente}.",
+                ];
+            }
+            else
+            {
+                resumen = "El servidor de correo rechazó el envío.";
+                acciones =
+                [
+                    "Revise los datos en Parámetros → Servidor de correo y pruebe de nuevo.",
+                    "Comparta el detalle técnico con el administrador del servidor de correo.",
+                ];
+            }
+
+            return (false, Redactar(resumen, acciones, c, destinatario, ex, ex.StatusCode.ToString()));
         }
         catch (Exception ex)
         {
-            return (false, "No fue posible enviar el correo: " + ex.Message);
+            return (false, Redactar(
+                "Ocurrió un problema inesperado al enviar el correo.",
+                ["Intente nuevamente; si persiste, comparta el detalle técnico con el administrador del sistema."],
+                c, destinatario, ex, null));
         }
+    }
+
+    /// <summary>
+    /// Arma un mensaje en tres bloques: qué pasó en lenguaje sencillo, qué hacer y el
+    /// detalle técnico que el administrador necesita. El frontend separa por "Detalle técnico:".
+    /// </summary>
+    private static string Redactar(
+        string resumen, string[] acciones, ConfigCorreo c, string destinatario,
+        Exception ex, string? codigo)
+    {
+        var tecnico = new List<string>
+        {
+            $"Servidor: {c.Servidor}:{(c.Puerto <= 0 ? 587 : c.Puerto)} · TLS: {(c.Ssl ? "sí" : "no")}",
+            $"Usuario: {(string.IsNullOrWhiteSpace(c.Usuario) ? "(sin autenticación)" : c.Usuario)} · " +
+            $"Contraseña guardada: {(string.IsNullOrWhiteSpace(c.ClaveCifrada) ? "no" : "sí")}",
+            $"Remitente: {c.Remitente} · Destinatario: {destinatario}",
+        };
+        if (!string.IsNullOrWhiteSpace(codigo) && codigo != "GeneralFailure")
+            tecnico.Add($"Código SMTP: {codigo}");
+        tecnico.Add($"Error: {ex.GetType().Name}: {ex.Message.Trim()}");
+        if (ex.InnerException is { } inner)
+            tecnico.Add($"Causa: {inner.GetType().Name}: {inner.Message.Trim()}");
+        tecnico.Add($"Fecha (UTC): {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}");
+
+        var pasos = string.Join("\n", acciones.Select(a => "• " + a));
+        return $"{resumen}\n\nQué hacer:\n{pasos}\n\nDetalle técnico:\n{string.Join("\n", tecnico)}";
     }
 
     private static IEnumerable<string> Separar(string? lista) =>

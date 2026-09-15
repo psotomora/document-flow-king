@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Download, Loader2, Mail, Send } from "lucide-react";
 import { toast } from "sonner";
+import { MensajeCorreo, separarMensajeCorreo } from "@/components/comunes/MensajeCorreo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,6 +37,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
   const [dirigido, setDirigido] = useState("");
   const [correo, setCorreo] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
 
   const [enviando, setEnviando] = useState(false);
   const [descargando, setDescargando] = useState(false);
@@ -117,6 +119,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       return;
     }
     setEnviando(true);
+    setErrorEnvio(null);
     try {
       const pdf = await generar();
       const r = await api<{ mensaje: string }>("/correo/estado-cuenta", {
@@ -138,9 +141,12 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       setDirigido("");
       setMensaje("");
     } catch (e) {
-      toast.error(
-        e instanceof ErrorApi || e instanceof Error ? e.message : "No fue posible enviar el correo.",
-      );
+      const texto =
+        e instanceof ErrorApi || e instanceof Error
+          ? e.message
+          : "No fue posible enviar el correo.";
+      setErrorEnvio(texto);
+      toast.error(separarMensajeCorreo(texto).resumen);
     } finally {
       setEnviando(false);
     }
@@ -245,6 +251,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
             </p>
           </div>
 
+          {errorEnvio ? <MensajeCorreo ok={false} mensaje={errorEnvio} /> : null}
         </div>
 
         <DialogFooter className="gap-2">

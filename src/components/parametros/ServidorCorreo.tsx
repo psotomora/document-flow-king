@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Save, Send } from "lucide-react";
 import { toast } from "sonner";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
+import { MensajeCorreo } from "@/components/comunes/MensajeCorreo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -242,16 +243,9 @@ export function ServidorCorreo() {
       </div>
 
       {resultado ? (
-        <p
-          role="status"
-          className={`mt-3 rounded-md border px-3 py-2 text-xs ${
-            resultado.ok
-              ? "border-exito/40 bg-exito-suave text-exito"
-              : "border-destructive/40 bg-destructive-suave text-destructive"
-          }`}
-        >
-          {resultado.mensaje}
-        </p>
+        <div role="status" className="mt-3">
+          <MensajeCorreo ok={resultado.ok} mensaje={resultado.mensaje} />
+        </div>
       ) : null}
     </div>
   );
