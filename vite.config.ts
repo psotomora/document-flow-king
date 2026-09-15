@@ -41,7 +41,22 @@ const rutaBase = (() => {
 console.log(`[vite] Ruta base de la aplicación: ${rutaBase}`);
 
 export default defineConfig({
-  vite: { base: rutaBase },
+  vite: {
+    base: rutaBase,
+    build: {
+      // La hoja principal usa un nombre estable para que SSR pueda incluirla
+      // explícitamente aun cuando la aplicación se publique en una subcarpeta.
+      cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          assetFileNames: (assetInfo) =>
+            assetInfo.names.some((nombre) => nombre.endsWith(".css"))
+              ? "assets/app.css"
+              : "assets/[name]-[hash][extname]",
+        },
+      },
+    },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
