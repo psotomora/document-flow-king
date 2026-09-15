@@ -13,7 +13,18 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 // Se puede forzar otro destino con NITRO_PRESET.
 const preset = process.env["NITRO_PRESET"] || "node-server";
 
+// Publicación bajo subcarpeta (por ejemplo http://servidor/cashflow): defina
+// APP_BASE_PATH="/cashflow" antes de compilar. Vite sirve los estáticos desde
+// ese prefijo y el router usa el mismo valor (import.meta.env.BASE_URL).
+// Sin la variable, la aplicación se publica en la raíz del sitio.
+const rutaBase = (() => {
+  const valor = (process.env["APP_BASE_PATH"] || "/").trim();
+  if (valor === "" || valor === "/") return "/";
+  return `/${valor.replace(/^\/+|\/+$/g, "")}/`;
+})();
+
 export default defineConfig({
+  vite: { base: rutaBase },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
