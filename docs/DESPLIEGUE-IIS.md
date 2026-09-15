@@ -192,6 +192,19 @@ npm install
 npm run build:node
 ```
 
+> **Publicación en una subcarpeta** (por ejemplo `http://SRV-APP/cashflow`):
+> defina la variable antes de compilar y vuelva a compilar completo.
+>
+> ```powershell
+> $env:APP_BASE_PATH = "/cashflow"
+> npm run build:node
+> ```
+>
+> Con esa variable, los estilos, los scripts y la navegación usan el prefijo
+> `/cashflow`. En IIS, cree la aplicación virtual `cashflow` (o la regla de
+> proxy `^cashflow/(.*)` hacia `http://localhost:3000/cashflow/{R:1}`).
+> Si la aplicación se publica en la raíz del sitio, **no** defina la variable.
+
 > No hace falta definir `NITRO_PRESET`: el proyecto ya compila siempre como
 > servidor Node fuera del entorno de Lovable, y `build:node` verifica el
 > resultado automáticamente. Si la verificación falla, borre `.output` y repita.
