@@ -252,14 +252,14 @@ npm run build:node
 >      `https://apps.aplix.cr` a `Cors:Origenes` y reinicie el grupo de
 >      aplicaciones de la API; sin esto el navegador bloquea las llamadas.
 >
-> **MUY IMPORTANTE — archivos en subcarpeta.** Desde la versión 1.36.16, el
-> servidor traduce internamente `/cashflow/assets/*` hacia la carpeta física
-> `/assets/*`. No configure `NITRO_APP_BASE_URL` en NSSM y no agregue una regla
+> **MUY IMPORTANTE — archivos en subcarpeta.** Desde la versión 1.36.16, la
+> compilación configura la misma ruta `/cashflow` tanto para Vite como para
+> Nitro. No configure `NITRO_APP_BASE_URL` en NSSM y no agregue una regla
 > separada para `cashflow/assets`. La regla `CashflowSubcarpeta` debe conservar
-> el prefijo completo y el código se encarga del resto.
+> el prefijo completo.
 >
 > Al finalizar, `build:node` verifica que exista físicamente
-> `.output\public\assets\app.css`. Si no existe, la compilación termina
+> `.output\public\cashflow\assets\app.css`. Si no existe, la compilación termina
 > con error para impedir una publicación incompleta.
 >
 > Para comprobar la publicación, copie de la consola del navegador la dirección

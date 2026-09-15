@@ -18,19 +18,6 @@ async function getServerEntry(): Promise<ServerEntry> {
   return serverEntryPromise;
 }
 
-function normalizePublicAssetRequest(request: Request): Request {
-  const baseUrl = import.meta.env.BASE_URL ?? "/";
-  const basePath = baseUrl.replace(/^\/+|\/+$/g, "");
-  if (!basePath) return request;
-
-  const url = new URL(request.url);
-  const assetPrefix = `/${basePath}/assets/`;
-  if (!url.pathname.startsWith(assetPrefix)) return request;
-
-  url.pathname = `/assets/${url.pathname.slice(assetPrefix.length)}`;
-  return new Request(url, request);
-}
-
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
 async function normalizeCatastrophicSsrResponse(response: Response): Promise<Response> {
@@ -61,8 +48,7 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
-      const normalizedRequest = normalizePublicAssetRequest(request);
-      const response = await handler.fetch(normalizedRequest, env, ctx);
+      const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);

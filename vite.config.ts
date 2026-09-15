@@ -40,6 +40,10 @@ const rutaBase = (() => {
 
 console.log(`[vite] Ruta base de la aplicación: ${rutaBase}`);
 
+// El tipo reducido del wrapper no declara baseURL, pero Nitro sí lo admite.
+// Mantenerlo en una variable evita perder esta opción al pasar la configuración.
+const nitroConfig = { preset, baseURL: rutaBase };
+
 export default defineConfig({
   vite: {
     base: rutaBase,
@@ -62,8 +66,7 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  // Nitro conserva sus archivos físicos en /assets. El wrapper de src/server.ts
-  // traduce solo las solicitudes /<subcarpeta>/assets sin afectar las páginas.
-  nitro: { preset },
+  // La ruta de Nitro debe coincidir con vite.base durante la compilación.
+  nitro: nitroConfig,
 });
 
