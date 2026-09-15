@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Save, Send } from "lucide-react";
 import { toast } from "sonner";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
+import { MensajeCorreo } from "@/components/comunes/MensajeCorreo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
