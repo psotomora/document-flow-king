@@ -587,4 +587,7 @@ public record EnvioEstadoCuenta(
     string? NombreArchivo,
     string ArchivoBase64,
     /// <summary>Nombre de la persona a quien se dirige el correo.</summary>
-    string? Dirigido = null);
+    string? Dirigido = null,
+    /// <summary>Texto libre (máx. 300 caracteres) que se agrega al cuerpo del correo.</summary>
+    string? Mensaje = null);
+
