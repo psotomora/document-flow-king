@@ -190,7 +190,7 @@ export function VistaComparativa({
   const consolidadoNeto = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
       (s, d) => {
-        const factor = neto && esCredito(d.tipo) ? -1 : 1;
+        const factor = factorDoc(d.tipo);
         const valor = d.moneda === "USD" ? d[campo] : tipoCambio > 0 ? d[campo] / tipoCambio : 0;
         return s + factor * valor;
       },
