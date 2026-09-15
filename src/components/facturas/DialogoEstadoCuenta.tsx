@@ -118,6 +118,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       return;
     }
     setEnviando(true);
+    setErrorEnvio(null);
     try {
       const pdf = await generar();
       const r = await api<{ mensaje: string }>("/correo/estado-cuenta", {
@@ -139,9 +140,12 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       setDirigido("");
       setMensaje("");
     } catch (e) {
-      toast.error(
-        e instanceof ErrorApi || e instanceof Error ? e.message : "No fue posible enviar el correo.",
-      );
+      const texto =
+        e instanceof ErrorApi || e instanceof Error
+          ? e.message
+          : "No fue posible enviar el correo.";
+      setErrorEnvio(texto);
+      toast.error(separarMensajeCorreo(texto).resumen);
     } finally {
       setEnviando(false);
     }
