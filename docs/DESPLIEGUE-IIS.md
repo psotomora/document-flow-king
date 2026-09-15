@@ -234,6 +234,24 @@ npm run build:node
 >   llamada `cashflow` que apunte a una carpeta con el `web.config` del sitio;
 >   con la aplicación virtual no hace falta regla.
 >
+>   **Caso real: `https://apps.aplix.cr/cashflow`** (el sitio `apps.aplix.cr`
+>   publica varias aplicaciones y esta va en la subcarpeta `cashflow`):
+>   1. Compile con `ruta-base.txt` = `/cashflow` (Forma A) y copie `.output\`
+>      a la carpeta del proceso Node (por ejemplo `C:\inetpub\FlujoEfectivoWeb`).
+>      Verifique en pantalla `[vite] Ruta base de la aplicación: /cashflow`.
+>   2. En el sitio `apps.aplix.cr` de IIS agregue **solo** la regla
+>      `CashflowSubcarpeta` de arriba (ajuste el puerto si el proceso Node de
+>      esta aplicación usa otro). **No** agregue reglas generales ni la regla
+>      `ApiReverseProxy` a ese sitio compartido: capturarían `/api` de las
+>      demás aplicaciones.
+>   3. La API .NET NO se publica dentro de `apps.aplix.cr`; los usuarios la
+>      apuntan desde la pantalla de inicio de sesión (campo *Servidor*, por
+>      ejemplo `http://flujoefectivo.local/api`). Esa dirección queda guardada
+>      en el navegador de cada usuario.
+>   4. En `appsettings.Production.json` de la API agregue
+>      `https://apps.aplix.cr` a `Cors:Origenes` y reinicie el grupo de
+>      aplicaciones de la API; sin esto el navegador bloquea las llamadas.
+>
 > Si la aplicación se publica en la raíz del sitio, **no** use ninguna de las dos.
 
 > No hace falta definir `NITRO_PRESET`: el proyecto ya compila siempre como
