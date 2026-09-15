@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
 import {
   Dialog,
   DialogContent,
@@ -33,6 +35,8 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
   const [cliente, setCliente] = useState("");
   const [dirigido, setDirigido] = useState("");
   const [correo, setCorreo] = useState("");
+  const [mensaje, setMensaje] = useState("");
+
   const [enviando, setEnviando] = useState(false);
   const [descargando, setDescargando] = useState(false);
 
@@ -84,13 +88,28 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
     }
   };
 
+  /** Correos digitados, separados por punto y coma (o coma). */
+  const destinatarios = useMemo(
+    () =>
+      correo
+        .split(/[;,]/)
+        .map((c) => c.trim())
+        .filter(Boolean),
+    [correo],
+  );
+
   const enviar = async () => {
     if (!cliente) {
       toast.error("Seleccione el cliente.");
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
-      toast.error("Indique un correo de destinatario válido.");
+    const invalidos = destinatarios.filter((c) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c));
+    if (destinatarios.length === 0 || invalidos.length > 0) {
+      toast.error(
+        invalidos.length > 0
+          ? `Revise el correo: ${invalidos[0]}`
+          : "Indique al menos un correo de destinatario.",
+      );
       return;
     }
     if (!modoApi) {
@@ -103,9 +122,10 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       const r = await api<{ mensaje: string }>("/correo/estado-cuenta", {
         metodo: "POST",
         cuerpo: {
-          destinatario: correo.trim(),
+          destinatario: destinatarios.join(";"),
           cliente,
           dirigido: dirigido.trim() || null,
+          mensaje: mensaje.trim().slice(0, 300) || null,
           compania: nombreCompania,
           documentos: seleccionadas.length,
           nombreArchivo: pdf.nombreArchivo,
@@ -116,6 +136,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       setAbierto(false);
       setCorreo("");
       setDirigido("");
+      setMensaje("");
     } catch (e) {
       toast.error(
         e instanceof ErrorApi || e instanceof Error ? e.message : "No fue posible enviar el correo.",
@@ -124,6 +145,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
       setEnviando(false);
     }
   };
+
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
@@ -194,18 +216,35 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="ec-correo">Correo del destinatario</Label>
+            <Label htmlFor="ec-correo">Correos de los destinatarios</Label>
             <Input
               id="ec-correo"
-              type="email"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
-              placeholder="cliente@empresa.com"
+              placeholder="cliente@empresa.com; contabilidad@empresa.com"
             />
             <p className="text-xs text-muted-foreground">
-              Se envía desde el servidor de correo configurado en Parámetros.
+              Puede indicar varios correos separados por punto y coma (;).
+              {destinatarios.length > 1 ? ` Se enviará a ${destinatarios.length} destinatarios.` : ""}
             </p>
           </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="ec-mensaje">Mensaje adicional</Label>
+            <Textarea
+              id="ec-mensaje"
+              value={mensaje}
+              maxLength={300}
+              rows={3}
+              onChange={(e) => setMensaje(e.target.value.slice(0, 300))}
+              placeholder="Texto que se incluirá en el cuerpo del correo (opcional)"
+            />
+            <p className="text-xs text-muted-foreground">
+              {mensaje.length}/300 caracteres. Se envía desde el servidor de correo configurado en
+              Parámetros.
+            </p>
+          </div>
+
         </div>
 
         <DialogFooter className="gap-2">
