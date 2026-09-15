@@ -47,6 +47,9 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  nitro: { preset },
+  // El servidor Nitro también debe publicar los archivos estáticos bajo el
+  // mismo prefijo; de lo contrario el HTML pide /cashflow/assets/... y el
+  // servidor solo responde en /assets/... (la página carga sin estilos).
+  nitro: { preset, baseURL: rutaBase },
 });
 
