@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.36.7";
-export const APP_FECHA_VERSION = "2026-09-12";
+export const APP_VERSION = "1.36.8";
+export const APP_FECHA_VERSION = "2026-09-15";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -13,6 +13,15 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.36.8",
+    fecha: "2026-09-15",
+    cambios: [
+      "El estado de cuenta se puede enviar a varios correos separados por punto y coma.",
+      "Nuevo campo de mensaje adicional (hasta 300 caracteres) que se incluye en el correo.",
+      "Los contratos trasladados al histórico desaparecen de la lista para todos los usuarios.",
+    ],
+  },
+  {
     version: "1.36.7",
     fecha: "2026-09-12",
     cambios: [
@@ -20,6 +29,7 @@ export const HISTORIAL_VERSIONES: EntradaVersion[] = [
       "El sistema acepta las llaves con o sin saltos de línea, para evitar errores al configurarlas.",
     ],
   },
+
   {
     version: "1.36.6",
     fecha: "2026-09-12",
