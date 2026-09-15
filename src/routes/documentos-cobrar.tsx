@@ -144,10 +144,12 @@ function PaginaDocumentosPorCobrar() {
     const n = t.toUpperCase().replace("/", "").trim();
     return n === "DEV" || n === "NC";
   };
+  // Los créditos (DEV/NC) nunca suman: restan cuando se rebajan y se excluyen cuando no.
+  const factorDoc = (t: string) => (esCredito(t) ? (neto ? -1 : 0) : 1);
   const sumar = (m: Moneda, campo: "monto" | "saldo") =>
     filtrados
       .filter((d) => d.moneda === m)
-      .reduce((s, d) => s + (neto && esCredito(d.tipo) ? -d[campo] : d[campo]), 0);
+      .reduce((s, d) => s + factorDoc(d.tipo) * d[campo], 0);
   const montoUSD = sumar("USD", "monto");
   const montoCRC = sumar("CRC", "monto");
   const saldoUSD = sumar("USD", "saldo");
