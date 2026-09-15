@@ -13,6 +13,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.36.10",
+    fecha: "2026-09-15",
+    cambios: [
+      "Contratos: el filtro por estado ahora ofrece 'Activo' y 'Diferente de Activo', y cada línea muestra su estado real.",
+    ],
+  },
+  {
     version: "1.36.9",
     fecha: "2026-09-15",
     cambios: [
