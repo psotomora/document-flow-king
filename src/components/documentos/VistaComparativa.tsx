@@ -173,10 +173,13 @@ export function VistaComparativa({
   const porMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
     lista.filter((d) => d.moneda === m).reduce((s, d) => s + d.monto, 0);
 
+  // Los créditos (DEV/NC) nunca suman: restan cuando se rebajan y se excluyen cuando no.
+  const factorDoc = (t: string) => (esCredito(t) ? (neto ? -1 : 0) : 1);
+
   const netoPorMoneda = (lista: DocumentoPorCobrar[], m: Moneda) =>
     lista
       .filter((d) => d.moneda === m)
-      .reduce((s, d) => s + (neto && esCredito(d.tipo) ? -d.monto : d.monto), 0);
+      .reduce((s, d) => s + factorDoc(d.tipo) * d.monto, 0);
 
   const consolidado = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
@@ -187,7 +190,7 @@ export function VistaComparativa({
   const consolidadoNeto = (lista: DocumentoPorCobrar[], campo: "monto" | "saldo") =>
     lista.reduce(
       (s, d) => {
-        const factor = neto && esCredito(d.tipo) ? -1 : 1;
+        const factor = factorDoc(d.tipo);
         const valor = d.moneda === "USD" ? d[campo] : tipoCambio > 0 ? d[campo] / tipoCambio : 0;
         return s + factor * valor;
       },
@@ -412,7 +415,7 @@ export function VistaComparativa({
             <span>
               {neto
                 ? "Los totales comparativos representan el monto neto: suma de facturas (FAC) menos las devoluciones (DEV) y notas de crédito (NC)."
-                : "Los totales comparativos representan el monto bruto: se suman todos los documentos (FAC, DEV y NC) sin rebajos."}
+                : "Los totales comparativos consideran únicamente las facturas (FAC); las devoluciones (DEV) y notas de crédito (NC) quedan excluidas."}
             </span>
           </div>
         </div>
