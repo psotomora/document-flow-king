@@ -417,10 +417,13 @@ Los usuarios deben refrescar con **Ctrl+F5**.
 | --- | --- | --- |
 | API: 500.30/500.31 | Falta Hosting Bundle o error al iniciar | Instalar Hosting Bundle, `iisreset`, activar `stdoutLogEnabled` |
 | API: `Login failed for user` | Login SQL o autenticación mixta | Revisar paso 1 y cadena de conexión |
-| Web: "Unexpected token '<' … not valid JSON" | URL de la API apunta al sitio web, no a la API | Usar `http://SRV-APP:5080` |
+| Web: "Unexpected token '<' … not valid JSON" | URL de la API apunta al sitio web, no a la API | Usar `http://SRV-APP:5080/api` |
 | Web: error de CORS en consola (F12) | Origen no está en `Cors:Origenes` | Agregar la URL exacta y reiniciar el grupo de la API |
 | Web: 502.3 / 404 al abrir | Servicio Node detenido o proxy ARR no habilitado | `nssm status FlujoEfectivoWeb`, paso 0.4 |
 | Web: refrescar `/facturas` da 404 | `web.config` no está en la raíz del sitio | Copiar `public\web.config` |
+| Web: sin estilos y 404 en `/cashflow/assets/*` | Se compiló sin la ruta base | Compilar con `ruta-base.txt` = `/cashflow` (debe leerse `[vite] Ruta base de la aplicación: /cashflow`), copiar toda `.output` y reiniciar el servicio |
+| Web: "Mixed Content" o la API no responde en HTTPS | Sitio en `https` llamando una API en `http` | Publicar la API por HTTPS y registrar `https://.../api` en el campo *Servidor* |
+| Web: campo *Servidor* rechaza la dirección | Falta el sufijo `/api` o `/salud` no responde | Probar `.../api/salud` en el navegador antes de guardar |
 
 ## Licenciamiento (1.36.0)
 
