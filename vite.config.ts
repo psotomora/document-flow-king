@@ -20,11 +20,25 @@ const preset = process.env["NITRO_PRESET"] || "node-server";
 // APP_BASE_PATH="/cashflow" antes de compilar. Vite sirve los estáticos desde
 // ese prefijo y el router usa el mismo valor (import.meta.env.BASE_URL).
 // Sin la variable, la aplicación se publica en la raíz del sitio.
+// Alternativa sin variables de entorno: escriba la subcarpeta en el archivo
+// ruta-base.txt en la raíz del proyecto (una sola línea, por ejemplo /cashflow).
+function leerRutaBaseDeArchivo(): string {
+  try {
+    const archivo = resolve(process.cwd(), "ruta-base.txt");
+    if (!existsSync(archivo)) return "";
+    return readFileSync(archivo, "utf8").split("\n")[0]?.trim() ?? "";
+  } catch {
+    return "";
+  }
+}
+
 const rutaBase = (() => {
-  const valor = (process.env["APP_BASE_PATH"] || "/").trim();
-  if (valor === "" || valor === "/") return "/";
+  const valor = (process.env["APP_BASE_PATH"] || leerRutaBaseDeArchivo() || "/").trim();
+  if (valor === "" || valor === "/" || valor.startsWith("#")) return "/";
   return `/${valor.replace(/^\/+|\/+$/g, "")}/`;
 })();
+
+console.log(`[vite] Ruta base de la aplicación: ${rutaBase}`);
 
 export default defineConfig({
   vite: { base: rutaBase },
