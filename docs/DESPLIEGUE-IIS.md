@@ -252,6 +252,34 @@ npm run build:node
 >      `https://apps.aplix.cr` a `Cors:Origenes` y reinicie el grupo de
 >      aplicaciones de la API; sin esto el navegador bloquea las llamadas.
 >
+> **MUY IMPORTANTE — estilos e imágenes en subcarpeta.** El servidor Node
+> publica los archivos estáticos en `/assets/...` **sin** el prefijo, mientras
+> que las páginas los piden como `/cashflow/assets/...`. Si no se ajusta, la
+> aplicación abre **sin estilos** (solo texto). Elija una de las dos opciones:
+>
+> - **Opción 1 (recomendada): variable del servicio.** Agregue al servicio
+>   NSSM/Windows la variable de entorno `NITRO_APP_BASE_URL=/cashflow` y
+>   reinicie el servicio. Con NSSM:
+>
+>   ```powershell
+>   nssm set FlujoEfectivoWeb AppEnvironmentExtra NITRO_APP_BASE_URL=/cashflow
+>   nssm restart FlujoEfectivoWeb
+>   ```
+>
+> - **Opción 2: regla adicional en IIS** que quite el prefijo solo a los
+>   estáticos. Colóquela **antes** de `CashflowSubcarpeta`:
+>
+>   ```xml
+>   <rule name="CashflowEstaticos" stopProcessing="true">
+>     <match url="^cashflow/assets/(.*)" />
+>     <action type="Rewrite" url="http://localhost:3000/assets/{R:1}" />
+>   </rule>
+>   ```
+>
+> Para comprobarlo: abra `https://apps.aplix.cr/cashflow/assets/` en el
+> navegador; el archivo `.css` que aparece en el código fuente de la página debe
+> descargarse (no dar 404).
+>
 > Si la aplicación se publica en la raíz del sitio, **no** use ninguna de las dos.
 
 > No hace falta definir `NITRO_PRESET`: el proyecto ya compila siempre como
