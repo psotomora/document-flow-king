@@ -360,7 +360,7 @@ function PaginaDocumentosPorCobrar() {
       <p className="text-xs text-muted-foreground">
         {neto
           ? "Los totales son netos: suma de facturas (FAC) menos devoluciones (DEV) y notas de crédito (NC)."
-          : "Los totales son brutos: se suman todos los documentos (FAC, DEV y NC) sin rebajos."}
+          : "Los totales consideran únicamente las facturas (FAC); las devoluciones (DEV) y notas de crédito (NC) quedan excluidas."}
       </p>
 
       <div className="flex justify-end">
