@@ -47,9 +47,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  // El servidor Nitro también debe publicar los archivos estáticos bajo el
-  // mismo prefijo; de lo contrario el HTML pide /cashflow/assets/... y el
-  // servidor solo responde en /assets/... (la página carga sin estilos).
-  nitro: { preset, baseURL: rutaBase },
+  // Nota: el servidor Nitro publica los archivos estáticos en /assets/...
+  // (sin el prefijo de la subcarpeta). Cuando se publica en /cashflow hay que
+  // indicarle el prefijo con la variable de entorno NITRO_APP_BASE_URL=/cashflow
+  // al iniciar el servicio, o reescribir /cashflow/assets/* a /assets/* en IIS.
+  nitro: { preset },
 });
 
