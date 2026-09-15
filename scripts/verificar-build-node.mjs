@@ -18,7 +18,7 @@ function leerRutaBase() {
 }
 
 const rutaBase = leerRutaBase();
-const estilos = resolve(raiz, ".output/public", rutaBase, "assets/app.css");
+const estilos = resolve(raiz, ".output/public/assets/app.css");
 
 function fallar(mensaje) {
   console.error("\n[verificar-build-node] " + mensaje);
@@ -55,5 +55,5 @@ if (pareceWorker && !pareceNode) {
 }
 
 console.log(
-  `[verificar-build-node] OK: servidor Node y ${rutaBase ? `${rutaBase}/` : ""}assets/app.css generados correctamente.`,
+  `[verificar-build-node] OK: servidor Node, assets/app.css y acceso público /${rutaBase ? `${rutaBase}/` : ""}assets verificados.`,
 );

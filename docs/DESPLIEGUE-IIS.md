@@ -208,10 +208,9 @@ npm run build:node
 > npm run build:node
 > ```
 >
-> Al iniciar la compilación deben leerse estas dos líneas:
-> `[vite] Ruta base de la aplicación: /cashflow` y
-> `[nitro] Ruta base del servidor: /cashflow/`. Si alguna dice `/`, la ruta no
-> se aplicó: borre la carpeta `.output` y repita.
+> Al iniciar la compilación debe leerse:
+> `[vite] Ruta base de la aplicación: /cashflow`. Si dice `/`, la ruta no se
+> aplicó: borre la carpeta `.output` y repita.
 >
 > Con esto, los estilos, los scripts y la navegación usan el prefijo
 > `/cashflow`. **Configuración en IIS (elija según su caso):**
@@ -253,15 +252,14 @@ npm run build:node
 >      `https://apps.aplix.cr` a `Cors:Origenes` y reinicie el grupo de
 >      aplicaciones de la API; sin esto el navegador bloquea las llamadas.
 >
-> **MUY IMPORTANTE — archivos en subcarpeta.** Desde la versión 1.36.16, la
-> compilación sincroniza automáticamente la ruta de Vite y la del servidor Node.
-> No configure `NITRO_APP_BASE_URL` en NSSM y no agregue una regla separada para
-> `cashflow/assets`: ambas soluciones ocurrían demasiado tarde o alteraban solo
-> una parte de las solicitudes. La regla `CashflowSubcarpeta` debe conservar el
-> prefijo completo.
+> **MUY IMPORTANTE — archivos en subcarpeta.** Desde la versión 1.36.16, el
+> servidor traduce internamente `/cashflow/assets/*` hacia la carpeta física
+> `/assets/*`. No configure `NITRO_APP_BASE_URL` en NSSM y no agregue una regla
+> separada para `cashflow/assets`. La regla `CashflowSubcarpeta` debe conservar
+> el prefijo completo y el código se encarga del resto.
 >
 > Al finalizar, `build:node` verifica que exista físicamente
-> `.output\public\cashflow\assets\app.css`. Si no existe, la compilación termina
+> `.output\public\assets\app.css`. Si no existe, la compilación termina
 > con error para impedir una publicación incompleta.
 >
 > Para comprobar la publicación, copie de la consola del navegador la dirección

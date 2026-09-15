@@ -38,13 +38,7 @@ const rutaBase = (() => {
   return `/${valor.replace(/^\/+|\/+$/g, "")}/`;
 })();
 
-// Nitro resuelve y registra los archivos públicos durante la compilación.
-// Debe recibir la misma ruta en este momento (no al iniciar NSSM), para que
-// /cashflow/assets/*.js exista realmente en el servidor Node generado.
-process.env["NITRO_APP_BASE_URL"] = rutaBase;
-
 console.log(`[vite] Ruta base de la aplicación: ${rutaBase}`);
-console.log(`[nitro] Ruta base del servidor: ${process.env["NITRO_APP_BASE_URL"]}`);
 
 export default defineConfig({
   vite: {
@@ -68,8 +62,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  // NITRO_APP_BASE_URL se sincroniza arriba antes de crear el plugin para que
-  // el servidor y Vite generen exactamente el mismo prefijo.
+  // Nitro conserva sus archivos físicos en /assets. El wrapper de src/server.ts
+  // traduce solo las solicitudes /<subcarpeta>/assets sin afectar las páginas.
   nitro: { preset },
 });
 
