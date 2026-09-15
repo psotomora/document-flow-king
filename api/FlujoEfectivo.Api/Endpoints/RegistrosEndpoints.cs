@@ -956,11 +956,19 @@ public static class RegistrosEndpoints
             var dirigido = string.IsNullOrWhiteSpace(e.Dirigido)
                 ? $"Estimado cliente <strong>{System.Net.WebUtility.HtmlEncode(e.Cliente)}</strong>"
                 : $"Estimado(a) <strong>{System.Net.WebUtility.HtmlEncode(e.Dirigido!.Trim())}</strong>";
+            // Texto libre opcional del usuario: se limita a 300 caracteres y se codifica en HTML.
+            var libre = (e.Mensaje ?? "").Trim();
+            if (libre.Length > 300) libre = libre[..300];
+            var parrafoLibre = libre.Length == 0
+                ? ""
+                : $"<p>{System.Net.WebUtility.HtmlEncode(libre).Replace("\n", "<br/>")}</p>";
             var cuerpo =
                 $"<p>{dirigido},</p>" +
                 "<p>Adjunto encontrará su estado de cuenta con el desglose de las facturas pendientes " +
                 $"al {DateTime.Now:dd/MM/yyyy}.</p>" +
+                parrafoLibre +
                 "<p>Cordialmente,<br/><strong>Administración Aplix</strong><br/>Theronix, S. A.</p>";
+
 
             var (ok, mensaje) = Correo.Enviar(cfg, config["Jwt:Llave"] ?? "", e.Destinatario.Trim(),
                 $"Estado de cuenta · {e.Cliente}", cuerpo, (nombre, pdf));
