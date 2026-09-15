@@ -259,7 +259,8 @@ npm run build:node
 > el prefijo completo.
 >
 > Al finalizar, `build:node` verifica que exista físicamente
-> `.output\public\cashflow\assets\app.css`. Si no existe, la compilación termina
+> `.output\public\assets\app.css`; Nitro la expone públicamente como
+> `/cashflow/assets/app.css`. Si no existe, la compilación termina
 > con error para impedir una publicación incompleta.
 >
 > Para comprobar la publicación, copie de la consola del navegador la dirección
