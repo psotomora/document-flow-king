@@ -108,7 +108,7 @@ function PaginaContratos() {
   // Con la fuente externa activa los contratos son de solo lectura.
   const soloLectura = modoApi && contratosFuenteExterna;
 
-  const [estado, setEstado] = useState<EstadoContrato | "todos">("todos");
+  const [estado, setEstado] = useState<EstadoContrato | "todos" | "diferente">("todos");
   const [busqueda, setBusqueda] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
@@ -117,7 +117,8 @@ function PaginaContratos() {
 
   const texto = busqueda.trim().toLowerCase();
   const filtrados = filtrarPorCompania(contratos, companiaActiva).filter((c) => {
-    if (estado !== "todos" && c.estado !== estado) return false;
+    if (estado === "Activo" && c.estado !== "Activo") return false;
+    if (estado === "diferente" && c.estado === "Activo") return false;
     if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
     const fecha = c.proximaFacturacion.slice(0, 10);
     if (fechaInicio && fecha < fechaInicio) return false;
@@ -219,14 +220,17 @@ function PaginaContratos() {
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div className="space-y-1.5">
           <Label>Estado</Label>
-          <Select value={estado} onValueChange={(v) => setEstado(v as EstadoContrato | "todos")}>
+          <Select
+            value={estado}
+            onValueChange={(v) => setEstado(v as EstadoContrato | "todos" | "diferente")}
+          >
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               <SelectItem value="Activo">Activo</SelectItem>
-              <SelectItem value="Cancelado">Cancelado</SelectItem>
+              <SelectItem value="diferente">Diferente de Activo</SelectItem>
             </SelectContent>
           </Select>
         </div>
