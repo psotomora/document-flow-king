@@ -2,6 +2,7 @@ import { LogIn } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
 import { Button } from "@/components/ui/button";
 import { VersionApp } from "@/components/layout/VersionApp";
+import logoAplix from "@/assets/aplix-isotipo.png";
 
 /** Página de finalización de sesión (modo conectado a SQL Server). */
 export function PantallaSesionCerrada() {
@@ -11,7 +12,7 @@ export function PantallaSesionCerrada() {
     <main className="flex min-h-screen items-center justify-center bg-muted/40 px-4 py-10">
       <section className="w-full max-w-sm text-center">
         <img
-          src="/favicon.png"
+          src={logoAplix}
           alt="Aplix"
           className="mx-auto size-10 opacity-70"
           loading="lazy"

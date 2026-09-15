@@ -16,6 +16,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PantallaLogin } from "@/components/layout/PantallaLogin";
 import { PantallaSesionCerrada } from "@/components/layout/PantallaSesionCerrada";
 import { Toaster } from "@/components/ui/sonner";
+import logoAplix from "@/assets/aplix-isotipo.png";
 
 function NotFoundComponent() {
   return (
@@ -100,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "icon", href: logoAplix, type: "image/png" },
     ],
   }),
   shellComponent: RootShell,

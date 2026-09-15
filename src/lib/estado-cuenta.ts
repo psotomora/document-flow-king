@@ -6,9 +6,7 @@
 import type { Moneda } from "@/data/tipos";
 import type { FacturaCalculada } from "@/lib/calculos";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
-
-const LOGO_URL =
-  "https://document-flow-king.lovable.app/__l5e/assets-v1/e71ea6c3-b2e8-40c3-a8f5-c4f66d7f945a/aplix-isotipo.png";
+import logoAplix from "@/assets/aplix-isotipo.png";
 
 export interface EstadoCuentaPdf {
   /** Contenido del PDF en base64, sin el prefijo data:. */
@@ -19,7 +17,7 @@ export interface EstadoCuentaPdf {
 
 async function logoBase64(): Promise<string | null> {
   try {
-    const respuesta = await fetch(LOGO_URL);
+    const respuesta = await fetch(logoAplix);
     if (!respuesta.ok) return null;
     const blob = await respuesta.blob();
     return await new Promise<string>((resolver, rechazar) => {

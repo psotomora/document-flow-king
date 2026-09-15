@@ -8,6 +8,7 @@ import { CampoContrasena } from "@/components/comunes/CampoContrasena";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import logoAplix from "@/assets/aplix-isotipo.png";
 
 import {
   Card,
@@ -16,9 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-const LOGO_APLIX_URL =
-  "https://document-flow-king.lovable.app/__l5e/assets-v1/e71ea6c3-b2e8-40c3-a8f5-c4f66d7f945a/aplix-isotipo.png";
 
 /** Pantalla de autenticación contra la API .NET (tabla flujo.Usuario + JWT). */
 export function PantallaLogin() {
@@ -91,7 +89,7 @@ export function PantallaLogin() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-muted/40 px-4 py-10">
       <img
-        src={LOGO_APLIX_URL}
+        src={logoAplix}
         alt="Aplix"
         className="mb-4 h-16 w-auto object-contain"
       />

@@ -36,8 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import { VersionApp } from "@/components/layout/VersionApp";
-const LOGO_APLIX_URL =
-  "https://document-flow-king.lovable.app/__l5e/assets-v1/e71ea6c3-b2e8-40c3-a8f5-c4f66d7f945a/aplix-isotipo.png";
+import logoAplix from "@/assets/aplix-isotipo.png";
 const navegacion = [
   {
     grupo: "Operación",
@@ -121,7 +120,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <>
         <div className="flex flex-col items-center border-b border-sidebar-border px-5 py-4">
           <img
-            src={LOGO_APLIX_URL}
+            src={logoAplix}
             alt="Aplix"
             className="mb-2 h-10 w-auto object-contain"
           />
