@@ -689,6 +689,26 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     }
   }, [preferencias, historicoBd]);
 
+  /**
+   * Lista activa del mes. Las líneas ya trasladadas al histórico salen para
+   * todos los usuarios: el criterio se toma del histórico compartido del mes
+   * (tabla flujo.ContratoMesHistorico) y no solo de la preferencia personal.
+   */
+  const contratosDelMes = useMemo(() => {
+    const mes = hoy.slice(0, 7);
+    const archivadas = new Set(
+      (contratosMesHistorico.find((h) => h.mes === mes)?.lineas ?? []).map(
+        (l) => `${l.contratoId}|${l.fecha}`,
+      ),
+    );
+    return contratosDelMesBase.filter((c) => {
+      const clave = `${c.contratoId}|${c.fecha}`;
+      return !archivadas.has(clave) && !contratosMesTrasladados.has(clave);
+    });
+  }, [contratosDelMesBase, contratosMesHistorico, contratosMesTrasladados, hoy]);
+
+
+
 
   const guardarPreferencia = useCallback((clave: string, valorPref: string) => {
     setPreferencias((prev) => ({ ...prev, [clave]: valorPref }));
