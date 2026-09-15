@@ -251,6 +251,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
             </p>
           </div>
 
+          {errorEnvio ? <MensajeCorreo ok={false} mensaje={errorEnvio} /> : null}
         </div>
 
         <DialogFooter className="gap-2">
