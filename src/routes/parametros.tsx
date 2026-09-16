@@ -457,7 +457,6 @@ function PaginaParametros() {
 
       <ServidorCorreo />
 
-      <TarjetaLicencia />
 
 
       <h2 className="text-sm font-semibold text-foreground">Presentación de tablas</h2>
