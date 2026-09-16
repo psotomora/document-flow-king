@@ -29,7 +29,23 @@ export function TarjetaLicencia() {
   const { esAdministrador } = useApp();
   const [estado, setEstado] = useState<EstadoLicencia | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [mostrarLlave, setMostrarLlave] = useState(false);
+  const [llave, setLlave] = useState("");
   const archivoRef = useRef<HTMLInputElement>(null);
+
+  const guardarLlave = async () => {
+    setCargando(true);
+    try {
+      setEstado(await guardarLlavePublica(llave.trim()));
+      setLlave("");
+      setMostrarLlave(false);
+      toast.success("Llave pública registrada.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No fue posible guardar la llave pública.");
+    } finally {
+      setCargando(false);
+    }
+  };
 
   const refrescar = async () => {
     if (!licenciaDisponible()) return;
