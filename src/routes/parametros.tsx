@@ -256,6 +256,8 @@ function PaginaParametros() {
         </div>
       ) : null}
 
+      <TarjetaLicencia />
+
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Integración</h2>
         <p className="mb-4 text-xs text-muted-foreground">
