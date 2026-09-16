@@ -37,7 +37,7 @@ export function ResumenLicencia() {
     texto: estado.estado,
     clase: "text-sidebar-foreground/70",
   };
-  const vence = estado.vence ? formatearFecha(new Date(estado.vence)) : "—";
+  const vence = estado.vence ? formatearFecha(estado.vence.slice(0, 10)) : "—";
 
   return (
     <div className="space-y-1 border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/60">
