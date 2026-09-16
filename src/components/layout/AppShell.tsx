@@ -71,12 +71,6 @@ const navegacion = [
   },
 ] as const;
 
-/** Opción exclusiva del servidor propio (emisor); no se muestra en instalaciones de cliente. */
-const OPCION_LICENCIAS = {
-  to: "/licencias",
-  etiqueta: "Licencias",
-  icono: KeyRound,
-} as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const {
