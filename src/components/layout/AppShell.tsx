@@ -34,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
+import { ResumenLicencia } from "@/components/layout/ResumenLicencia";
 import { VersionApp } from "@/components/layout/VersionApp";
 import logoAplix from "@/assets/aplix-isotipo.png";
 const navegacion = [
