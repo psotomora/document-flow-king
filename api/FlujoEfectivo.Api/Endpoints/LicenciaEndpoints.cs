@@ -5,6 +5,7 @@ using FlujoEfectivo.Api.Seguridad;
 namespace FlujoEfectivo.Api.Endpoints;
 
 public record CargarLicencia(string Archivo);
+public record GuardarLlavePublica(string Llave);
 public record ExigirLicencia(bool Activa);
 public record EmitirLicencia(
     string ClienteCodigo,
