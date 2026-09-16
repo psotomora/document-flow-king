@@ -52,14 +52,27 @@ public static class LicenciaEndpoints
             return Results.Ok(Licencias.Estado(cn, config));
         });
 
+        g.MapPost("/licencia/llave-publica", (GuardarLlavePublica datos, HttpContext ctx, Db db, IConfiguration config) =>
+        {
+            if (!ctx.User.EsAdministrador()) return Results.Forbid();
+            using var cn = db.Abrir();
+            var error = Licencias.GuardarLlavePublica(cn, datos.Llave, ctx.User.UsuarioId());
+            if (error is not null) return Results.BadRequest(new { mensaje = error });
+
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Licencia",
+                Licencias.ParamLlavePublica, "Modificación", null, "Llave pública registrada");
+
+            Invalidar();
+            return Results.Ok(Licencias.Estado(cn, config));
+        });
+
         g.MapPost("/licencia", (CargarLicencia datos, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!ctx.User.EsAdministrador()) return Results.Forbid();
-            var (contenido, error) = Licencias.Verificar(datos.Archivo ?? "", config["Licencia:LlavePublica"] ?? "");
-            if (contenido is null) return Results.BadRequest(new { mensaje = error });
-
             using var cn = db.Abrir();
             Licencias.Asegurar(cn);
+            var (contenido, error) = Licencias.Verificar(datos.Archivo ?? "", Licencias.LlavePublica(cn, config));
+            if (contenido is null) return Results.BadRequest(new { mensaje = error });
             DateTime.TryParse(contenido.Vence, out var vence);
             cn.Execute(
                 """
