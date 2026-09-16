@@ -322,10 +322,12 @@ public static class Licencias
             Huella = Huella(),
             Emisor = string.Equals(config["Licencia:Emisor"], "true", StringComparison.OrdinalIgnoreCase)
                      && !string.IsNullOrWhiteSpace(config["Licencia:LlavePrivada"]),
-            HayLlavePublica = !string.IsNullOrWhiteSpace(config["Licencia:LlavePublica"]),
         };
 
         Asegurar(cn);
+        var publica = LlavePublica(cn, config);
+        estado.HayLlavePublica = !string.IsNullOrWhiteSpace(publica);
+
 
         estado.Requerida = cn.QueryFirstOrDefault<string>(
             "SELECT Valor FROM flujo.Parametro WHERE Clave = @c", new { c = ParamRequerida }) == "1";
