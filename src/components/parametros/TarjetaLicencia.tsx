@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -164,11 +163,6 @@ export function TarjetaLicencia() {
               }}
             >
               Copiar huella
-            </Button>
-          ) : null}
-          {estado?.emisor ? (
-            <Button size="sm" variant="secondary" asChild>
-              <Link to="/licencias">Emitir licencias</Link>
             </Button>
           ) : null}
         </div>
