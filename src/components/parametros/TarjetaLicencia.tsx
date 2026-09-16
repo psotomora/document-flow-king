@@ -4,11 +4,13 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexto/AppContexto";
 import {
   cargarLicencia,
   estadoLicencia,
   exigirLicencia,
+  guardarLlavePublica,
   licenciaDisponible,
   type EstadoLicencia,
 } from "@/lib/licencia";
