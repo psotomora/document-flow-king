@@ -287,7 +287,8 @@ public static class Licencias
     public static (ContenidoLicencia? contenido, string? error) Verificar(string archivo, string llavePublicaPem)
     {
         if (string.IsNullOrWhiteSpace(llavePublicaPem))
-            return (null, "Esta instalación no tiene configurada la llave pública de licencias (Licencia:LlavePublica).");
+            return (null, "Esta instalación no tiene registrada la llave pública de licencias. " +
+                          "Regístrela en Parámetros, tarjeta Licencia del sistema.");
 
         var texto = (archivo ?? "").Trim();
         var partes = texto.Split('.');
