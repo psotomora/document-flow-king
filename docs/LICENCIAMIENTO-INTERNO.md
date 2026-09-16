@@ -56,6 +56,9 @@ Aplica a Aplix Cash Flow Insights y a las demás aplicaciones que usen el mismo 
    (una sola línea) y guarde. Queda almacenada en la base de datos, no requiere reiniciar la API
    y se puede reemplazar luego con **Cambiar llave**.
 
+   En instalaciones anteriores ejecute antes el script `database/15_parametro_valor_max.sql`,
+   que amplía la columna de valores de parámetros para admitir la llave completa.
+
    Alternativa (opcional): dejarla en la configuración de la API. La llave guardada por pantalla
    tiene prioridad sobre esta.
 
