@@ -73,6 +73,10 @@ export function cargarLicencia(archivo: string): Promise<EstadoLicencia> {
   return api<EstadoLicencia>("/licencia", { metodo: "POST", cuerpo: { archivo } });
 }
 
+export function guardarLlavePublica(llave: string): Promise<EstadoLicencia> {
+  return api<EstadoLicencia>("/licencia/llave-publica", { metodo: "POST", cuerpo: { llave } });
+}
+
 export function exigirLicencia(activa: boolean): Promise<EstadoLicencia> {
   return api<EstadoLicencia>("/licencia/requerida", { metodo: "POST", cuerpo: { activa } });
 }

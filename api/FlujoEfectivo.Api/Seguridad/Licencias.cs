@@ -56,6 +56,7 @@ public static class Licencias
 {
     public const string Prefijo = "FLUJO-LIC-1";
     public const string ParamRequerida = "licenciaRequerida";
+    public const string ParamLlavePublica = "licenciaLlavePublica";
     private const int AvisoDias = 30;
 
     private static readonly JsonSerializerOptions Json = new()
@@ -114,6 +115,55 @@ public static class Licencias
                 "database/14_licencia.sql en SQL Server o conceda permisos de creación de tablas. " +
                 "Detalle: " + ex.Message, ex);
         }
+    }
+
+    /// <summary>
+    /// Llave pública vigente: primero la guardada desde la interfaz (base de datos) y,
+    /// si no existe, la configurada en appsettings (Licencia:LlavePublica).
+    /// </summary>
+    public static string LlavePublica(IDbConnection cn, IConfiguration config)
+    {
+        try
+        {
+            var guardada = cn.QueryFirstOrDefault<string>(
+                "SELECT Valor FROM flujo.Parametro WHERE Clave = @c", new { c = ParamLlavePublica });
+            if (!string.IsNullOrWhiteSpace(guardada)) return guardada;
+        }
+        catch
+        {
+            // Sin tabla de parámetros todavía: se usa la configuración.
+        }
+
+        return config["Licencia:LlavePublica"] ?? "";
+    }
+
+    /// <summary>Guarda la llave pública desde la interfaz, validando que sea utilizable.</summary>
+    public static string? GuardarLlavePublica(IDbConnection cn, string? llave, int? usuarioId)
+    {
+        var texto = (llave ?? "").Trim();
+        if (texto.Length == 0) return "Pegue la llave pública entregada por Aplix.";
+
+        try
+        {
+            using var rsa = RSA.Create();
+            rsa.ImportFromPem(NormalizarLlave(texto, false));
+            if (rsa.KeySize < 1024) return "La llave pública no es válida.";
+        }
+        catch (Exception ex)
+        {
+            return "La llave pública no es válida: " + ex.Message;
+        }
+
+        Asegurar(cn);
+        cn.Execute(
+            """
+            MERGE flujo.Parametro AS d USING (SELECT @c AS Clave) AS o ON d.Clave = o.Clave
+            WHEN MATCHED THEN UPDATE SET Valor = @v, Actualizado = SYSUTCDATETIME(), UsuarioId = @u
+            WHEN NOT MATCHED THEN INSERT (Clave, Valor, Descripcion, UsuarioId)
+                 VALUES (@c, @v, 'Llave pública para validar los archivos de licencia', @u);
+            """,
+            new { c = ParamLlavePublica, v = EnUnaLinea(NormalizarLlave(texto, false)), u = usuarioId });
+        return null;
     }
 
     /// <summary>Huella del servidor: nombre del equipo + identificador de la máquina.</summary>
@@ -237,7 +287,8 @@ public static class Licencias
     public static (ContenidoLicencia? contenido, string? error) Verificar(string archivo, string llavePublicaPem)
     {
         if (string.IsNullOrWhiteSpace(llavePublicaPem))
-            return (null, "Esta instalación no tiene configurada la llave pública de licencias (Licencia:LlavePublica).");
+            return (null, "Esta instalación no tiene registrada la llave pública de licencias. " +
+                          "Regístrela en Parámetros, tarjeta Licencia del sistema.");
 
         var texto = (archivo ?? "").Trim();
         var partes = texto.Split('.');
@@ -272,10 +323,12 @@ public static class Licencias
             Huella = Huella(),
             Emisor = string.Equals(config["Licencia:Emisor"], "true", StringComparison.OrdinalIgnoreCase)
                      && !string.IsNullOrWhiteSpace(config["Licencia:LlavePrivada"]),
-            HayLlavePublica = !string.IsNullOrWhiteSpace(config["Licencia:LlavePublica"]),
         };
 
         Asegurar(cn);
+        var publica = LlavePublica(cn, config);
+        estado.HayLlavePublica = !string.IsNullOrWhiteSpace(publica);
+
 
         estado.Requerida = cn.QueryFirstOrDefault<string>(
             "SELECT Valor FROM flujo.Parametro WHERE Clave = @c", new { c = ParamRequerida }) == "1";
@@ -295,7 +348,7 @@ public static class Licencias
         }
 
         estado.CargadaEn = fila.CargadaEn.ToString("yyyy-MM-dd HH:mm");
-        var (contenido, error) = Verificar(fila.Archivo, config["Licencia:LlavePublica"] ?? "");
+        var (contenido, error) = Verificar(fila.Archivo, publica);
         if (contenido is null)
         {
             estado.Estado = "bloqueada";

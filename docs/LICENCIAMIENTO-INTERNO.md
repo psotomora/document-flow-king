@@ -51,7 +51,13 @@ Aplica a Aplix Cash Flow Insights y a las demás aplicaciones que usen el mismo 
 ## 3. Configuración del SERVIDOR DEL CLIENTE (cada instalación)
 
 1. Publique la aplicación y la API siguiendo `docs/DESPLIEGUE-IIS.md`.
-2. En la configuración de la API del cliente coloque **solo** la llave pública:
+2. **Desde 1.36.18 la forma recomendada es por pantalla:** ingrese como administrador a
+   **Parámetros → Licencia del sistema** y pulse **Registrar llave**; pegue la llave pública
+   (una sola línea) y guarde. Queda almacenada en la base de datos, no requiere reiniciar la API
+   y se puede reemplazar luego con **Cambiar llave**.
+
+   Alternativa (opcional): dejarla en la configuración de la API. La llave guardada por pantalla
+   tiene prioridad sobre esta.
 
 ```json
 "Licencia": {

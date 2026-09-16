@@ -4,11 +4,13 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/contexto/AppContexto";
 import {
   cargarLicencia,
   estadoLicencia,
   exigirLicencia,
+  guardarLlavePublica,
   licenciaDisponible,
   type EstadoLicencia,
 } from "@/lib/licencia";
@@ -27,7 +29,23 @@ export function TarjetaLicencia() {
   const { esAdministrador } = useApp();
   const [estado, setEstado] = useState<EstadoLicencia | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [mostrarLlave, setMostrarLlave] = useState(false);
+  const [llave, setLlave] = useState("");
   const archivoRef = useRef<HTMLInputElement>(null);
+
+  const guardarLlave = async () => {
+    setCargando(true);
+    try {
+      setEstado(await guardarLlavePublica(llave.trim()));
+      setLlave("");
+      setMostrarLlave(false);
+      toast.success("Llave pública registrada.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No fue posible guardar la llave pública.");
+    } finally {
+      setCargando(false);
+    }
+  };
 
   const refrescar = async () => {
     if (!licenciaDisponible()) return;
@@ -170,11 +188,56 @@ export function TarjetaLicencia() {
           />
         </div>
 
-        {estado && !estado.hayLlavePublica ? (
-          <p className="text-xs text-destructive">
-            Falta configurar la llave pública de licencias (Licencia:LlavePublica en appsettings de
-            la API). Sin ella no es posible validar ningún archivo.
-          </p>
+        {estado ? (
+          <div className="space-y-2 border-t border-border pt-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <p className="text-sm font-medium text-foreground">Llave pública de licencias</p>
+                <p className="text-xs text-muted-foreground">
+                  {estado.hayLlavePublica
+                    ? "Registrada en este servidor. Solo debe cambiarla si Aplix le entrega una llave nueva."
+                    : "Aún no está registrada. Pegue la llave pública que le entregó Aplix; sin ella no se puede validar ningún archivo de licencia."}
+                </p>
+              </div>
+              {!mostrarLlave ? (
+                <Button
+                  size="sm"
+                  variant={estado.hayLlavePublica ? "outline" : "default"}
+                  disabled={!esAdministrador}
+                  onClick={() => setMostrarLlave(true)}
+                >
+                  {estado.hayLlavePublica ? "Cambiar llave" : "Registrar llave"}
+                </Button>
+              ) : null}
+            </div>
+
+            {mostrarLlave ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={llave}
+                  onChange={(e) => setLlave(e.target.value)}
+                  rows={4}
+                  placeholder="Pegue aquí la llave pública (una sola línea)"
+                  className="font-mono text-xs"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" disabled={!esAdministrador || cargando} onClick={() => void guardarLlave()}>
+                    Guardar llave
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setMostrarLlave(false);
+                      setLlave("");
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </>
