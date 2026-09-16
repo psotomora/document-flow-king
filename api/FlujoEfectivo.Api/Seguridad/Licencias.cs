@@ -347,7 +347,7 @@ public static class Licencias
         }
 
         estado.CargadaEn = fila.CargadaEn.ToString("yyyy-MM-dd HH:mm");
-        var (contenido, error) = Verificar(fila.Archivo, config["Licencia:LlavePublica"] ?? "");
+        var (contenido, error) = Verificar(fila.Archivo, publica);
         if (contenido is null)
         {
             estado.Estado = "bloqueada";
