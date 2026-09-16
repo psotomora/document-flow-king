@@ -7,7 +7,6 @@ import {
   CalendarClock,
   FileSpreadsheet,
   FileText,
-  KeyRound,
   Landmark,
   LogOut,
   Menu,
@@ -83,8 +82,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     hoy,
     tipoCambio,
     modoApi,
-    esAdministrador,
-    instalacionCliente,
     cerrarSesion,
   } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
