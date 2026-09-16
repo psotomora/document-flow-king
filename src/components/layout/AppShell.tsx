@@ -97,13 +97,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     const opcion = opcionDeRuta(item.to);
     return !opcion || puedeVer(usuario, opcion.clave);
   };
-  // La emisión de licencias solo aparece en la instalación propia y para administradores.
-  const mostrarLicencias = esAdministrador && !instalacionCliente;
-  const secciones = navegacion.map((seccion) =>
-    seccion.grupo === "Administración" && mostrarLicencias
-      ? { grupo: seccion.grupo, items: [...seccion.items, OPCION_LICENCIAS] }
-      : { grupo: seccion.grupo, items: [...seccion.items] },
-  );
+  const secciones = navegacion.map((seccion) => ({
+    grupo: seccion.grupo,
+    items: [...seccion.items],
+  }));
 
   const opcionActual = opcionDeRuta(pathname);
   const accesoDenegado = !!opcionActual && !puedeVer(usuario, opcionActual.clave);
