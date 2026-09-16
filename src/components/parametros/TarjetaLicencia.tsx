@@ -166,11 +166,6 @@ export function TarjetaLicencia() {
               Copiar huella
             </Button>
           ) : null}
-          {estado?.emisor ? (
-            <Button size="sm" variant="secondary" asChild>
-              <Link to="/licencias">Emitir licencias</Link>
-            </Button>
-          ) : null}
         </div>
 
         <div className="flex items-center justify-between gap-4 border-t border-border pt-3">
