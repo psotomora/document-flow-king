@@ -13,6 +13,15 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.36.19",
+    fecha: "2026-09-15",
+    cambios: [
+      "Se eliminó la opción Licencias del menú; la emisión ya no se realiza desde esta aplicación.",
+      "La tarjeta Licencia del sistema aparece al inicio de Parámetros.",
+      "Nuevo script database/15_parametro_valor_max.sql para guardar la llave pública completa.",
+    ],
+  },
+  {
     version: "1.36.18",
     fecha: "2026-09-15",
     cambios: [
