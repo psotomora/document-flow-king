@@ -117,6 +117,55 @@ public static class Licencias
         }
     }
 
+    /// <summary>
+    /// Llave pública vigente: primero la guardada desde la interfaz (base de datos) y,
+    /// si no existe, la configurada en appsettings (Licencia:LlavePublica).
+    /// </summary>
+    public static string LlavePublica(IDbConnection cn, IConfiguration config)
+    {
+        try
+        {
+            var guardada = cn.QueryFirstOrDefault<string>(
+                "SELECT Valor FROM flujo.Parametro WHERE Clave = @c", new { c = ParamLlavePublica });
+            if (!string.IsNullOrWhiteSpace(guardada)) return guardada;
+        }
+        catch
+        {
+            // Sin tabla de parámetros todavía: se usa la configuración.
+        }
+
+        return config["Licencia:LlavePublica"] ?? "";
+    }
+
+    /// <summary>Guarda la llave pública desde la interfaz, validando que sea utilizable.</summary>
+    public static string? GuardarLlavePublica(IDbConnection cn, string? llave, int? usuarioId)
+    {
+        var texto = (llave ?? "").Trim();
+        if (texto.Length == 0) return "Pegue la llave pública entregada por Aplix.";
+
+        try
+        {
+            using var rsa = RSA.Create();
+            rsa.ImportFromPem(NormalizarLlave(texto, false));
+            if (rsa.KeySize < 1024) return "La llave pública no es válida.";
+        }
+        catch (Exception ex)
+        {
+            return "La llave pública no es válida: " + ex.Message;
+        }
+
+        Asegurar(cn);
+        cn.Execute(
+            """
+            MERGE flujo.Parametro AS d USING (SELECT @c AS Clave) AS o ON d.Clave = o.Clave
+            WHEN MATCHED THEN UPDATE SET Valor = @v, Actualizado = SYSUTCDATETIME(), UsuarioId = @u
+            WHEN NOT MATCHED THEN INSERT (Clave, Valor, Descripcion, UsuarioId)
+                 VALUES (@c, @v, 'Llave pública para validar los archivos de licencia', @u);
+            """,
+            new { c = ParamLlavePublica, v = EnUnaLinea(NormalizarLlave(texto, false)), u = usuarioId });
+        return null;
+    }
+
     /// <summary>Huella del servidor: nombre del equipo + identificador de la máquina.</summary>
     public static string Huella()
     {
