@@ -16,7 +16,6 @@ export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
     version: "1.38.2",
     fecha: "2026-09-17",
-    fechaCorrige: undefined,
     cambios: [
       "Se corrige el error \"Invalid column name 'NombreUsuario'\" al ingresar con el código APLIX: la estructura del catálogo se completa sola.",
     ],
