@@ -16,11 +16,50 @@ public static class AuthEndpoints
         public bool Activo { get; set; }
     }
 
+    /// <summary>Código reservado para el personal de Aplix (administración de clientes).</summary>
+    public const string CodigoAplix = "APLIX";
+
     public static void MapAuth(this IEndpointRouteBuilder grupo)
     {
-        grupo.MapPost("/auth/login", (LoginRequest datos, Db db, TokenServicio tokens) =>
+        grupo.MapPost("/auth/login", async (LoginRequest datos, Db db, Catalogo catalogo, TokenServicio tokens) =>
         {
-            using var cn = db.Abrir();
+            // Mensaje único para cualquier fallo: nunca revela si un código de
+            // empresa existe, ni qué empresas están registradas.
+            static async Task<IResult> Rechazar()
+            {
+                await Task.Delay(400);
+                return Results.Json(new { mensaje = "Datos de acceso incorrectos." }, statusCode: 401);
+            }
+
+            var codigo = (datos.ClienteCodigo ?? "").Trim();
+
+            // Personal de Aplix: usuarios propios del catálogo, sin acceso a datos de clientes.
+            if (codigo.Equals(CodigoAplix, StringComparison.OrdinalIgnoreCase))
+            {
+                using var cnCat = catalogo.AbrirCatalogo();
+                var aplix = cnCat.QueryFirstOrDefault<FilaUsuario>(
+                    """
+                    SELECT UsuarioId, NombreCompleto, 'superadmin' AS Perfil, HashContrasena, Activo
+                    FROM catalogo.UsuarioAplix WHERE NombreUsuario = @usuario
+                    """, new { usuario = datos.Usuario });
+                if (aplix is null || !aplix.Activo
+                    || !Contrasenas.Verificar(datos.Contrasena, aplix.HashContrasena))
+                    return await Rechazar();
+
+                var superUsuario = new UsuarioDto(aplix.UsuarioId.ToString(), aplix.NombreCompleto, "superadmin");
+                var (tokenSuper, expiraSuper) = tokens.Crear(superUsuario, 0, "Aplix");
+                Catalogo.Auditar(cnCat, datos.Usuario, "Acceso", "Consola Aplix");
+                return Results.Ok(new LoginResponse(tokenSuper, superUsuario, expiraSuper, "Aplix"));
+            }
+
+            ClienteTenant? cliente = null;
+            if (codigo.Length > 0)
+            {
+                cliente = catalogo.PorCodigo(codigo);
+                if (cliente is null || !cliente.Activo) return await Rechazar();
+            }
+
+            using var cn = cliente is null ? db.Abrir() : catalogo.Abrir(cliente);
             var fila = cn.QueryFirstOrDefault<FilaUsuario>(
                 """
                 SELECT u.UsuarioId, u.NombreCompleto, p.Codigo AS Perfil, u.HashContrasena, u.Activo
@@ -31,16 +70,17 @@ public static class AuthEndpoints
                 new { usuario = datos.Usuario });
 
             if (fila is null || !fila.Activo || !Contrasenas.Verificar(datos.Contrasena, fila.HashContrasena))
-                return Results.Json(new { mensaje = "Usuario o contraseña incorrectos." }, statusCode: 401);
+                return await Rechazar();
 
             var usuario = new UsuarioDto(fila.UsuarioId.ToString(), fila.NombreCompleto, fila.Perfil);
-            var (token, expira) = tokens.Crear(usuario);
+            var (token, expira) = tokens.Crear(usuario, cliente?.ClienteId ?? 0, cliente?.Nombre);
 
             Db.Auditar(cn, fila.UsuarioId, fila.NombreCompleto, "Seguridad", datos.Usuario, "Acceso",
                 valorNuevo: "Inicio de sesión");
 
-            return Results.Ok(new LoginResponse(token, usuario, expira));
+            return Results.Ok(new LoginResponse(token, usuario, expira, cliente?.Nombre));
         }).AllowAnonymous();
+
 
         grupo.MapGet("/auth/yo", (HttpContext ctx) => Results.Ok(new UsuarioDto(
             ctx.User.UsuarioId().ToString(),
