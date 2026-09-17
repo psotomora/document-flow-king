@@ -60,6 +60,23 @@ public static class EstadoEndpoints
                 ORDER BY e.Fecha DESC, e.ErogacionId DESC
                 """);
 
+            var transferencias = cn.Query<TransferenciaDto>(
+                """
+                SELECT CAST(t.TransferenciaId AS NVARCHAR(20)) AS Id,
+                       CONVERT(CHAR(10), t.Fecha, 23) AS Fecha,
+                       t.Referencia,
+                       CAST(t.CompaniaOrigenId AS NVARCHAR(20)) AS CompaniaOrigenId,
+                       CAST(t.CuentaOrigenId AS NVARCHAR(20)) AS CuentaOrigenId,
+                       CAST(t.CompaniaDestinoId AS NVARCHAR(20)) AS CompaniaDestinoId,
+                       CAST(t.CuentaDestinoId AS NVARCHAR(20)) AS CuentaDestinoId,
+                       t.Moneda, t.Monto, t.Comentarios,
+                       u.Nombre AS CreadoPor,
+                       CONVERT(VARCHAR(19), t.CreadoEn, 126) AS CreadoEn
+                FROM flujo.Transferencia t
+                LEFT JOIN flujo.Usuario u ON u.UsuarioId = t.CreadoPor
+                ORDER BY t.Fecha DESC, t.TransferenciaId DESC
+                """);
+
             var parametros = cn.Query<(string Clave, string Valor)>(
                     "SELECT Clave, Valor FROM flujo.Parametro")
                 .ToDictionary(p => p.Clave, p => p.Valor);
@@ -346,7 +363,7 @@ public static class EstadoEndpoints
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
                 erogaciones, documentosPorPagar, documentosPorCobrar, contratos, pedidos,
                 tiposCambio, bitacora, parametros, avisoFuente, preferencias,
-                documentosPorCobrarComparativo));
+                documentosPorCobrarComparativo, transferencias));
         }).RequireAuthorization();
     }
 }
