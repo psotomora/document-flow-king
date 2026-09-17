@@ -32,6 +32,12 @@ function normalizarUrlApi(url: string): string {
   return valor.replace(/\/+$/, "");
 }
 
+const ESTADOS_SERVIDOR_NO_DISPONIBLE = new Set([500, 502, 503, 504]);
+
+function mensajeServidorNoDisponible(estado: number): string {
+  return `No fue posible comunicarse con la API porque el servidor web respondió con error ${estado}. Solicite al administrador verificar que el servicio de la API esté iniciado, revisar el registro de la API en IIS y confirmar la configuración y los scripts de base de datos.`;
+}
+
 export function urlApi(): string {
   const local = esNavegador() ? (window.localStorage.getItem(CLAVE_URL) ?? "") : "";
   const original = local || ENV_API_URL;
@@ -93,10 +99,16 @@ export async function probarConexionApi(url: string): Promise<string> {
   if (!respuesta.ok) {
     const base404 = "La URL no corresponde a esta API. Debe terminar en /api.";
     const generico =
-      respuesta.status === 404 ? base404 : `La API respondió con error ${respuesta.status}.`;
+      respuesta.status === 404
+        ? base404
+        : ESTADOS_SERVIDOR_NO_DISPONIBLE.has(respuesta.status)
+          ? mensajeServidorNoDisponible(respuesta.status)
+          : `La API respondió con error ${respuesta.status}.`;
     const extra = datos?.codigoSql ? ` (código SQL ${datos.codigoSql})` : "";
-    const crudo = !datos && texto ? ` Respuesta recibida: ${texto.slice(0, 300)}` : "";
-    throw new ErrorApi(`${datos?.mensaje ?? generico}${extra}${crudo}`, respuesta.status);
+    const detalle = !datos
+      ? `\nDetalle técnico: GET ${base}/salud · HTTP ${respuesta.status} ${respuesta.statusText || ""}`.trimEnd()
+      : "";
+    throw new ErrorApi(`${datos?.mensaje ?? generico}${extra}${detalle}`, respuesta.status);
   }
 
   if (datos?.estado !== "ok") {
@@ -200,10 +212,13 @@ export async function api<T>(
       tituloHtml ? `Página recibida: ${tituloHtml}` : "",
       origen,
     ].filter(Boolean).join("\n");
+    const mensaje = ESTADOS_SERVIDOR_NO_DISPONIBLE.has(respuesta.status)
+      ? mensajeServidorNoDisponible(respuesta.status)
+      : respuesta.ok
+        ? "Se recibió una página web en vez de los datos esperados. Verifique que la dirección configurada corresponda a la API."
+        : "El servidor respondió en un formato inesperado. Solicite al administrador revisar la configuración de la API.";
     throw new ErrorApi(
-      respuesta.ok
-        ? `Se recibió HTML en vez de datos JSON.\n${diagnostico}`
-        : `El servidor respondió en formato HTML.\n${diagnostico}`,
+      `${mensaje}\nDetalle técnico:\n${diagnostico}`,
       respuesta.status || 0,
     );
   }
