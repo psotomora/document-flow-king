@@ -176,7 +176,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="space-y-1 border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/60">
           <p className="text-xs font-medium text-sidebar-foreground/90">{usuario.nombre}</p>
+          {empresaNombre() && <p className="truncate">Empresa: {empresaNombre()}</p>}
           <p className="capitalize">Perfil: {usuario.perfil}</p>
+
           <p className="truncate">
             Compañía:{" "}
             {companiaActiva === "todas"
