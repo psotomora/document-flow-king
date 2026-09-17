@@ -151,6 +151,13 @@ function PaginaBancos() {
         />
       </div>
 
+      {puedeEditar ? (
+        <div className="flex justify-end">
+          <Button className="gap-1.5" onClick={() => setTransferir(true)}>
+            <ArrowLeftRight className="size-4" /> Nueva transferencia
+          </Button>
+        </div>
+      ) : null}
 
       <div className="space-y-8">
         {(["USD", "CRC"] as Moneda[]).map((moneda) => {
@@ -451,6 +458,194 @@ function DialogoSaldos({
               step="0.01"
               value={crc}
               onChange={(e) => setCrc(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={alCerrar}>
+            Cancelar
+          </Button>
+          <Button onClick={guardar}>Guardar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Registro de un traslado de fondos entre dos cuentas bancarias. */
+function DialogoTransferencia({
+  abierto,
+  bancos,
+  companias,
+  hoy,
+  alCerrar,
+  alGuardar,
+}: {
+  abierto: boolean;
+  bancos: Banco[];
+  companias: { id: string; codigo: string; nombre: string }[];
+  hoy: string;
+  alCerrar: () => void;
+  alGuardar: (datos: Omit<Transferencia, "id">) => void;
+}) {
+  const activos = bancos.filter((b) => b.activo);
+  const [fecha, setFecha] = useState(hoy);
+  const [referencia, setReferencia] = useState("");
+  const [origen, setOrigen] = useState("");
+  const [destino, setDestino] = useState("");
+  const [moneda, setMoneda] = useState<Moneda>("USD");
+  const [monto, setMonto] = useState("");
+  const [comentarios, setComentarios] = useState("");
+
+  const etiqueta = (b: Banco) =>
+    `${companias.find((c) => c.id === b.companiaId)?.codigo ?? ""} · ${b.nombre}`;
+
+  const limpiar = () => {
+    setFecha(hoy);
+    setReferencia("");
+    setOrigen("");
+    setDestino("");
+    setMoneda("USD");
+    setMonto("");
+    setComentarios("");
+  };
+
+  const guardar = () => {
+    const bancoOrigen = activos.find((b) => b.id === origen);
+    const bancoDestino = activos.find((b) => b.id === destino);
+    const valor = Number(monto);
+    if (!referencia.trim()) {
+      toast.error("Digite la referencia de la transferencia.");
+      return;
+    }
+    if (!bancoOrigen || !bancoDestino) {
+      toast.error("Seleccione la cuenta de origen y la de destino.");
+      return;
+    }
+    if (bancoOrigen.id === bancoDestino.id) {
+      toast.error("La cuenta de destino debe ser distinta a la de origen.");
+      return;
+    }
+    if (!Number.isFinite(valor) || valor <= 0) {
+      toast.error("Digite un monto mayor que cero.");
+      return;
+    }
+    alGuardar({
+      fecha,
+      referencia: referencia.trim(),
+      companiaOrigenId: bancoOrigen.companiaId,
+      bancoOrigenId: bancoOrigen.id,
+      companiaDestinoId: bancoDestino.companiaId,
+      bancoDestinoId: bancoDestino.id,
+      moneda,
+      monto: valor,
+      comentarios: comentarios.trim() || null,
+    });
+    limpiar();
+  };
+
+  return (
+    <Dialog
+      open={abierto}
+      onOpenChange={(v) => {
+        if (!v) {
+          limpiar();
+          alCerrar();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Transferencia entre bancos</DialogTitle>
+          <DialogDescription>
+            El monto se rebaja de la cuenta de origen y se suma a la de destino, aunque sean de
+            compañías distintas. Ambas cuentas usan la misma moneda.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-fecha">Fecha</Label>
+              <Input
+                id="t-fecha"
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-ref">Referencia</Label>
+              <Input
+                id="t-ref"
+                value={referencia}
+                onChange={(e) => setReferencia(e.target.value)}
+                placeholder="N.º de transferencia"
+              />
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Cuenta de origen</Label>
+            <Select value={origen} onValueChange={setOrigen}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione la cuenta de donde sale el dinero" />
+              </SelectTrigger>
+              <SelectContent>
+                {activos.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {etiqueta(b)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Cuenta de destino</Label>
+            <Select value={destino} onValueChange={setDestino}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione la cuenta que recibe el dinero" />
+              </SelectTrigger>
+              <SelectContent>
+                {activos.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {etiqueta(b)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label>Moneda</Label>
+              <Select value={moneda} onValueChange={(v) => setMoneda(v as Moneda)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">Dólares (USD)</SelectItem>
+                  <SelectItem value="CRC">Colones (CRC)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-monto">Monto</Label>
+              <Input
+                id="t-monto"
+                type="number"
+                step="0.01"
+                value={monto}
+                onChange={(e) => setMonto(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="t-coment">Comentarios</Label>
+            <Textarea
+              id="t-coment"
+              rows={3}
+              maxLength={300}
+              value={comentarios}
+              onChange={(e) => setComentarios(e.target.value)}
+              placeholder="Motivo del traslado de fondos"
             />
           </div>
         </div>
