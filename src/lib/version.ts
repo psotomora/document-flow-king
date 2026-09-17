@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.36.19";
-export const APP_FECHA_VERSION = "2026-09-15";
+export const APP_VERSION = "1.37.0";
+export const APP_FECHA_VERSION = "2026-09-16";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.37.0",
+    fecha: "2026-09-16",
+    cambios: [
+      "Saldo por banco permite registrar transferencias entre bancos y compañías, con referencia, monto y comentarios.",
+      "El saldo disponible rebaja la cuenta de origen y suma la de destino; nueva columna Transferencias.",
+      "Nuevo script database/16_transferencias.sql con la tabla flujo.Transferencia.",
+    ],
+  },
   {
     version: "1.36.19",
     fecha: "2026-09-15",

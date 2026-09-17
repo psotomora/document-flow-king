@@ -6,6 +6,7 @@ import type {
   Moneda,
   Pago,
   Pedido,
+  Transferencia,
 } from "@/data/tipos";
 
 /**
@@ -127,6 +128,10 @@ export interface SaldoBanco {
   pagosRecibidos: number;
   saldoActual: number;
   erogaciones: number;
+  /** Fondos recibidos por transferencias desde otras cuentas. */
+  transferenciasEntrada: number;
+  /** Fondos enviados por transferencias hacia otras cuentas. */
+  transferenciasSalida: number;
   saldoNeto: number;
 }
 
@@ -136,7 +141,9 @@ export function calcularSaldosPorBanco(
   pagos: Pago[],
   erogaciones: Erogacion[],
   moneda: Moneda,
+  transferencias: Transferencia[] = [],
 ): SaldoBanco[] {
+  const delMoneda = transferencias.filter((t) => t.moneda === moneda);
   return bancos.map((banco) => {
     const saldoInicial = moneda === "USD" ? banco.saldoInicialUSD : banco.saldoInicialCRC;
     const pagosRecibidos = pagos
@@ -145,6 +152,12 @@ export function calcularSaldosPorBanco(
     const totalErogaciones = erogaciones
       .filter((e) => e.bancoId === banco.id && e.moneda === moneda)
       .reduce((s, e) => s + e.monto, 0);
+    const entrada = delMoneda
+      .filter((t) => t.bancoDestinoId === banco.id)
+      .reduce((s, t) => s + t.monto, 0);
+    const salida = delMoneda
+      .filter((t) => t.bancoOrigenId === banco.id)
+      .reduce((s, t) => s + t.monto, 0);
     const saldoActual = saldoInicial + pagosRecibidos;
     return {
       bancoId: banco.id,
@@ -154,7 +167,9 @@ export function calcularSaldosPorBanco(
       pagosRecibidos,
       saldoActual,
       erogaciones: totalErogaciones,
-      saldoNeto: saldoActual - totalErogaciones,
+      transferenciasEntrada: entrada,
+      transferenciasSalida: salida,
+      saldoNeto: saldoActual - totalErogaciones + entrada - salida,
     };
   });
 }
@@ -166,9 +181,19 @@ export function totalizarSaldos(saldos: SaldoBanco[]): Omit<SaldoBanco, "bancoId
       pagosRecibidos: acc.pagosRecibidos + s.pagosRecibidos,
       saldoActual: acc.saldoActual + s.saldoActual,
       erogaciones: acc.erogaciones + s.erogaciones,
+      transferenciasEntrada: acc.transferenciasEntrada + s.transferenciasEntrada,
+      transferenciasSalida: acc.transferenciasSalida + s.transferenciasSalida,
       saldoNeto: acc.saldoNeto + s.saldoNeto,
     }),
-    { saldoInicial: 0, pagosRecibidos: 0, saldoActual: 0, erogaciones: 0, saldoNeto: 0 },
+    {
+      saldoInicial: 0,
+      pagosRecibidos: 0,
+      saldoActual: 0,
+      erogaciones: 0,
+      transferenciasEntrada: 0,
+      transferenciasSalida: 0,
+      saldoNeto: 0,
+    },
   );
 }
 
