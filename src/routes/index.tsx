@@ -66,6 +66,7 @@ function Tablero() {
     bancos,
     pagos,
     erogaciones,
+    transferencias,
     pedidos,
     contratos,
     contratosDelMes,
@@ -99,15 +100,15 @@ function Tablero() {
   const proyeccion = useMemo(() => {
     const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
     return calcularSaldoProyectado(
-      calcularSaldosPorBanco(visibles, pagos, erogaciones, "USD"),
-      calcularSaldosPorBanco(visibles, pagos, erogaciones, "CRC"),
+      calcularSaldosPorBanco(visibles, pagos, erogaciones, "USD", transferencias),
+      calcularSaldosPorBanco(visibles, pagos, erogaciones, "CRC", transferencias),
       facturas,
       filtrarPorCompania(pedidos, companiaActiva),
       tipoCambio,
       contratosMesUSD,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bancos, pagos, erogaciones, facturas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
+  }, [bancos, pagos, erogaciones, transferencias, facturas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
 
   const tramos = useMemo(() => proyeccionPorTramos(facturas, moneda), [facturas, moneda]);
 

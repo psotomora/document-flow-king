@@ -152,6 +152,22 @@ public class PagoDto
     public string? Referencia { get; set; }
 }
 
+public class TransferenciaDto
+{
+    public string Id { get; set; } = "";
+    public string Fecha { get; set; } = "";
+    public string Referencia { get; set; } = "";
+    public string CompaniaOrigenId { get; set; } = "";
+    public string CuentaOrigenId { get; set; } = "";
+    public string CompaniaDestinoId { get; set; } = "";
+    public string CuentaDestinoId { get; set; } = "";
+    public string Moneda { get; set; } = "";
+    public decimal Monto { get; set; }
+    public string? Comentarios { get; set; }
+    public string? CreadoPor { get; set; }
+    public string? CreadoEn { get; set; }
+}
+
 public class ErogacionDto
 {
     public string Id { get; set; } = "";
@@ -311,7 +327,8 @@ public record EstadoDto(
     Dictionary<string, string> Parametros,
     string? AvisoFuenteExterna = null,
     Dictionary<string, string>? Preferencias = null,
-    IEnumerable<DocumentoPorCobrarDto>? DocumentosPorCobrarComparativo = null);
+    IEnumerable<DocumentoPorCobrarDto>? DocumentosPorCobrarComparativo = null,
+    IEnumerable<TransferenciaDto>? Transferencias = null);
 
 /* ------------------------- Entradas ------------------------- */
 
@@ -591,3 +608,15 @@ public record EnvioEstadoCuenta(
     /// <summary>Texto libre (máx. 300 caracteres) que se agrega al cuerpo del correo.</summary>
     string? Mensaje = null);
 
+
+/// <summary>Alta de una transferencia de fondos entre dos cuentas bancarias.</summary>
+public record NuevaTransferencia(
+    string Fecha,
+    string Referencia,
+    string CompaniaOrigenId,
+    string CuentaOrigenId,
+    string CompaniaDestinoId,
+    string CuentaDestinoId,
+    string Moneda,
+    decimal Monto,
+    string? Comentarios);

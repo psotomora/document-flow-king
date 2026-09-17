@@ -41,6 +41,7 @@ function PaginaConsolidado() {
     bancos,
     pagos,
     erogaciones,
+    transferencias,
     facturasCalculadas,
     pedidos,
     companiaActiva,
@@ -72,15 +73,15 @@ function PaginaConsolidado() {
   const proyeccion = useMemo(() => {
     const bancosVisibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
     return calcularSaldoProyectado(
-      calcularSaldosPorBanco(bancosVisibles, pagos, erogaciones, "USD"),
-      calcularSaldosPorBanco(bancosVisibles, pagos, erogaciones, "CRC"),
+      calcularSaldosPorBanco(bancosVisibles, pagos, erogaciones, "USD", transferencias),
+      calcularSaldosPorBanco(bancosVisibles, pagos, erogaciones, "CRC", transferencias),
       filtrarPorCompania(facturasCalculadas, companiaActiva),
       filtrarPorCompania(pedidos, companiaActiva),
       tipoCambio,
       contratosMesUSD,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bancos, pagos, erogaciones, facturasCalculadas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
+  }, [bancos, pagos, erogaciones, transferencias, facturasCalculadas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
 
   const filas: [string, string, string][] = [
     [

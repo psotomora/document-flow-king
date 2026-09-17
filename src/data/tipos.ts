@@ -84,6 +84,24 @@ export interface Erogacion {
   documentoPagoNumero?: string | null;
 }
 
+/** Traslado de fondos entre dos cuentas bancarias (misma o distinta compañía). */
+export interface Transferencia {
+  id: string;
+  fecha: string;
+  referencia: string;
+  companiaOrigenId: string;
+  cuentaOrigenId: string;
+  companiaDestinoId: string;
+  cuentaDestinoId: string;
+  moneda: Moneda;
+  monto: number;
+  comentarios?: string | null;
+  /** Usuario que registró la transferencia. */
+  creadoPor?: string | null;
+  /** Fecha y hora de registro. */
+  creadoEn?: string | null;
+}
+
 /** Documento pendiente de pago a un proveedor (cuentas por pagar). */
 export interface DocumentoPorPagar {
   id: string;
