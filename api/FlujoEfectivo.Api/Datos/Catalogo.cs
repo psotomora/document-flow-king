@@ -309,12 +309,22 @@ public sealed class Catalogo(IConfiguration configuracion)
 
     public string Cifrar(string texto) => Softland.Cifrar(texto, Secreto);
 
+    /// <summary>Bitácora del catálogo. Nunca interrumpe la operación si la tabla aún no existe.</summary>
     public static void Auditar(IDbConnection cn, string usuario, string operacion, string registro,
-        string? detalle = null) =>
-        cn.Execute(
-            """
-            INSERT INTO catalogo.Bitacora (NombreUsuario, Operacion, Registro, Detalle)
-            VALUES (@usuario, @operacion, @registro, @detalle)
-            """,
-            new { usuario, operacion, registro, detalle });
+        string? detalle = null)
+    {
+        try
+        {
+            cn.Execute(
+                """
+                INSERT INTO catalogo.Bitacora (NombreUsuario, Operacion, Registro, Detalle)
+                VALUES (@usuario, @operacion, @registro, @detalle)
+                """,
+                new { usuario, operacion, registro, detalle });
+        }
+        catch
+        {
+            // La auditoría es informativa: un fallo aquí no debe impedir el acceso.
+        }
+    }
 }
