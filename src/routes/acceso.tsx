@@ -155,7 +155,7 @@ function PaginaAcceso() {
             {PERMISOS.map((p) => (
               <TableRow key={p.accion}>
                 <TableCell className="font-medium">{p.accion}</TableCell>
-                {(["administrador", "registro", "consulta"] as Perfil[]).map((perfil) => (
+                {(["administrador", "registro", "consulta"] as PerfilCliente[]).map((perfil) => (
                   <TableCell key={perfil} className="text-center">
                     {p.permitido[perfil] ? (
                       <Check className="mx-auto size-4 text-exito" aria-label="Permitido" />
