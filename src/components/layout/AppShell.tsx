@@ -95,11 +95,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     const opcion = opcionDeRuta(item.to);
     return !opcion || puedeVer(usuario, opcion.clave);
   };
-  const secciones = navegacion
+  type Seccion = {
+    grupo: string;
+    items: { to: string; etiqueta: string; icono: typeof Building2 }[];
+  };
+  const secciones: Seccion[] = navegacion
     .map((seccion) => ({
-      grupo: seccion.grupo,
-      items: [...seccion.items] as { to: string; etiqueta: string; icono: typeof Building2 }[],
+      grupo: seccion.grupo as string,
+      items: [...seccion.items] as Seccion["items"],
     }))
+
     .concat(
       // La consola de empresas solo existe para el personal de Aplix.
       usuario?.perfil === "superadmin"
