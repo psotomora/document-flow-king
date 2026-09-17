@@ -22,7 +22,9 @@ import {
 export function PantallaLogin() {
   const { autenticar, entrarDemostracion } = useApp();
   const [usuario, setUsuario] = useState("");
+  const [empresa, setEmpresa] = useState(empresaCodigo());
   const [contrasena, setContrasena] = useState("");
+
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [servidor, setServidor] = useState(urlApi());
