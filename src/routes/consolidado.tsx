@@ -72,8 +72,8 @@ function PaginaConsolidado() {
   const proyeccion = useMemo(() => {
     const bancosVisibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
     return calcularSaldoProyectado(
-      calcularSaldosPorBanco(bancosVisibles, pagos, erogaciones, "USD"),
-      calcularSaldosPorBanco(bancosVisibles, pagos, erogaciones, "CRC"),
+      calcularSaldosPorBanco(bancosVisibles, pagos, erogaciones, "USD", transferencias),
+      calcularSaldosPorBanco(bancosVisibles, pagos, erogaciones, "CRC", transferencias),
       filtrarPorCompania(facturasCalculadas, companiaActiva),
       filtrarPorCompania(pedidos, companiaActiva),
       tipoCambio,

@@ -99,8 +99,8 @@ function Tablero() {
   const proyeccion = useMemo(() => {
     const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
     return calcularSaldoProyectado(
-      calcularSaldosPorBanco(visibles, pagos, erogaciones, "USD"),
-      calcularSaldosPorBanco(visibles, pagos, erogaciones, "CRC"),
+      calcularSaldosPorBanco(visibles, pagos, erogaciones, "USD", transferencias),
+      calcularSaldosPorBanco(visibles, pagos, erogaciones, "CRC", transferencias),
       facturas,
       filtrarPorCompania(pedidos, companiaActiva),
       tipoCambio,

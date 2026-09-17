@@ -558,12 +558,26 @@ function DialogoTransferencia({
     const bancoOrigen = bancos.find((b) => b.id === origen);
     const bancoDestino = bancos.find((b) => b.id === destino);
     const valor = Number(monto);
-    if (!fecha) return toast.error("Indique la fecha de la transferencia.");
-    if (!referencia.trim()) return toast.error("Indique la referencia de la transferencia.");
-    if (!bancoOrigen || !bancoDestino) return toast.error("Seleccione la cuenta de origen y la de destino.");
-    if (bancoOrigen.id === bancoDestino.id)
-      return toast.error("La cuenta de destino debe ser distinta a la de origen.");
-    if (!Number.isFinite(valor) || valor <= 0) return toast.error("Digite un monto mayor que cero.");
+    if (!fecha) {
+      toast.error("Indique la fecha de la transferencia.");
+      return;
+    }
+    if (!referencia.trim()) {
+      toast.error("Indique la referencia de la transferencia.");
+      return;
+    }
+    if (!bancoOrigen || !bancoDestino) {
+      toast.error("Seleccione la cuenta de origen y la de destino.");
+      return;
+    }
+    if (bancoOrigen.id === bancoDestino.id) {
+      toast.error("La cuenta de destino debe ser distinta a la de origen.");
+      return;
+    }
+    if (!Number.isFinite(valor) || valor <= 0) {
+      toast.error("Digite un monto mayor que cero.");
+      return;
+    }
 
     alGuardar({
       fecha,
