@@ -16,18 +16,20 @@ public sealed class TokenServicio(IConfiguration configuracion)
         configuracion["Jwt:Llave"]
         ?? throw new InvalidOperationException("Falta la configuración Jwt:Llave (mínimo 32 caracteres).")));
 
-    public (string token, DateTime expira) Crear(UsuarioDto usuario)
+    public (string token, DateTime expira) Crear(UsuarioDto usuario, int clienteId = 0, string? clienteNombre = null)
     {
         var expira = DateTime.UtcNow.AddHours(HorasVigencia);
         var credenciales = new SigningCredentials(Llave, SecurityAlgorithms.HmacSha256);
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, usuario.Id),
-            new Claim(ClaimTypes.NameIdentifier, usuario.Id),
-            new Claim(ClaimTypes.Name, usuario.Nombre),
-            new Claim(ClaimTypes.Role, usuario.Perfil),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(JwtRegisteredClaimNames.Sub, usuario.Id),
+            new(ClaimTypes.NameIdentifier, usuario.Id),
+            new(ClaimTypes.Name, usuario.Nombre),
+            new(ClaimTypes.Role, usuario.Perfil),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("cli", clienteId.ToString()),
         };
+        if (!string.IsNullOrWhiteSpace(clienteNombre)) claims.Add(new Claim("cliNombre", clienteNombre));
 
         var token = new JwtSecurityToken(
             issuer: Emisor,
@@ -38,6 +40,7 @@ public sealed class TokenServicio(IConfiguration configuracion)
 
         return (new JwtSecurityTokenHandler().WriteToken(token), expira);
     }
+
 }
 
 /// <summary>Datos del usuario autenticado tomados del token.</summary>
