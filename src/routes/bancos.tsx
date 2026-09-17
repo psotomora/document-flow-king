@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Coins, FileDown, Pencil } from "lucide-react";
+import { ArrowLeftRight, Coins, FileDown, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
@@ -17,6 +17,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -27,9 +35,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
-import type { Banco, Moneda } from "@/data/tipos";
+import type { Banco, Moneda, Transferencia } from "@/data/tipos";
 import { calcularSaldosPorBanco, totalizarSaldos } from "@/lib/calculos";
-import { formatearMoneda, formatearNumero } from "@/lib/formato";
+import { formatearFecha, formatearMoneda, formatearNumero } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
 
 export const Route = createFileRoute("/bancos")({
@@ -39,7 +47,7 @@ export const Route = createFileRoute("/bancos")({
       {
         name: "description",
         content:
-          "Saldo inicial, pagos recibidos, erogaciones y saldo neto por cuenta bancaria, separado por moneda.",
+          "Saldo inicial, pagos recibidos, erogaciones, transferencias y saldo neto por cuenta bancaria, separado por moneda.",
       },
       { property: "og:title", content: "Saldo disponible por banco | Aplix Cash Flow Insights" },
       {
@@ -61,30 +69,53 @@ function PaginaBancos() {
     bancos,
     pagos,
     erogaciones,
+    transferencias,
     companiaActiva,
     companias,
     usuario,
     tipoCambio,
     esAdministrador,
+    puedeEditar,
     actualizarBanco,
+    agregarTransferencia,
+    eliminarTransferencia,
   } = useApp();
   const [enEdicion, setEnEdicion] = useState<Banco | null>(null);
+  const [nuevaTransferencia, setNuevaTransferencia] = useState(false);
 
   const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
 
   const saldos = useMemo(
     () => ({
-      USD: calcularSaldosPorBanco(visibles, pagos, erogaciones, "USD"),
-      CRC: calcularSaldosPorBanco(visibles, pagos, erogaciones, "CRC"),
+      USD: calcularSaldosPorBanco(visibles, pagos, erogaciones, "USD", transferencias),
+      CRC: calcularSaldosPorBanco(visibles, pagos, erogaciones, "CRC", transferencias),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [bancos, pagos, erogaciones, companiaActiva],
+    [bancos, pagos, erogaciones, transferencias, companiaActiva],
   );
 
   const totalUSD = totalizarSaldos(saldos.USD).saldoNeto;
   const totalCRC = totalizarSaldos(saldos.CRC).saldoNeto;
   const equivalenteUSD = tipoCambio > 0 ? totalCRC / tipoCambio : 0;
   const consolidadoUSD = totalUSD + equivalenteUSD;
+
+  const nombreBanco = (id: string) => bancos.find((b) => b.id === id)?.nombre ?? id;
+  const codigoCompania = (id: string) => companias.find((c) => c.id === id)?.codigo ?? id;
+
+  /** Transferencias visibles según la compañía activa (origen o destino). */
+  const movimientos = useMemo(
+    () =>
+      transferencias
+        .filter(
+          (t) =>
+            companiaActiva === "todas" ||
+            t.companiaOrigenId === companiaActiva ||
+            t.companiaDestinoId === companiaActiva,
+        )
+        .slice()
+        .sort((a, b) => (a.fecha < b.fecha ? 1 : -1)),
+    [transferencias, companiaActiva],
+  );
 
   const exportar = (moneda: Moneda) =>
     exportarExcel(
@@ -97,7 +128,26 @@ function PaginaBancos() {
         "Pagos recibidos": s.pagosRecibidos,
         "Saldo actual": s.saldoActual,
         Erogaciones: s.erogaciones,
+        Transferencias: s.transferencias,
         "Saldo disponible": s.saldoNeto,
+      })),
+      usuario.nombre,
+    );
+
+  const exportarTransferencias = () =>
+    exportarExcel(
+      "transferencias-entre-bancos",
+      "Transferencias",
+      movimientos.map((t) => ({
+        Fecha: t.fecha,
+        Referencia: t.referencia,
+        "Compañía origen": codigoCompania(t.companiaOrigenId),
+        "Banco origen": nombreBanco(t.cuentaOrigenId),
+        "Compañía destino": codigoCompania(t.companiaDestinoId),
+        "Banco destino": nombreBanco(t.cuentaDestinoId),
+        Moneda: t.moneda,
+        Monto: t.monto,
+        Comentarios: t.comentarios ?? "",
       })),
       usuario.nombre,
     );
@@ -107,7 +157,7 @@ function PaginaBancos() {
       <EncabezadoPagina
         titulo="Saldo disponible por banco"
         requerimiento="RF-008"
-        descripcion="Saldo disponible = saldo inicial + pagos recibidos − erogaciones. Los montos en dólares y en colones nunca se mezclan."
+        descripcion="Saldo disponible = saldo inicial + pagos recibidos − erogaciones ± transferencias entre bancos. Los montos en dólares y en colones nunca se mezclan."
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -134,7 +184,6 @@ function PaginaBancos() {
           icono={<Coins className="size-4" />}
         />
       </div>
-
 
       <div className="space-y-8">
         {(["USD", "CRC"] as Moneda[]).map((moneda) => {
@@ -175,6 +224,7 @@ function PaginaBancos() {
                       <TableHead className="text-right">Pagos recibidos</TableHead>
                       <TableHead className="text-right">Saldo actual</TableHead>
                       <TableHead className="text-right">Erogaciones</TableHead>
+                      <TableHead className="text-right">Transferencias</TableHead>
                       <TableHead className="text-right">Saldo disponible</TableHead>
                       {esAdministrador ? (
                         <TableHead className="w-16 text-right">Editar</TableHead>
@@ -200,6 +250,18 @@ function PaginaBancos() {
                         <TableCell className="text-right font-mono tabular-nums text-destructive">
                           −{formatearMoneda(s.erogaciones, moneda)}
                         </TableCell>
+                        <TableCell
+                          className={`text-right font-mono tabular-nums ${
+                            s.transferencias < 0 ? "text-destructive" : "text-exito"
+                          }`}
+                        >
+                          {s.transferencias === 0
+                            ? formatearMoneda(0, moneda)
+                            : `${s.transferencias > 0 ? "+" : "−"}${formatearMoneda(
+                                Math.abs(s.transferencias),
+                                moneda,
+                              )}`}
+                        </TableCell>
                         <TableCell className="text-right font-mono font-semibold tabular-nums">
                           {formatearMoneda(s.saldoNeto, moneda)}
                         </TableCell>
@@ -222,7 +284,7 @@ function PaginaBancos() {
                     {filas.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={esAdministrador ? 8 : 7}
+                          colSpan={esAdministrador ? 9 : 8}
                           className="py-10 text-center text-muted-foreground"
                         >
                           No hay cuentas bancarias activas para la compañía seleccionada.
@@ -246,6 +308,9 @@ function PaginaBancos() {
                         <TableCell className="text-right font-mono tabular-nums">
                           −{formatearMoneda(total.erogaciones, moneda)}
                         </TableCell>
+                        <TableCell className="text-right font-mono tabular-nums">
+                          {formatearMoneda(total.transferencias, moneda)}
+                        </TableCell>
                         <TableCell className="text-right font-mono font-semibold tabular-nums">
                           {formatearMoneda(total.saldoNeto, moneda)}
                         </TableCell>
@@ -260,6 +325,100 @@ function PaginaBancos() {
         })}
       </div>
 
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Transferencias entre bancos</h2>
+            <p className="text-sm text-muted-foreground">
+              El monto se rebaja de la cuenta de origen y se suma a la cuenta de destino, en la
+              misma moneda.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={exportarTransferencias}
+              disabled={movimientos.length === 0}
+            >
+              <FileDown className="size-4" /> Exportar Excel
+            </Button>
+            {puedeEditar ? (
+              <Button size="sm" className="gap-1.5" onClick={() => setNuevaTransferencia(true)}>
+                <ArrowLeftRight className="size-4" /> Nueva transferencia
+              </Button>
+            ) : null}
+          </div>
+        </div>
+        <div className="overflow-auto rounded-lg border border-border bg-card">
+          <Table>
+            <TableHeader className="bg-card [&_th]:bg-card">
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Referencia</TableHead>
+                <TableHead>Origen</TableHead>
+                <TableHead>Destino</TableHead>
+                <TableHead>Comentarios</TableHead>
+                <TableHead className="text-right">Monto</TableHead>
+                {esAdministrador ? <TableHead className="w-16 text-right">Eliminar</TableHead> : null}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {movimientos.map((t) => (
+                <TableRow key={t.id}>
+                  <TableCell className="whitespace-nowrap">{formatearFecha(t.fecha)}</TableCell>
+                  <TableCell className="font-medium">{t.referencia}</TableCell>
+                  <TableCell>
+                    {nombreBanco(t.cuentaOrigenId)}
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      {codigoCompania(t.companiaOrigenId)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {nombreBanco(t.cuentaDestinoId)}
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      {codigoCompania(t.companiaDestinoId)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="max-w-[18rem] truncate text-sm text-muted-foreground">
+                    {t.comentarios ?? ""}
+                  </TableCell>
+                  <TableCell className="text-right font-mono tabular-nums">
+                    {formatearMoneda(t.monto, t.moneda)}
+                  </TableCell>
+                  {esAdministrador ? (
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Eliminar transferencia ${t.referencia}`}
+                        onClick={() => {
+                          eliminarTransferencia(t.id);
+                          toast.success("Transferencia eliminada");
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TableCell>
+                  ) : null}
+                </TableRow>
+              ))}
+              {movimientos.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={esAdministrador ? 7 : 6}
+                    className="py-10 text-center text-muted-foreground"
+                  >
+                    No hay transferencias registradas.
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
+
       <DialogoSaldos
         banco={enEdicion}
         alCerrar={() => setEnEdicion(null)}
@@ -267,6 +426,17 @@ function PaginaBancos() {
           actualizarBanco(id, cambios);
           setEnEdicion(null);
           toast.success("Saldos actualizados y registrados en la bitácora");
+        }}
+      />
+
+      <DialogoTransferencia
+        abierto={nuevaTransferencia}
+        bancos={filtrarPorCompania(bancos, "todas").filter((b) => b.activo)}
+        alCerrar={() => setNuevaTransferencia(false)}
+        alGuardar={(t) => {
+          agregarTransferencia(t);
+          setNuevaTransferencia(false);
+          toast.success("Transferencia registrada y anotada en la bitácora");
         }}
       />
     </div>
@@ -347,6 +517,183 @@ function DialogoSaldos({
             Cancelar
           </Button>
           <Button onClick={guardar}>Guardar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Registro de una transferencia de fondos entre dos cuentas bancarias. */
+function DialogoTransferencia({
+  abierto,
+  bancos,
+  alCerrar,
+  alGuardar,
+}: {
+  abierto: boolean;
+  bancos: Banco[];
+  alCerrar: () => void;
+  alGuardar: (t: Omit<Transferencia, "id">) => void;
+}) {
+  const hoy = new Date().toISOString().slice(0, 10);
+  const [fecha, setFecha] = useState(hoy);
+  const [referencia, setReferencia] = useState("");
+  const [origen, setOrigen] = useState("");
+  const [destino, setDestino] = useState("");
+  const [moneda, setMoneda] = useState<Moneda>("USD");
+  const [monto, setMonto] = useState("");
+  const [comentarios, setComentarios] = useState("");
+
+  const limpiar = () => {
+    setFecha(hoy);
+    setReferencia("");
+    setOrigen("");
+    setDestino("");
+    setMoneda("USD");
+    setMonto("");
+    setComentarios("");
+  };
+
+  const guardar = () => {
+    const bancoOrigen = bancos.find((b) => b.id === origen);
+    const bancoDestino = bancos.find((b) => b.id === destino);
+    const valor = Number(monto);
+    if (!fecha) return toast.error("Indique la fecha de la transferencia.");
+    if (!referencia.trim()) return toast.error("Indique la referencia de la transferencia.");
+    if (!bancoOrigen || !bancoDestino) return toast.error("Seleccione la cuenta de origen y la de destino.");
+    if (bancoOrigen.id === bancoDestino.id)
+      return toast.error("La cuenta de destino debe ser distinta a la de origen.");
+    if (!Number.isFinite(valor) || valor <= 0) return toast.error("Digite un monto mayor que cero.");
+
+    alGuardar({
+      fecha,
+      referencia: referencia.trim(),
+      companiaOrigenId: bancoOrigen.companiaId,
+      cuentaOrigenId: bancoOrigen.id,
+      companiaDestinoId: bancoDestino.companiaId,
+      cuentaDestinoId: bancoDestino.id,
+      moneda,
+      monto: valor,
+      comentarios: comentarios.trim() ? comentarios.trim() : null,
+    });
+    limpiar();
+  };
+
+  return (
+    <Dialog
+      open={abierto}
+      onOpenChange={(v) => {
+        if (!v) {
+          limpiar();
+          alCerrar();
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Transferencia entre bancos</DialogTitle>
+          <DialogDescription>
+            El monto se rebaja de la cuenta de origen y se suma a la de destino. Puede ser entre
+            cuentas de la misma compañía o de compañías distintas.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-fecha">Fecha</Label>
+              <Input
+                id="t-fecha"
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-ref">Referencia</Label>
+              <Input
+                id="t-ref"
+                value={referencia}
+                placeholder="TRF-00123"
+                onChange={(e) => setReferencia(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-origen">Cuenta de origen</Label>
+              <Select value={origen} onValueChange={setOrigen}>
+                <SelectTrigger id="t-origen">
+                  <SelectValue placeholder="Seleccione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bancos.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-destino">Cuenta de destino</Label>
+              <Select value={destino} onValueChange={setDestino}>
+                <SelectTrigger id="t-destino">
+                  <SelectValue placeholder="Seleccione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bancos
+                    .filter((b) => b.id !== origen)
+                    .map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.nombre}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-moneda">Moneda</Label>
+              <Select value={moneda} onValueChange={(v) => setMoneda(v as Moneda)}>
+                <SelectTrigger id="t-moneda">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">USD</SelectItem>
+                  <SelectItem value="CRC">CRC</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="t-monto">Monto</Label>
+              <Input
+                id="t-monto"
+                type="number"
+                step="0.01"
+                min="0"
+                value={monto}
+                onChange={(e) => setMonto(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="t-coment">Comentarios</Label>
+            <Textarea
+              id="t-coment"
+              rows={3}
+              maxLength={300}
+              value={comentarios}
+              onChange={(e) => setComentarios(e.target.value)}
+              placeholder="Motivo del traslado de fondos (opcional)"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={alCerrar}>
+            Cancelar
+          </Button>
+          <Button onClick={guardar}>Registrar transferencia</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
