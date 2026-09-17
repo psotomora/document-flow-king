@@ -519,9 +519,15 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1"
     )
       return;
-    const pendientes = pedidosPendientesDeContratos(contratos, pedidos, hoy).filter(
-      (g) => !pedidosGenerados.current.has(g.pedido.numero),
-    );
+    // Con API, los identificadores del servidor son numéricos: si quedan datos
+    // de demostración en memoria (ids como "tx"), no se intenta crearlos.
+    const idServidor = (v: string) => /^\d+$/.test(v);
+    const pendientes = pedidosPendientesDeContratos(contratos, pedidos, hoy)
+      .filter((g) => !pedidosGenerados.current.has(g.pedido.numero))
+      .filter(
+        (g) =>
+          !hayApi() || (idServidor(g.contratoId) && idServidor(g.pedido.companiaId)),
+      );
     if (pendientes.length === 0) return;
     pendientes.forEach((g) => pedidosGenerados.current.add(g.pedido.numero));
 
