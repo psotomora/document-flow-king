@@ -37,11 +37,22 @@ public static class AuthEndpoints
             if (codigo.Equals(CodigoAplix, StringComparison.OrdinalIgnoreCase))
             {
                 using var cnCat = catalogo.AbrirCatalogo();
-                var aplix = cnCat.QueryFirstOrDefault<FilaUsuario>(
+                const string consultaAplix =
                     """
                     SELECT UsuarioId, NombreCompleto, 'superadmin' AS Perfil, HashContrasena, Activo
                     FROM catalogo.UsuarioAplix WHERE NombreUsuario = @usuario
-                    """, new { usuario = datos.Usuario });
+                    """;
+                FilaUsuario? aplix;
+                try
+                {
+                    aplix = cnCat.QueryFirstOrDefault<FilaUsuario>(consultaAplix, new { usuario = datos.Usuario });
+                }
+                catch (Microsoft.Data.SqlClient.SqlException)
+                {
+                    // Estructura incompleta de una versión anterior: se repara y se reintenta.
+                    Catalogo.AsegurarEstructura(cnCat);
+                    aplix = cnCat.QueryFirstOrDefault<FilaUsuario>(consultaAplix, new { usuario = datos.Usuario });
+                }
                 if (aplix is null || !aplix.Activo
                     || !Contrasenas.Verificar(datos.Contrasena, aplix.HashContrasena))
                     return await Rechazar();
