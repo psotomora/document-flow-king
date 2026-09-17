@@ -46,6 +46,8 @@ En SSMS conectado a la instancia destino, ejecute en este orden (Abrir archivo �
 | `database/04_seguridad.sql` | Usuarios y contraseñas |
 | `database/05_parametros.sql` | Parámetros y auditoría del tipo de cambio |
 | `database/06_parametros_generales.sql` | Parámetros generales (fuente externa, SoftlandERP) |
+| `database/07…15_*.sql` | Actualizaciones posteriores (permisos, preferencias, documentos, contratos, correo, licencia) |
+| `database/16_transferencias.sql` | Transferencias de fondos entre cuentas bancarias |
 
 Cree un login SQL para la API (recomendado, evita problemas de permisos del grupo de aplicaciones):
 
