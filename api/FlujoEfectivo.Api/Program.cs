@@ -364,24 +364,48 @@ string[] pasosEsquema =
 
 ];
 
+// Catálogo multicliente: se crea si falta y registra la instalación actual.
+var catalogoClientes = app.Services.GetRequiredService<Catalogo>();
+catalogoClientes.Preparar(app.Logger);
+
+// Auto-reparación de esquema en la base de cada cliente activo.
+void MigrarBase(string descripcion)
+{
+    try
+    {
+        using var cnMig = app.Services.GetRequiredService<Db>().Abrir();
+        foreach (var paso in pasosEsquema)
+        {
+            try
+            {
+                cnMig.Execute(paso);
+            }
+            catch (Exception ex)
+            {
+                app.Logger.LogWarning(ex, "Paso de esquema omitido en {Base}: {Paso}",
+                    descripcion, paso.Split('\n')[0]);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "No fue posible actualizar el esquema de {Base} al iniciar", descripcion);
+    }
+}
+
 try
 {
-    using var cnMig = app.Services.GetRequiredService<Db>().Abrir();
-    foreach (var paso in pasosEsquema)
+    var clientes = catalogoClientes.Activos();
+    if (clientes.Count == 0) MigrarBase("base predeterminada");
+    foreach (var cliente in clientes)
     {
-        try
-        {
-            cnMig.Execute(paso);
-        }
-        catch (Exception ex)
-        {
-            app.Logger.LogWarning(ex, "Paso de esquema omitido: {Paso}", paso.Split('\n')[0]);
-        }
+        using (Db.Fijar(cliente)) MigrarBase($"{cliente.Codigo} ({cliente.BaseDatos})");
     }
 }
 catch (Exception ex)
 {
-    app.Logger.LogWarning(ex, "No fue posible verificar/actualizar el esquema al iniciar");
+    app.Logger.LogWarning(ex, "No fue posible recorrer los clientes al iniciar");
+    MigrarBase("base predeterminada");
 }
 
 
@@ -391,6 +415,8 @@ api.MapEstado();
 api.MapUsuarios();
 api.MapRegistros();
 api.MapLicencia();
+api.MapClientes();
+
 
 
 app.MapGet("/api/salud", (Db db) =>
