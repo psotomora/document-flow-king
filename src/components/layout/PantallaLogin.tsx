@@ -2,6 +2,8 @@ import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Loader2, LockKeyhole, ServerCog, Tag } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
 import { configurarUrlApi, probarConexionApi, urlApi } from "@/lib/api";
+import { empresaCodigo } from "@/lib/empresa";
+
 import { APP_FECHA_VERSION, APP_VERSION } from "@/lib/version";
 import { Button } from "@/components/ui/button";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
