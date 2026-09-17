@@ -436,13 +436,21 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
 
   const autenticar = useCallback(
-    async (nombreUsuario: string, contrasena: string) => {
-      const resp = await api<{ token: string; usuario: Usuario }>("/auth/login", {
-        metodo: "POST",
-        cuerpo: { usuario: nombreUsuario, contrasena },
-        sinToken: true,
-      });
+    async (nombreUsuario: string, contrasena: string, clienteCodigo?: string) => {
+      const codigo = (clienteCodigo ?? "").trim();
+      const resp = await api<{ token: string; usuario: Usuario; cliente?: string | null }>(
+        "/auth/login",
+        {
+          metodo: "POST",
+          cuerpo: codigo
+            ? { usuario: nombreUsuario, contrasena, clienteCodigo: codigo }
+            : { usuario: nombreUsuario, contrasena },
+          sinToken: true,
+        },
+      );
       guardarToken(resp.token);
+      guardarEmpresaCodigo(codigo);
+      guardarEmpresaNombre(resp.cliente ?? null);
       setUsuario(resp.usuario);
       setAutenticado(true);
       setSesionCerrada(false);
@@ -450,6 +458,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     },
     [recargar],
   );
+
 
   /** Ejecuta una mutación contra la API y recarga el estado; en modo demo usa el callback local. */
   /** Ejecuta el cambio (en la API o localmente) y resuelve `true` solo si se guardó. */
