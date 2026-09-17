@@ -419,11 +419,31 @@ api.MapClientes();
 
 
 
-app.MapGet("/api/salud", (Db db) =>
+app.MapGet("/api/salud", (Db db, Catalogo catalogo) =>
 {
     try
     {
+        // En modo multicliente la salud se mide contra el catálogo; nunca se
+        // revela cuántos clientes hay ni sus nombres.
+        var clientes = catalogo.Activos();
+        if (clientes.Count > 0)
+        {
+            using (Db.Fijar(clientes[0]))
+            {
+                using var cnPrueba = db.Abrir();
+                cnPrueba.ExecuteScalar<int>("SELECT 1");
+            }
+            return Results.Ok(new
+            {
+                estado = "ok",
+                versionApi,
+                hora = DateTime.UtcNow,
+                operaciones = new { crearUsuarios = true },
+            });
+        }
+
         using var cn = db.Abrir();
+
         var esquemaCompleto = cn.ExecuteScalar<int>(
             """
             SELECT CASE WHEN
