@@ -1327,6 +1327,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     companias,
     contratos,
     erogaciones,
+    transferencias,
     documentosPorPagar,
     documentosPorCobrar,
     errorApi,
