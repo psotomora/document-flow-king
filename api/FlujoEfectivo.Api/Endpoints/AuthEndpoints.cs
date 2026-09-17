@@ -71,14 +71,29 @@ public static class AuthEndpoints
             }
 
             using var cn = cliente is null ? db.Abrir() : catalogo.Abrir(cliente);
-            var fila = cn.QueryFirstOrDefault<FilaUsuario>(
-                """
-                SELECT u.UsuarioId, u.NombreCompleto, p.Codigo AS Perfil, u.HashContrasena, u.Activo
-                FROM flujo.Usuario u
-                INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
-                WHERE u.NombreUsuario = @usuario
-                """,
-                new { usuario = datos.Usuario });
+            FilaUsuario? fila;
+            try
+            {
+                fila = cn.QueryFirstOrDefault<FilaUsuario>(
+                    """
+                    SELECT u.UsuarioId, u.NombreCompleto, p.Codigo AS Perfil, u.HashContrasena, u.Activo
+                    FROM flujo.Usuario u
+                    INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
+                    WHERE u.NombreUsuario = @usuario
+                    """,
+                    new { usuario = datos.Usuario });
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number is 208 or 4060 or 911)
+            {
+                // La base de la empresa existe en el catálogo pero aún no tiene
+                // la estructura del sistema (o no existe la base indicada).
+                return Results.Json(new
+                {
+                    mensaje = "La empresa aún no está preparada para usarse. "
+                            + "Ingrese con el código APLIX, abra «Empresas atendidas» y pulse «Aprovisionar» "
+                            + "en esta empresa para crear su estructura.",
+                }, statusCode: 409);
+            }
 
             if (fila is null || !fila.Activo || !Contrasenas.Verificar(datos.Contrasena, fila.HashContrasena))
                 return await Rechazar();
