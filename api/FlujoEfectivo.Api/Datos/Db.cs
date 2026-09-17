@@ -31,7 +31,16 @@ public sealed class Db(IConfiguration configuracion, Catalogo catalogo, IHttpCon
     public ClienteTenant? ClienteActual()
     {
         if (_clienteForzado.Value is { } forzado) return forzado;
-        var id = contexto.HttpContext?.User.ClienteId() ?? 0;
+        var http = contexto.HttpContext;
+
+        // El personal de Aplix puede trabajar dentro de una empresa concreta
+        // enviando su identificador; ningún usuario de cliente puede hacerlo.
+        if (http is not null && http.User.EsSuperAdministrador()
+            && int.TryParse(http.Request.Headers["X-Empresa"].FirstOrDefault(), out var elegida)
+            && elegida > 0)
+            return catalogo.PorId(elegida);
+
+        var id = http?.User.ClienteId() ?? 0;
         return id > 0 ? catalogo.PorId(id) : null;
     }
 
