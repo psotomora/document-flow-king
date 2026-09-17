@@ -119,8 +119,8 @@ function PaginaUsuario() {
       toast.error("El nombre completo y el nombre de usuario son obligatorios.");
       return;
     }
-    if (esNuevo && contrasena.length > 0 && contrasena.length < 8) {
-      toast.error("La contraseña debe tener al menos 8 caracteres.");
+    if (esNuevo && contrasena.length < 8) {
+      toast.error("La contraseña inicial es obligatoria y debe tener al menos 8 caracteres.");
       return;
     }
     setGuardando(true);
@@ -231,7 +231,7 @@ function PaginaUsuario() {
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="contrasena">
-                {esNuevo ? "Contraseña inicial (opcional)" : "Nueva contraseña (dejar vacío para no cambiar)"}
+                {esNuevo ? "Contraseña inicial" : "Nueva contraseña (dejar vacío para no cambiar)"}
               </Label>
               <CampoContrasena
                 id="contrasena"

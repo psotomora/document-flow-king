@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.38.4";
+export const APP_VERSION = "1.38.5";
 export const APP_FECHA_VERSION = "2026-09-17";
 
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
@@ -13,6 +13,17 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.38.5",
+    fecha: "2026-09-17",
+    cambios: [
+      "Los usuarios creados por Aplix dentro de una empresa aparecen inmediatamente en la lista correcta.",
+      "Se evita confundir al superadministrador con un usuario de la empresa que tenga el mismo identificador.",
+      "Al trabajar en una empresa, su código queda preparado para el próximo inicio de sesión.",
+      "La contraseña inicial ahora es obligatoria para impedir usuarios creados sin acceso.",
+      "Aplix ya no puede crear o editar usuarios accidentalmente fuera de una empresa seleccionada.",
+    ],
+  },
   {
     version: "1.38.4",
     fecha: "2026-09-17",

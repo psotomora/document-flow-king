@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Building2, Loader2, LogIn, PlugZap, RefreshCw, Wrench } from "lucide-react";
-import { fijarEmpresaTrabajo } from "@/lib/empresa";
+import { fijarEmpresaTrabajo, guardarEmpresaCodigo } from "@/lib/empresa";
 import { toast } from "sonner";
 import { useApp } from "@/contexto/AppContexto";
 import {
@@ -248,6 +248,9 @@ function PaginaEmpresas() {
                       disabled={!c.activo}
                       onClick={() => {
                         fijarEmpresaTrabajo(c.id, c.nombre);
+                        // Al cerrar la sesión, el formulario queda preparado para
+                        // ingresar como un usuario propio de esta empresa.
+                        guardarEmpresaCodigo(c.codigo);
                         window.location.assign(import.meta.env.BASE_URL || "/");
                       }}
                     >
