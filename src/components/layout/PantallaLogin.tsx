@@ -70,13 +70,14 @@ export function PantallaLogin() {
     }
     setEnviando(true);
     try {
-      await autenticar(usuario.trim(), contrasena);
+      await autenticar(usuario.trim(), contrasena, empresa.trim());
     } catch (err) {
       setError(err instanceof Error ? err.message : "No fue posible iniciar sesión");
     } finally {
       setEnviando(false);
     }
   }
+
 
   function alPresionarEnter(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
