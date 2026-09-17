@@ -242,6 +242,17 @@ function PaginaEmpresas() {
                       <Wrench className="mr-1 size-4" aria-hidden />
                       Preparar base
                     </Button>
+                    <Button
+                      size="sm"
+                      disabled={!c.activo}
+                      onClick={() => {
+                        fijarEmpresaTrabajo(c.id, c.nombre);
+                        window.location.assign("/");
+                      }}
+                    >
+                      <LogIn className="mr-1 size-4" aria-hidden />
+                      Trabajar aquí
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
