@@ -14,6 +14,14 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.38.1",
+    fecha: "2026-09-17",
+    cambios: [
+      "El acceso con el código APLIX habilita automáticamente a los administradores existentes con su misma contraseña.",
+      "Nuevo script database/tenant/01_usuarios_aplix.sql para habilitar el acceso de Aplix manualmente.",
+    ],
+  },
+  {
     version: "1.38.0",
     fecha: "2026-09-17",
     cambios: [
