@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Coins, FileDown, Pencil } from "lucide-react";
+import { ArrowLeftRight, Coins, FileDown, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
@@ -18,6 +18,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Table,
   TableBody,
   TableCell,
@@ -27,7 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
-import type { Banco, Moneda } from "@/data/tipos";
+import type { Banco, Moneda, Transferencia } from "@/data/tipos";
 import { calcularSaldosPorBanco, totalizarSaldos } from "@/lib/calculos";
 import { formatearMoneda, formatearNumero } from "@/lib/formato";
 import { exportarExcel } from "@/lib/exportar";
@@ -61,6 +69,11 @@ function PaginaBancos() {
     bancos,
     pagos,
     erogaciones,
+    transferencias,
+    agregarTransferencia,
+    eliminarTransferencia,
+    puedeEditar,
+    hoy,
     companiaActiva,
     companias,
     usuario,
@@ -69,16 +82,17 @@ function PaginaBancos() {
     actualizarBanco,
   } = useApp();
   const [enEdicion, setEnEdicion] = useState<Banco | null>(null);
+  const [transferir, setTransferir] = useState(false);
 
   const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
 
   const saldos = useMemo(
     () => ({
-      USD: calcularSaldosPorBanco(visibles, pagos, erogaciones, "USD"),
-      CRC: calcularSaldosPorBanco(visibles, pagos, erogaciones, "CRC"),
+      USD: calcularSaldosPorBanco(visibles, pagos, erogaciones, "USD", transferencias),
+      CRC: calcularSaldosPorBanco(visibles, pagos, erogaciones, "CRC", transferencias),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [bancos, pagos, erogaciones, companiaActiva],
+    [bancos, pagos, erogaciones, transferencias, companiaActiva],
   );
 
   const totalUSD = totalizarSaldos(saldos.USD).saldoNeto;
@@ -97,6 +111,8 @@ function PaginaBancos() {
         "Pagos recibidos": s.pagosRecibidos,
         "Saldo actual": s.saldoActual,
         Erogaciones: s.erogaciones,
+        "Transferencias recibidas": s.transferenciasEntrada,
+        "Transferencias enviadas": s.transferenciasSalida,
         "Saldo disponible": s.saldoNeto,
       })),
       usuario.nombre,
@@ -175,6 +191,7 @@ function PaginaBancos() {
                       <TableHead className="text-right">Pagos recibidos</TableHead>
                       <TableHead className="text-right">Saldo actual</TableHead>
                       <TableHead className="text-right">Erogaciones</TableHead>
+                      <TableHead className="text-right">Transferencias</TableHead>
                       <TableHead className="text-right">Saldo disponible</TableHead>
                       {esAdministrador ? (
                         <TableHead className="w-16 text-right">Editar</TableHead>
@@ -200,6 +217,9 @@ function PaginaBancos() {
                         <TableCell className="text-right font-mono tabular-nums text-destructive">
                           −{formatearMoneda(s.erogaciones, moneda)}
                         </TableCell>
+                        <TableCell className="text-right font-mono tabular-nums">
+                          {formatearMoneda(s.transferenciasEntrada - s.transferenciasSalida, moneda)}
+                        </TableCell>
                         <TableCell className="text-right font-mono font-semibold tabular-nums">
                           {formatearMoneda(s.saldoNeto, moneda)}
                         </TableCell>
@@ -222,7 +242,7 @@ function PaginaBancos() {
                     {filas.length === 0 ? (
                       <TableRow>
                         <TableCell
-                          colSpan={esAdministrador ? 8 : 7}
+                          colSpan={esAdministrador ? 9 : 8}
                           className="py-10 text-center text-muted-foreground"
                         >
                           No hay cuentas bancarias activas para la compañía seleccionada.
@@ -245,6 +265,12 @@ function PaginaBancos() {
                         </TableCell>
                         <TableCell className="text-right font-mono tabular-nums">
                           −{formatearMoneda(total.erogaciones, moneda)}
+                        </TableCell>
+                        <TableCell className="text-right font-mono tabular-nums">
+                          {formatearMoneda(
+                            total.transferenciasEntrada - total.transferenciasSalida,
+                            moneda,
+                          )}
                         </TableCell>
                         <TableCell className="text-right font-mono font-semibold tabular-nums">
                           {formatearMoneda(total.saldoNeto, moneda)}
