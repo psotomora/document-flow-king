@@ -286,6 +286,92 @@ function PaginaBancos() {
         })}
       </div>
 
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-foreground">
+          Transferencias entre bancos y compañías
+        </h2>
+        <div className="overflow-auto rounded-lg border border-border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Referencia</TableHead>
+                <TableHead>Origen</TableHead>
+                <TableHead>Destino</TableHead>
+                <TableHead className="text-right">Monto</TableHead>
+                <TableHead>Comentarios</TableHead>
+                {esAdministrador ? <TableHead className="w-16" /> : null}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transferencias.map((t) => {
+                const origen = bancos.find((b) => b.id === t.bancoOrigenId);
+                const destino = bancos.find((b) => b.id === t.bancoDestinoId);
+                const codigo = (id: string) => companias.find((c) => c.id === id)?.codigo ?? "";
+                return (
+                  <TableRow key={t.id}>
+                    <TableCell className="font-mono text-xs">{t.fecha}</TableCell>
+                    <TableCell className="font-medium">{t.referencia}</TableCell>
+                    <TableCell className="text-sm">
+                      {codigo(t.companiaOrigenId)} · {origen?.nombre ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {codigo(t.companiaDestinoId)} · {destino?.nombre ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {formatearMoneda(t.monto, t.moneda)}
+                    </TableCell>
+                    <TableCell className="max-w-[24rem] truncate text-xs text-muted-foreground">
+                      {t.comentarios ?? ""}
+                    </TableCell>
+                    {esAdministrador ? (
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Eliminar transferencia ${t.referencia}`}
+                          onClick={() => {
+                            eliminarTransferencia(t.id);
+                            toast.success("Transferencia eliminada");
+                          }}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </TableCell>
+                    ) : null}
+                  </TableRow>
+                );
+              })}
+              {transferencias.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={esAdministrador ? 7 : 6}
+                    className="py-10 text-center text-muted-foreground"
+                  >
+                    Aún no se han registrado transferencias entre cuentas.
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </div>
+      </section>
+
+      <DialogoTransferencia
+        abierto={transferir}
+        bancos={bancos}
+        companias={companias}
+        hoy={hoy}
+        alCerrar={() => setTransferir(false)}
+        alGuardar={async (datos) => {
+          const ok = await agregarTransferencia(datos);
+          if (ok) {
+            setTransferir(false);
+            toast.success("Transferencia registrada");
+          }
+        }}
+      />
+
       <DialogoSaldos
         banco={enEdicion}
         alCerrar={() => setEnEdicion(null)}
