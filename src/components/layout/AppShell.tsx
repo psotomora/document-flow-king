@@ -85,6 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     cerrarSesion,
   } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navegar = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
   // El panel móvil se cierra al cambiar de pantalla.
   useEffect(() => setMenuAbierto(false), [pathname]);
