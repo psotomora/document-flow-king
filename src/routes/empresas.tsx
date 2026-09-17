@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Loader2, PlugZap, RefreshCw, Wrench } from "lucide-react";
+import { Building2, Loader2, LogIn, PlugZap, RefreshCw, Wrench } from "lucide-react";
+import { fijarEmpresaTrabajo } from "@/lib/empresa";
 import { toast } from "sonner";
 import { useApp } from "@/contexto/AppContexto";
 import {
