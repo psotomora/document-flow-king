@@ -16,97 +16,31 @@ public static class AuthEndpoints
         public bool Activo { get; set; }
     }
 
-    /// <summary>Código reservado para el personal de Aplix (administración de clientes).</summary>
-    public const string CodigoAplix = "APLIX";
-
     public static void MapAuth(this IEndpointRouteBuilder grupo)
     {
-        grupo.MapPost("/auth/login", async (LoginRequest datos, Db db, Catalogo catalogo, TokenServicio tokens) =>
+        grupo.MapPost("/auth/login", (LoginRequest datos, Db db, TokenServicio tokens) =>
         {
-            // Mensaje único para cualquier fallo: nunca revela si un código de
-            // empresa existe, ni qué empresas están registradas.
-            static async Task<IResult> Rechazar()
-            {
-                await Task.Delay(400);
-                return Results.Json(new { mensaje = "Datos de acceso incorrectos." }, statusCode: 401);
-            }
-
-            var codigo = (datos.ClienteCodigo ?? "").Trim();
-
-            // Personal de Aplix: usuarios propios del catálogo, sin acceso a datos de clientes.
-            if (codigo.Equals(CodigoAplix, StringComparison.OrdinalIgnoreCase))
-            {
-                using var cnCat = catalogo.AbrirCatalogo();
-                const string consultaAplix =
-                    """
-                    SELECT UsuarioId, NombreCompleto, 'superadmin' AS Perfil, HashContrasena, Activo
-                    FROM catalogo.UsuarioAplix WHERE NombreUsuario = @usuario
-                    """;
-                FilaUsuario? aplix;
-                try
-                {
-                    aplix = cnCat.QueryFirstOrDefault<FilaUsuario>(consultaAplix, new { usuario = datos.Usuario });
-                }
-                catch (Microsoft.Data.SqlClient.SqlException)
-                {
-                    // Estructura incompleta de una versión anterior: se repara y se reintenta.
-                    Catalogo.AsegurarEstructura(cnCat);
-                    aplix = cnCat.QueryFirstOrDefault<FilaUsuario>(consultaAplix, new { usuario = datos.Usuario });
-                }
-                if (aplix is null || !aplix.Activo
-                    || !Contrasenas.Verificar(datos.Contrasena, aplix.HashContrasena))
-                    return await Rechazar();
-
-                var superUsuario = new UsuarioDto(aplix.UsuarioId.ToString(), aplix.NombreCompleto, "superadmin");
-                var (tokenSuper, expiraSuper) = tokens.Crear(superUsuario, 0, "Aplix");
-                Catalogo.Auditar(cnCat, datos.Usuario, "Acceso", "Consola Aplix");
-                return Results.Ok(new LoginResponse(tokenSuper, superUsuario, expiraSuper, "Aplix"));
-            }
-
-            ClienteTenant? cliente = null;
-            if (codigo.Length > 0)
-            {
-                cliente = catalogo.PorCodigo(codigo);
-                if (cliente is null || !cliente.Activo) return await Rechazar();
-            }
-
-            using var cn = cliente is null ? db.Abrir() : catalogo.Abrir(cliente);
-            FilaUsuario? fila;
-            try
-            {
-                fila = cn.QueryFirstOrDefault<FilaUsuario>(
-                    """
-                    SELECT u.UsuarioId, u.NombreCompleto, p.Codigo AS Perfil, u.HashContrasena, u.Activo
-                    FROM flujo.Usuario u
-                    INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
-                    WHERE u.NombreUsuario = @usuario
-                    """,
-                    new { usuario = datos.Usuario });
-            }
-            catch (Microsoft.Data.SqlClient.SqlException ex) when (ex.Number is 208 or 4060 or 911)
-            {
-                // La base de la empresa existe en el catálogo pero aún no tiene
-                // la estructura del sistema (o no existe la base indicada).
-                return Results.Json(new
-                {
-                    mensaje = "La empresa aún no está preparada para usarse. "
-                            + "Ingrese con el código APLIX, abra «Empresas atendidas» y pulse «Aprovisionar» "
-                            + "en esta empresa para crear su estructura.",
-                }, statusCode: 409);
-            }
+            using var cn = db.Abrir();
+            var fila = cn.QueryFirstOrDefault<FilaUsuario>(
+                """
+                SELECT u.UsuarioId, u.NombreCompleto, p.Codigo AS Perfil, u.HashContrasena, u.Activo
+                FROM flujo.Usuario u
+                INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
+                WHERE u.NombreUsuario = @usuario
+                """,
+                new { usuario = datos.Usuario });
 
             if (fila is null || !fila.Activo || !Contrasenas.Verificar(datos.Contrasena, fila.HashContrasena))
-                return await Rechazar();
+                return Results.Json(new { mensaje = "Usuario o contraseña incorrectos." }, statusCode: 401);
 
             var usuario = new UsuarioDto(fila.UsuarioId.ToString(), fila.NombreCompleto, fila.Perfil);
-            var (token, expira) = tokens.Crear(usuario, cliente?.ClienteId ?? 0, cliente?.Nombre);
+            var (token, expira) = tokens.Crear(usuario);
 
             Db.Auditar(cn, fila.UsuarioId, fila.NombreCompleto, "Seguridad", datos.Usuario, "Acceso",
                 valorNuevo: "Inicio de sesión");
 
-            return Results.Ok(new LoginResponse(token, usuario, expira, cliente?.Nombre));
+            return Results.Ok(new LoginResponse(token, usuario, expira));
         }).AllowAnonymous();
-
 
         grupo.MapGet("/auth/yo", (HttpContext ctx) => Results.Ok(new UsuarioDto(
             ctx.User.UsuarioId().ToString(),

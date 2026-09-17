@@ -1,7 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.37.1";
-export const APP_FECHA_VERSION = "2026-09-17";
-
+export const APP_VERSION = "1.37.0";
+export const APP_FECHA_VERSION = "2026-09-16";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -14,57 +13,6 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
-    version: "1.37.1",
-    fecha: "2026-09-17",
-    cambios: [
-      "En modo demostración, el botón Salir lleva directamente a la pantalla de ingreso.",
-    ],
-  },
-  {
-    version: "1.38.6",
-    fecha: "2026-09-17",
-    cambios: [
-      "Al ingresar a una empresa sin preparar, el sistema lo indica con claridad en vez de mostrar un error técnico.",
-    ],
-  },
-  {
-    version: "1.38.5",
-    fecha: "2026-09-17",
-    cambios: [
-      "Los usuarios creados por Aplix dentro de una empresa aparecen inmediatamente en la lista correcta.",
-      "Se evita confundir al superadministrador con un usuario de la empresa que tenga el mismo identificador.",
-      "Al trabajar en una empresa, su código queda preparado para el próximo inicio de sesión.",
-      "La contraseña inicial ahora es obligatoria para impedir usuarios creados sin acceso.",
-      "Aplix ya no puede crear o editar usuarios accidentalmente fuera de una empresa seleccionada.",
-    ],
-  },
-  {
-    version: "1.38.4",
-    fecha: "2026-09-17",
-    cambios: [
-      "Se corrige el error \"Invalid column name 'NombreUsuario'\" al ingresar con el código APLIX: la estructura del catálogo se completa sola.",
-    ],
-  },
-  {
-    version: "1.38.1",
-    fecha: "2026-09-17",
-    cambios: [
-      "El acceso con el código APLIX habilita automáticamente a los administradores existentes con su misma contraseña.",
-      "Nuevo script database/tenant/01_usuarios_aplix.sql para habilitar el acceso de Aplix manualmente.",
-    ],
-  },
-  {
-    version: "1.38.0",
-    fecha: "2026-09-17",
-    cambios: [
-      "Modo multiempresa: una sola instalación puede atender a varias empresas, cada una con su propia base de datos.",
-      "La pantalla de ingreso pide el código de empresa; no existe ninguna lista de empresas visible.",
-      "Nueva consola de Aplix (Empresas atendidas) para registrar, probar y preparar la base de cada empresa.",
-      "Nuevo script database/tenant/00_catalogo.sql con la base de catálogo.",
-    ],
-  },
-  {
-
     version: "1.37.0",
     fecha: "2026-09-16",
     cambios: [

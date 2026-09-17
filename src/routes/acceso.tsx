@@ -36,11 +36,7 @@ export const Route = createFileRoute("/acceso")({
   component: PaginaAcceso,
 });
 
-/** El perfil superadmin es del personal de Aplix y no aparece en esta matriz. */
-type PerfilCliente = Exclude<Perfil, "superadmin">;
-
-const PERMISOS: { accion: string; permitido: Record<PerfilCliente, boolean> }[] = [
-
+const PERMISOS: { accion: string; permitido: Record<Perfil, boolean> }[] = [
   { accion: "Consultar tableros y reportes", permitido: { administrador: true, registro: true, consulta: true } },
   { accion: "Exportar a Excel y PDF", permitido: { administrador: true, registro: true, consulta: true } },
   { accion: "Registrar facturas, pagos y erogaciones", permitido: { administrador: true, registro: true, consulta: false } },
@@ -155,7 +151,7 @@ function PaginaAcceso() {
             {PERMISOS.map((p) => (
               <TableRow key={p.accion}>
                 <TableCell className="font-medium">{p.accion}</TableCell>
-                {(["administrador", "registro", "consulta"] as PerfilCliente[]).map((perfil) => (
+                {(["administrador", "registro", "consulta"] as Perfil[]).map((perfil) => (
                   <TableCell key={perfil} className="text-center">
                     {p.permitido[perfil] ? (
                       <Check className="mx-auto size-4 text-exito" aria-label="Permitido" />

@@ -29,8 +29,6 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
-import { fijarEmpresaTrabajo, guardarEmpresaCodigo, guardarEmpresaNombre } from "@/lib/empresa";
-
 import {
   contratosPorFacturarDelMes,
   pedidosPendientesDeContratos,
@@ -184,7 +182,7 @@ interface EstadoApp {
   puedeEditar: boolean;
   esAdministrador: boolean;
   iniciarSesion: (usuarioId: string) => void;
-  autenticar: (usuario: string, contrasena: string, clienteCodigo?: string) => Promise<void>;
+  autenticar: (usuario: string, contrasena: string) => Promise<void>;
   /** Entra a la aplicación con los datos de prueba, sin conectarse a SQL Server. */
   entrarDemostracion: () => void;
   recargar: () => Promise<void>;
@@ -302,12 +300,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const tipoCambio = tiposCambio[tiposCambio.length - 1]?.valor ?? 0;
 
   const aplicarEstado = useCallback((estado: EstadoServidor) => {
-    // El identificador del superadministrador pertenece al catálogo Aplix y puede
-    // coincidir con el de un usuario de la empresa. Nunca mezclar ambos registros.
-    const completo =
-      estado.usuario.perfil === "superadmin"
-        ? undefined
-        : estado.usuarios?.find((u) => u.id === estado.usuario.id);
+    // El usuario del token trae datos mínimos; si viene la lista completa, se usa ese registro.
+    const completo = estado.usuarios?.find((u) => u.id === estado.usuario.id);
     setUsuario(completo ? { ...estado.usuario, ...completo } : estado.usuario);
     setUsuarios(
       estado.usuarios && estado.usuarios.length > 0
@@ -442,22 +436,13 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
 
   const autenticar = useCallback(
-    async (nombreUsuario: string, contrasena: string, clienteCodigo?: string) => {
-      const codigo = (clienteCodigo ?? "").trim();
-      const resp = await api<{ token: string; usuario: Usuario; cliente?: string | null }>(
-        "/auth/login",
-        {
-          metodo: "POST",
-          cuerpo: codigo
-            ? { usuario: nombreUsuario, contrasena, clienteCodigo: codigo }
-            : { usuario: nombreUsuario, contrasena },
-          sinToken: true,
-        },
-      );
+    async (nombreUsuario: string, contrasena: string) => {
+      const resp = await api<{ token: string; usuario: Usuario }>("/auth/login", {
+        metodo: "POST",
+        cuerpo: { usuario: nombreUsuario, contrasena },
+        sinToken: true,
+      });
       guardarToken(resp.token);
-      fijarEmpresaTrabajo(null);
-      guardarEmpresaCodigo(codigo);
-      guardarEmpresaNombre(resp.cliente ?? null);
       setUsuario(resp.usuario);
       setAutenticado(true);
       setSesionCerrada(false);
@@ -465,7 +450,6 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     },
     [recargar],
   );
-
 
   /** Ejecuta una mutación contra la API y recarga el estado; en modo demo usa el callback local. */
   /** Ejecuta el cambio (en la API o localmente) y resuelve `true` solo si se guardó. */
@@ -895,7 +879,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
   const valor = useMemo<EstadoApp>(() => {
     const puedeEditar = usuario.perfil !== "consulta";
-    const esAdministrador = usuario.perfil === "administrador" || usuario.perfil === "superadmin";
+    const esAdministrador = usuario.perfil === "administrador";
 
     return {
       hoy,
@@ -977,13 +961,10 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setAutenticado(true);
       },
       cerrarSesion: () => {
-        const eraDemostracion = !modoApi;
         guardarToken(null);
-        fijarEmpresaTrabajo(null);
         setModoApi(hayApi());
         setAutenticado(false);
-        // En modo demostración se vuelve directo a la pantalla de ingreso.
-        setSesionCerrada(!eraDemostracion);
+        setSesionCerrada(true);
       },
       volverAlLogin: () => setSesionCerrada(false),
 

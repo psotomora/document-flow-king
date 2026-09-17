@@ -332,8 +332,7 @@ public static class EstadoEndpoints
                 FROM flujo.Bitacora ORDER BY FechaHora DESC, BitacoraId DESC
                 """);
 
-            var esAdmin = string.Equals(ctx.User.Perfil(), "administrador", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(ctx.User.Perfil(), "superadmin", StringComparison.OrdinalIgnoreCase);
+            var esAdmin = string.Equals(ctx.User.Perfil(), "administrador", StringComparison.OrdinalIgnoreCase);
             const string consultaUsuarios =
                 """
                 SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,

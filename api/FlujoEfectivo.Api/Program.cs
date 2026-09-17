@@ -9,11 +9,8 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton<Catalogo>();
 builder.Services.AddSingleton<Db>();
 builder.Services.AddSingleton<TokenServicio>();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -364,48 +361,24 @@ string[] pasosEsquema =
 
 ];
 
-// Catálogo multicliente: se crea si falta y registra la instalación actual.
-var catalogoClientes = app.Services.GetRequiredService<Catalogo>();
-catalogoClientes.Preparar(app.Logger);
-
-// Auto-reparación de esquema en la base de cada cliente activo.
-void MigrarBase(string descripcion)
-{
-    try
-    {
-        using var cnMig = app.Services.GetRequiredService<Db>().Abrir();
-        foreach (var paso in pasosEsquema)
-        {
-            try
-            {
-                cnMig.Execute(paso);
-            }
-            catch (Exception ex)
-            {
-                app.Logger.LogWarning(ex, "Paso de esquema omitido en {Base}: {Paso}",
-                    descripcion, paso.Split('\n')[0]);
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        app.Logger.LogWarning(ex, "No fue posible actualizar el esquema de {Base} al iniciar", descripcion);
-    }
-}
-
 try
 {
-    var clientes = catalogoClientes.Activos();
-    if (clientes.Count == 0) MigrarBase("base predeterminada");
-    foreach (var cliente in clientes)
+    using var cnMig = app.Services.GetRequiredService<Db>().Abrir();
+    foreach (var paso in pasosEsquema)
     {
-        using (Db.Fijar(cliente)) MigrarBase($"{cliente.Codigo} ({cliente.BaseDatos})");
+        try
+        {
+            cnMig.Execute(paso);
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogWarning(ex, "Paso de esquema omitido: {Paso}", paso.Split('\n')[0]);
+        }
     }
 }
 catch (Exception ex)
 {
-    app.Logger.LogWarning(ex, "No fue posible recorrer los clientes al iniciar");
-    MigrarBase("base predeterminada");
+    app.Logger.LogWarning(ex, "No fue posible verificar/actualizar el esquema al iniciar");
 }
 
 
@@ -415,35 +388,13 @@ api.MapEstado();
 api.MapUsuarios();
 api.MapRegistros();
 api.MapLicencia();
-api.MapClientes();
 
 
-
-app.MapGet("/api/salud", (Db db, Catalogo catalogo) =>
+app.MapGet("/api/salud", (Db db) =>
 {
     try
     {
-        // En modo multicliente la salud se mide contra el catálogo; nunca se
-        // revela cuántos clientes hay ni sus nombres.
-        var clientes = catalogo.Activos();
-        if (clientes.Count > 0)
-        {
-            using (Db.Fijar(clientes[0]))
-            {
-                using var cnPrueba = db.Abrir();
-                cnPrueba.ExecuteScalar<int>("SELECT 1");
-            }
-            return Results.Ok(new
-            {
-                estado = "ok",
-                versionApi,
-                hora = DateTime.UtcNow,
-                operaciones = new { crearUsuarios = true },
-            });
-        }
-
         using var cn = db.Abrir();
-
         var esquemaCompleto = cn.ExecuteScalar<int>(
             """
             SELECT CASE WHEN
