@@ -55,6 +55,16 @@ public static class ClaimsExtensiones
     public static string Perfil(this ClaimsPrincipal p) =>
         p.FindFirstValue(ClaimTypes.Role) ?? "consulta";
 
+    /// <summary>Empresa (cliente) a la que pertenece la sesión; 0 si no aplica.</summary>
+    public static int ClienteId(this ClaimsPrincipal p) =>
+        int.TryParse(p.FindFirstValue("cli"), out var id) ? id : 0;
+
+    public static string ClienteNombre(this ClaimsPrincipal p) =>
+        p.FindFirstValue("cliNombre") ?? "";
+
+    public static bool EsSuperAdministrador(this ClaimsPrincipal p) => p.Perfil() == "superadmin";
+
+
     public static bool PuedeEditar(this ClaimsPrincipal p) => p.Perfil() != "consulta";
 
     public static bool EsAdministrador(this ClaimsPrincipal p) => p.Perfil() == "administrador";
