@@ -185,6 +185,14 @@ function PaginaBancos() {
         />
       </div>
 
+      {puedeEditar ? (
+        <div className="flex justify-end">
+          <Button size="sm" className="gap-1.5" onClick={() => setNuevaTransferencia(true)}>
+            <ArrowLeftRight className="size-4" /> Nueva transferencia
+          </Button>
+        </div>
+      ) : null}
+
       <div className="space-y-8">
         {(["USD", "CRC"] as Moneda[]).map((moneda) => {
           const filas = saldos[moneda];
@@ -335,11 +343,6 @@ function PaginaBancos() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {puedeEditar ? (
-              <Button size="sm" className="gap-1.5" onClick={() => setNuevaTransferencia(true)}>
-                <ArrowLeftRight className="size-4" /> Nueva transferencia
-              </Button>
-            ) : null}
             <Button
               variant="outline"
               size="sm"
