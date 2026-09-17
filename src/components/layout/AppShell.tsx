@@ -246,24 +246,20 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </SelectContent>
               </Select>
             )}
-            {modoApi ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5"
-                onClick={cerrarSesion}
-              >
-                <LogOut className="size-4" />
-                <span className="hidden sm:inline">Cerrar sesión</span>
-              </Button>
-            ) : (
-              <Button asChild variant="ghost" size="sm" className="gap-1.5">
-                <Link to="/acceso">
-                  <LogOut className="size-4" />
-                  <span className="hidden sm:inline">Sesión</span>
-                </Link>
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                cerrarSesion();
+                // Se vuelve siempre a una ruta válida para que la pantalla de
+                // ingreso se muestre aunque la URL actual no exista.
+                void navegar({ to: "/" });
+              }}
+            >
+              <LogOut className="size-4" />
+              <span className="hidden sm:inline">Cerrar sesión</span>
+            </Button>
           </div>
         </header>
 
