@@ -14,6 +14,13 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.37.1",
+    fecha: "2026-09-17",
+    cambios: [
+      "En modo demostración, el botón Salir lleva directamente a la pantalla de ingreso.",
+    ],
+  },
+  {
     version: "1.38.6",
     fecha: "2026-09-17",
     cambios: [
