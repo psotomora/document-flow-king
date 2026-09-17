@@ -167,20 +167,6 @@ public class ErogacionDto
     public string? DocumentoPagoNumero { get; set; }
 }
 
-public class TransferenciaDto
-{
-    public string Id { get; set; } = "";
-    public string Fecha { get; set; } = "";
-    public string Referencia { get; set; } = "";
-    public string CompaniaOrigenId { get; set; } = "";
-    public string BancoOrigenId { get; set; } = "";
-    public string CompaniaDestinoId { get; set; } = "";
-    public string BancoDestinoId { get; set; } = "";
-    public string Moneda { get; set; } = "";
-    public decimal Monto { get; set; }
-    public string? Comentarios { get; set; }
-}
-
 public class DocumentoPorPagarDto
 {
     public string Id { get; set; } = "";
@@ -325,8 +311,7 @@ public record EstadoDto(
     Dictionary<string, string> Parametros,
     string? AvisoFuenteExterna = null,
     Dictionary<string, string>? Preferencias = null,
-    IEnumerable<DocumentoPorCobrarDto>? DocumentosPorCobrarComparativo = null,
-    IEnumerable<TransferenciaDto>? Transferencias = null);
+    IEnumerable<DocumentoPorCobrarDto>? DocumentosPorCobrarComparativo = null);
 
 /* ------------------------- Entradas ------------------------- */
 
@@ -397,17 +382,6 @@ public record NuevaErogacion(
     string? Notas,
     string? DocumentoPagoId = null,
     string? DocumentoPagoNumero = null);
-
-public record NuevaTransferencia(
-    string Fecha,
-    string Referencia,
-    string CompaniaOrigenId,
-    string BancoOrigenId,
-    string CompaniaDestinoId,
-    string BancoDestinoId,
-    string Moneda,
-    decimal Monto,
-    string? Comentarios);
 
 public record NuevoDocumentoPorCobrar(
     string CompaniaId,

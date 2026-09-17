@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>FlujoEfectivo.Api</RootNamespace>
     <InvariantGlobalization>false</InvariantGlobalization>
-    <Version>1.37.0</Version>
-    <AssemblyVersion>1.37.0.0</AssemblyVersion>
-    <FileVersion>1.37.0.0</FileVersion>
+    <Version>1.36.19</Version>
+    <AssemblyVersion>1.36.19.0</AssemblyVersion>
+    <FileVersion>1.36.19.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

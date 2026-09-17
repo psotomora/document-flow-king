@@ -270,51 +270,6 @@ public static class RegistrosEndpoints
             return Results.Ok(new { mensaje = "Erogación eliminada." });
         });
 
-        /* --------------------------- Transferencias ------------------------- */
-        g.MapPost("/transferencias", (NuevaTransferencia t, HttpContext ctx, Db db) =>
-        {
-            if (!ctx.User.PuedeEditar()) return SinPermiso();
-            if (t.Monto <= 0) return Results.BadRequest(new { mensaje = "El monto debe ser mayor que cero." });
-            if (t.BancoOrigenId == t.BancoDestinoId)
-                return Results.BadRequest(new { mensaje = "La cuenta de destino debe ser distinta a la de origen." });
-            if (string.IsNullOrWhiteSpace(t.Referencia))
-                return Results.BadRequest(new { mensaje = "La referencia es obligatoria." });
-
-            using var cn = db.Abrir();
-            var id = cn.ExecuteScalar<int>(
-                """
-                INSERT INTO flujo.Transferencia (Fecha, Referencia, CompaniaOrigenId, CuentaOrigenId,
-                    CompaniaDestinoId, CuentaDestinoId, Moneda, Monto, Comentarios, CreadoPor)
-                OUTPUT INSERTED.TransferenciaId
-                VALUES (@Fecha, @Referencia, @CompaniaOrigenId, @CuentaOrigenId,
-                    @CompaniaDestinoId, @CuentaDestinoId, @Moneda, @Monto, @Comentarios, @CreadoPor)
-                """,
-                new
-                {
-                    Fecha = DateTime.Parse(t.Fecha), Referencia = t.Referencia.Trim(),
-                    CompaniaOrigenId = Id(t.CompaniaOrigenId), CuentaOrigenId = Id(t.BancoOrigenId),
-                    CompaniaDestinoId = Id(t.CompaniaDestinoId), CuentaDestinoId = Id(t.BancoDestinoId),
-                    t.Moneda, t.Monto, t.Comentarios, CreadoPor = ctx.User.UsuarioId(),
-                });
-
-            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Transferencias",
-                t.Referencia, "Creación", valorNuevo: $"{t.Moneda} {t.Monto}");
-            return Results.Ok(new { id = id.ToString() });
-        });
-
-        g.MapDelete("/transferencias/{id}", (string id, HttpContext ctx, Db db) =>
-        {
-            if (!ctx.User.EsAdministrador()) return SoloAdministrador();
-            using var cn = db.Abrir();
-            var referencia = cn.QueryFirstOrDefault<string>(
-                "SELECT Referencia FROM flujo.Transferencia WHERE TransferenciaId=@id", new { id = Id(id) });
-            var filas = cn.Execute("DELETE FROM flujo.Transferencia WHERE TransferenciaId=@id", new { id = Id(id) });
-            if (filas == 0) return Results.NotFound(new { mensaje = "Transferencia inexistente." });
-            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Transferencias",
-                referencia ?? id, "Eliminación");
-            return Results.Ok(new { mensaje = "Transferencia eliminada." });
-        });
-
         /* ------------------------ Documentos por pagar ---------------------- */
         g.MapPost("/documentos-pagar", (NuevoDocumentoPorPagar d, HttpContext ctx, Db db) =>
         {
