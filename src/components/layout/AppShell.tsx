@@ -40,6 +40,7 @@ import {
   empresaTrabajoId,
   empresaTrabajoNombre,
   fijarEmpresaTrabajo,
+  guardarEmpresaCodigo,
 } from "@/lib/empresa";
 import { VersionApp } from "@/components/layout/VersionApp";
 import logoAplix from "@/assets/aplix-isotipo.png";
@@ -190,6 +191,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="mt-1 underline underline-offset-2"
               onClick={() => {
                 fijarEmpresaTrabajo(null);
+                guardarEmpresaCodigo("APLIX");
                 window.location.reload();
               }}
             >
