@@ -107,6 +107,8 @@ public sealed class Catalogo(IConfiguration configuracion)
                     });
                 log.LogInformation("Catálogo creado: la base actual quedó registrada con el código PRINCIPAL.");
             }
+
+            SembrarUsuariosAplix(cn, log);
         }
         catch (Exception ex)
         {
