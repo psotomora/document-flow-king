@@ -335,6 +335,11 @@ function PaginaBancos() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {puedeEditar ? (
+              <Button size="sm" className="gap-1.5" onClick={() => setNuevaTransferencia(true)}>
+                <ArrowLeftRight className="size-4" /> Nueva transferencia
+              </Button>
+            ) : null}
             <Button
               variant="outline"
               size="sm"
@@ -344,11 +349,6 @@ function PaginaBancos() {
             >
               <FileDown className="size-4" /> Exportar Excel
             </Button>
-            {puedeEditar ? (
-              <Button size="sm" className="gap-1.5" onClick={() => setNuevaTransferencia(true)}>
-                <ArrowLeftRight className="size-4" /> Nueva transferencia
-              </Button>
-            ) : null}
           </div>
         </div>
         <div className="overflow-auto rounded-lg border border-border bg-card">
