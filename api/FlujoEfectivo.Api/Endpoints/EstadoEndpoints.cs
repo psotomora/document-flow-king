@@ -70,7 +70,7 @@ public static class EstadoEndpoints
                        CAST(t.CompaniaDestinoId AS NVARCHAR(20)) AS CompaniaDestinoId,
                        CAST(t.CuentaDestinoId AS NVARCHAR(20)) AS CuentaDestinoId,
                        t.Moneda, t.Monto, t.Comentarios,
-                       u.Nombre AS CreadoPor,
+                       u.NombreCompleto AS CreadoPor,
                        CONVERT(VARCHAR(19), t.CreadoEn, 126) AS CreadoEn
                 FROM flujo.Transferencia t
                 LEFT JOIN flujo.Usuario u ON u.UsuarioId = t.CreadoPor
