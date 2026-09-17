@@ -143,6 +143,9 @@ export async function api<T>(
   if (!opciones.sinToken) {
     const token = obtenerToken();
     if (token) cabeceras["Authorization"] = `Bearer ${token}`;
+    // Personal de Aplix trabajando dentro de una empresa concreta.
+    const empresa = empresaTrabajoId();
+    if (empresa > 0) cabeceras["X-Empresa"] = String(empresa);
   }
 
   let respuesta: Response;
