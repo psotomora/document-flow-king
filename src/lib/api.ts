@@ -9,6 +9,8 @@
  * en memoria (útil para la vista previa y para capacitación).
  */
 
+import { empresaTrabajoId } from "@/lib/empresa";
+
 const ENV_API_URL = (import.meta.env["VITE_API_URL"] as string | undefined) ?? "";
 
 export const CLAVE_TOKEN = "flujo.token";
