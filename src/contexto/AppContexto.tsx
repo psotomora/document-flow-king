@@ -24,6 +24,7 @@ import type {
   Perfil,
   RegistroBitacora,
   TipoCambio,
+  Transferencia,
   Usuario,
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
@@ -47,6 +48,7 @@ interface EstadoServidor {
   facturas: Factura[];
   pagos: Pago[];
   erogaciones: Erogacion[];
+  transferencias?: Transferencia[];
   documentosPorPagar?: DocumentoPorPagar[];
   documentosPorCobrar?: DocumentoPorCobrar[];
   /** Documentos por cobrar usados exclusivamente por el Comparativo anual (solo FACTURA). */
@@ -142,6 +144,7 @@ interface EstadoApp {
   facturas: Factura[];
   pagos: Pago[];
   erogaciones: Erogacion[];
+  transferencias: Transferencia[];
   documentosPorPagar: DocumentoPorPagar[];
   documentosPorCobrar: DocumentoPorCobrar[];
   documentosPorCobrarComparativo: DocumentoPorCobrar[];
@@ -228,6 +231,8 @@ interface EstadoApp {
   eliminarFactura: (id: string) => void;
   agregarPago: (p: Omit<Pago, "id">) => Promise<boolean>;
   eliminarPago: (id: string) => void;
+  agregarTransferencia: (t: Omit<Transferencia, "id">) => Promise<boolean>;
+  eliminarTransferencia: (id: string) => void;
   agregarErogacion: (e: Omit<Erogacion, "id">) => void;
   actualizarErogacion: (id: string, cambios: Omit<Erogacion, "id">) => void;
   eliminarErogacion: (id: string) => void;
@@ -272,6 +277,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [facturas, setFacturas] = useState<Factura[]>(semilla.facturas);
   const [pagos, setPagos] = useState<Pago[]>(semilla.pagos);
   const [erogaciones, setErogaciones] = useState<Erogacion[]>(semilla.erogaciones);
+  const [transferencias, setTransferencias] = useState<Transferencia[]>([]);
   const [documentosPorPagar, setDocumentosPorPagar] = useState<DocumentoPorPagar[]>(
     semilla.documentosPorPagar,
   );
@@ -307,6 +313,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setFacturas(estado.facturas);
     setPagos(estado.pagos);
     setErogaciones(estado.erogaciones);
+    setTransferencias(estado.transferencias ?? []);
     setDocumentosPorPagar(estado.documentosPorPagar ?? []);
     setDocumentosPorCobrar(estado.documentosPorCobrar ?? []);
     setDocumentosPorCobrarComparativo(
@@ -890,6 +897,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       facturas,
       pagos,
       erogaciones,
+      transferencias,
       documentosPorPagar,
       documentosPorCobrar,
       documentosPorCobrarComparativo,
@@ -1091,6 +1099,23 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           setPagos((prev) => prev.filter((x) => x.id !== id));
           if (p)
             anotar("Pagos", p.referencia ?? "Pago", "Eliminación", undefined, `Monto: ${p.monto}`);
+        }),
+      agregarTransferencia: (t) =>
+        mutar("/transferencias", "POST", t, () => {
+          setTransferencias((prev) => [{ ...t, id: nuevoId("tr") }, ...prev]);
+          anotar(
+            "Transferencias",
+            t.referencia,
+            "Creación",
+            `${t.moneda} ${t.monto}`,
+          );
+        }),
+      eliminarTransferencia: (id) =>
+        mutar(`/transferencias/${id}`, "DELETE", undefined, () => {
+          const t = transferencias.find((x) => x.id === id);
+          setTransferencias((prev) => prev.filter((x) => x.id !== id));
+          if (t)
+            anotar("Transferencias", t.referencia, "Eliminación", undefined, `${t.moneda} ${t.monto}`);
         }),
       agregarErogacion: (e) =>
         mutar("/erogaciones", "POST", e, () => {
