@@ -309,6 +309,16 @@ public sealed class Catalogo(IConfiguration configuracion)
 
     public string Cifrar(string texto) => Softland.Cifrar(texto, Secreto);
 
+    /// <summary>Crea o completa las tablas del catálogo sobre una conexión ya abierta.</summary>
+    public static void AsegurarEstructura(IDbConnection cn)
+    {
+        foreach (var paso in Pasos)
+        {
+            try { cn.Execute(paso); }
+            catch { /* paso omitido */ }
+        }
+    }
+
     /// <summary>Bitácora del catálogo. Nunca interrumpe la operación si la tabla aún no existe.</summary>
     public static void Auditar(IDbConnection cn, string usuario, string operacion, string registro,
         string? detalle = null)
