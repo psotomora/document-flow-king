@@ -29,6 +29,8 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
+import { guardarEmpresaCodigo, guardarEmpresaNombre } from "@/lib/empresa";
+
 import {
   contratosPorFacturarDelMes,
   pedidosPendientesDeContratos,
