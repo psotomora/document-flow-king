@@ -1,6 +1,8 @@
 export type Moneda = "USD" | "CRC";
 
-export type Perfil = "administrador" | "registro" | "consulta";
+/** "superadmin" es exclusivo del personal de Aplix (consola de empresas). */
+export type Perfil = "superadmin" | "administrador" | "registro" | "consulta";
+
 
 export type EstadoFactura = "Pagada" | "Pendiente" | "Vencida";
 
