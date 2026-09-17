@@ -41,6 +41,7 @@ function PaginaConsolidado() {
     bancos,
     pagos,
     erogaciones,
+    transferencias,
     facturasCalculadas,
     pedidos,
     companiaActiva,
@@ -80,7 +81,7 @@ function PaginaConsolidado() {
       contratosMesUSD,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bancos, pagos, erogaciones, facturasCalculadas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
+  }, [bancos, pagos, erogaciones, transferencias, facturasCalculadas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
 
   const filas: [string, string, string][] = [
     [

@@ -66,6 +66,7 @@ function Tablero() {
     bancos,
     pagos,
     erogaciones,
+    transferencias,
     pedidos,
     contratos,
     contratosDelMes,
@@ -107,7 +108,7 @@ function Tablero() {
       contratosMesUSD,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bancos, pagos, erogaciones, facturas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
+  }, [bancos, pagos, erogaciones, transferencias, facturas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
 
   const tramos = useMemo(() => proyeccionPorTramos(facturas, moneda), [facturas, moneda]);
 
