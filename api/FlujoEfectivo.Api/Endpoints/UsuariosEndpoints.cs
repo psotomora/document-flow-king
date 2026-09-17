@@ -13,6 +13,14 @@ public static class UsuariosEndpoints
         string.Equals(ctx.User.Perfil(), "administrador", StringComparison.OrdinalIgnoreCase)
         || string.Equals(ctx.User.Perfil(), "superadmin", StringComparison.OrdinalIgnoreCase);
 
+    private static IResult? ExigirEmpresaParaAplix(HttpContext ctx, Db db) =>
+        ctx.User.EsSuperAdministrador() && db.ClienteActual() is null
+            ? Results.BadRequest(new
+            {
+                mensaje = "Seleccione primero una empresa con el botón Trabajar aquí antes de administrar usuarios.",
+            })
+            : null;
+
     private static int? PerfilId(System.Data.IDbConnection cn, string codigo) =>
         cn.QueryFirstOrDefault<int?>("SELECT PerfilId FROM flujo.Perfil WHERE Codigo = @codigo",
             new { codigo });
@@ -38,6 +46,8 @@ public static class UsuariosEndpoints
         g.MapGet("/usuarios", (HttpContext ctx, Db db) =>
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
+            var empresaRequerida = ExigirEmpresaParaAplix(ctx, db);
+            if (empresaRequerida is not null) return empresaRequerida;
             using var cn = db.Abrir();
             return Results.Ok(cn.Query<UsuarioAdminDto>(Consultas.Lista));
         });
@@ -45,6 +55,8 @@ public static class UsuariosEndpoints
         g.MapPost("/usuarios", (NuevoUsuario datos, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
+            var empresaRequerida = ExigirEmpresaParaAplix(ctx, db);
+            if (empresaRequerida is not null) return empresaRequerida;
             if (string.IsNullOrWhiteSpace(datos.Nombre) || string.IsNullOrWhiteSpace(datos.NombreUsuario))
                 return Results.BadRequest(new { mensaje = "Nombre y nombre de usuario son obligatorios." });
             if (string.IsNullOrWhiteSpace(datos.Contrasena) || datos.Contrasena.Length < 8)
@@ -111,6 +123,8 @@ public static class UsuariosEndpoints
         g.MapPut("/usuarios/{id}", (string id, CambioUsuario datos, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
+            var empresaRequerida = ExigirEmpresaParaAplix(ctx, db);
+            if (empresaRequerida is not null) return empresaRequerida;
             if (!int.TryParse(id, out var usuarioId))
                 return Results.BadRequest(new { mensaje = "Identificador no válido." });
             if (!string.IsNullOrEmpty(datos.Contrasena) && datos.Contrasena.Length < 8)
@@ -211,6 +225,8 @@ public static class UsuariosEndpoints
         g.MapDelete("/usuarios/{id}", (string id, HttpContext ctx, Db db) =>
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
+            var empresaRequerida = ExigirEmpresaParaAplix(ctx, db);
+            if (empresaRequerida is not null) return empresaRequerida;
             if (!int.TryParse(id, out var usuarioId))
                 return Results.BadRequest(new { mensaje = "Identificador no válido." });
             if (usuarioId == ctx.User.UsuarioId())
