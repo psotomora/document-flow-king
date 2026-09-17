@@ -248,7 +248,7 @@ function PaginaEmpresas() {
                       disabled={!c.activo}
                       onClick={() => {
                         fijarEmpresaTrabajo(c.id, c.nombre);
-                        window.location.assign("/");
+                        window.location.assign(import.meta.env.BASE_URL || "/");
                       }}
                     >
                       <LogIn className="mr-1 size-4" aria-hidden />
