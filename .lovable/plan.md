@@ -1,10 +1,11 @@
 # Etapa 1 — Convertir la aplicación en multicliente (SaaS)
 
-Objetivo: una sola instalación en la VM de Azure que atienda a varios clientes, cada uno con **su propia base de datos** y su propia conexión al SQL externo del ERP. El cliente se elige en la pantalla de acceso y Aplix administra las altas desde una pantalla nueva.
+Objetivo: una sola instalación en la VM de Azure que atienda a varios clientes, cada uno con **su propia base de datos** y su propia conexión al SQL externo del ERP. Ningún cliente puede ver ni enterarse de la existencia de los demás: no hay listas de empresas en ninguna pantalla accesible al público.
 
 ## Qué verá el usuario
 
-1. **Pantalla de acceso**: además de usuario y contraseña, una lista "Empresa" con los clientes activos. El sistema recuerda la última empresa usada en ese navegador.
+1. **Pantalla de acceso**: un campo **Código de empresa** que la persona escribe (se recuerda en su navegador para no repetirlo). No hay lista desplegable ni ningún servicio que devuelva la lista de clientes. Si el código no existe o el usuario no pertenece a esa empresa, el mensaje es siempre el mismo — "Datos de acceso incorrectos" — para no revelar qué códigos existen.
+
 2. **Pantalla nueva "Clientes" (solo Aplix)**: lista de clientes con alta, edición y activación/desactivación. Por cada cliente: nombre, código corto, servidor y base de datos, y un botón **Probar conexión**. Solo la ve un perfil nuevo de superadministrador.
 3. **El resto de la aplicación no cambia visualmente**. Cada persona ve únicamente los datos, parámetros, usuarios, bitácora y conexión externa (SoftlandERP) de su empresa, porque toda la sesión trabaja contra la base de ese cliente.
 4. **Indicador de empresa** en el panel izquierdo, junto a la licencia, para que sea evidente en cuál se está trabajando.
