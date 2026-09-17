@@ -24,6 +24,7 @@ import type {
   Perfil,
   RegistroBitacora,
   TipoCambio,
+  Transferencia,
   Usuario,
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
@@ -47,6 +48,7 @@ interface EstadoServidor {
   facturas: Factura[];
   pagos: Pago[];
   erogaciones: Erogacion[];
+  transferencias?: Transferencia[];
   documentosPorPagar?: DocumentoPorPagar[];
   documentosPorCobrar?: DocumentoPorCobrar[];
   /** Documentos por cobrar usados exclusivamente por el Comparativo anual (solo FACTURA). */
@@ -142,6 +144,7 @@ interface EstadoApp {
   facturas: Factura[];
   pagos: Pago[];
   erogaciones: Erogacion[];
+  transferencias: Transferencia[];
   documentosPorPagar: DocumentoPorPagar[];
   documentosPorCobrar: DocumentoPorCobrar[];
   documentosPorCobrarComparativo: DocumentoPorCobrar[];
@@ -243,6 +246,8 @@ interface EstadoApp {
   agregarPedido: (p: Omit<Pedido, "id">) => void;
   actualizarPedido: (id: string, cambios: Partial<Pedido>) => void;
   eliminarPedido: (id: string) => void;
+  agregarTransferencia: (t: Omit<Transferencia, "id">) => void;
+  eliminarTransferencia: (id: string) => void;
   agregarBanco: (b: Omit<Banco, "id">) => void;
   actualizarBanco: (id: string, cambios: Partial<Banco>) => void;
   registrarTipoCambio: (valor: number, nota?: string) => void;
@@ -272,6 +277,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [facturas, setFacturas] = useState<Factura[]>(semilla.facturas);
   const [pagos, setPagos] = useState<Pago[]>(semilla.pagos);
   const [erogaciones, setErogaciones] = useState<Erogacion[]>(semilla.erogaciones);
+  const [transferencias, setTransferencias] = useState<Transferencia[]>(semilla.transferencias);
   const [documentosPorPagar, setDocumentosPorPagar] = useState<DocumentoPorPagar[]>(
     semilla.documentosPorPagar,
   );
@@ -307,6 +313,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setFacturas(estado.facturas);
     setPagos(estado.pagos);
     setErogaciones(estado.erogaciones);
+    setTransferencias(estado.transferencias ?? []);
     setDocumentosPorPagar(estado.documentosPorPagar ?? []);
     setDocumentosPorCobrar(estado.documentosPorCobrar ?? []);
     setDocumentosPorCobrarComparativo(
@@ -890,6 +897,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       facturas,
       pagos,
       erogaciones,
+      transferencias,
       documentosPorPagar,
       documentosPorCobrar,
       documentosPorCobrarComparativo,
@@ -1221,6 +1229,23 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           setPedidos((prev) => prev.filter((x) => x.id !== id));
           if (p) anotar("Pedidos", p.numero, "Eliminación");
         }),
+      agregarTransferencia: (t) =>
+        mutar("/transferencias", "POST", t, () => {
+          setTransferencias((prev) => [{ ...t, id: nuevoId("tr") }, ...prev]);
+          anotar(
+            "Transferencias",
+            t.referencia,
+            "Creación",
+            `${t.moneda} ${t.monto}`,
+          );
+        }),
+      eliminarTransferencia: (id) =>
+        mutar(`/transferencias/${id}`, "DELETE", undefined, () => {
+          const t = transferencias.find((x) => x.id === id);
+          setTransferencias((prev) => prev.filter((x) => x.id !== id));
+          if (t)
+            anotar("Transferencias", t.referencia, "Eliminación", undefined, `${t.moneda} ${t.monto}`);
+        }),
       agregarBanco: (b) =>
         mutar("/bancos", "POST", b, () => {
           setBancos((prev) => [...prev, { ...b, id: nuevoId("bk") }]);
@@ -1279,6 +1304,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setFacturas(semilla.facturas);
         setPagos(semilla.pagos);
         setErogaciones(semilla.erogaciones);
+        setTransferencias(semilla.transferencias);
         setDocumentosPorPagar(semilla.documentosPorPagar);
         setDocumentosPorCobrar(semilla.documentosPorCobrar);
         setDocumentosPorCobrarComparativo(semilla.documentosPorCobrar);
@@ -1302,6 +1328,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     companias,
     contratos,
     erogaciones,
+    transferencias,
     documentosPorPagar,
     documentosPorCobrar,
     errorApi,
