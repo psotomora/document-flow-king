@@ -386,7 +386,7 @@ public record CambioUsuario(
     bool? AsignarFacturaContrato = null,
     bool? TrasladarContratosHistorico = null);
 
-public record LoginResponse(string Token, UsuarioDto Usuario, DateTime Expira);
+public record LoginResponse(string Token, UsuarioDto Usuario, DateTime Expira, string? Cliente = null);
 
 public record NuevaFactura(
     string CompaniaId,
