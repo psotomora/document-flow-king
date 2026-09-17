@@ -127,6 +127,19 @@ export function PantallaLogin() {
 
           <form onSubmit={enviar} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="empresa">Código de empresa</Label>
+              <Input
+                id="empresa"
+                autoComplete="organization"
+                placeholder="El que le entregó Aplix"
+                disabled={demostracion}
+                value={empresa}
+                onChange={(e) => setEmpresa(e.target.value)}
+                onKeyDown={alPresionarEnter}
+              />
+            </div>
+            <div className="space-y-2">
+
               <Label htmlFor="usuario">Usuario</Label>
               <Input
                 id="usuario"
