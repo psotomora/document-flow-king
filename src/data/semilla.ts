@@ -10,6 +10,7 @@ import type {
   Pedido,
   RegistroBitacora,
   TipoCambio,
+  Transferencia,
   Usuario,
 } from "./tipos";
 
