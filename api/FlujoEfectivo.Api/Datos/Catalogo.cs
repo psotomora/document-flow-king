@@ -194,6 +194,22 @@ public sealed class Catalogo(IConfiguration configuracion)
                 Creado         DATETIME2(0)  NOT NULL CONSTRAINT DF_UsuarioAplix_Creado DEFAULT SYSUTCDATETIME()
             );
         """,
+        // Auto-reparación: completa columnas faltantes si la tabla se creó con una versión anterior.
+        """
+        IF OBJECT_ID('catalogo.UsuarioAplix', 'U') IS NOT NULL
+        BEGIN
+            IF COL_LENGTH('catalogo.UsuarioAplix', 'NombreUsuario') IS NULL
+                ALTER TABLE catalogo.UsuarioAplix ADD NombreUsuario NVARCHAR(60) NOT NULL CONSTRAINT DF_UsuarioAplix_Nombre DEFAULT '';
+            IF COL_LENGTH('catalogo.UsuarioAplix', 'NombreCompleto') IS NULL
+                ALTER TABLE catalogo.UsuarioAplix ADD NombreCompleto NVARCHAR(150) NOT NULL CONSTRAINT DF_UsuarioAplix_Completo DEFAULT '';
+            IF COL_LENGTH('catalogo.UsuarioAplix', 'HashContrasena') IS NULL
+                ALTER TABLE catalogo.UsuarioAplix ADD HashContrasena NVARCHAR(400) NOT NULL CONSTRAINT DF_UsuarioAplix_Hash DEFAULT '';
+            IF COL_LENGTH('catalogo.UsuarioAplix', 'Activo') IS NULL
+                ALTER TABLE catalogo.UsuarioAplix ADD Activo BIT NOT NULL CONSTRAINT DF_UsuarioAplix_Activo2 DEFAULT 1;
+            IF COL_LENGTH('catalogo.UsuarioAplix', 'Creado') IS NULL
+                ALTER TABLE catalogo.UsuarioAplix ADD Creado DATETIME2(0) NOT NULL CONSTRAINT DF_UsuarioAplix_Creado2 DEFAULT SYSUTCDATETIME();
+        END
+        """,
         """
         IF OBJECT_ID('catalogo.Bitacora', 'U') IS NULL
             CREATE TABLE catalogo.Bitacora
