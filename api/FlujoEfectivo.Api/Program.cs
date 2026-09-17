@@ -9,8 +9,11 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<Catalogo>();
 builder.Services.AddSingleton<Db>();
 builder.Services.AddSingleton<TokenServicio>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
