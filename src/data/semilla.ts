@@ -113,6 +113,8 @@ export const erogaciones: Erogacion[] = [
   { id: "e8", companiaId: "ax", bancoId: "bac-ax", numeroTransferencia: "TE-80095", proveedor: "JetBrains", fecha: "2026-08-22", moneda: "USD", monto: 1150, notas: "Licencias de desarrollo" },
 ];
 
+export const transferencias: Transferencia[] = [];
+
 export const documentosPorPagar: DocumentoPorPagar[] = [
   { id: "dp1", companiaId: "tx", proveedor: "Amazon Web Services", numero: "AWS-90211", tipo: "FAC", fecha: "2026-08-05", fechaVence: "2026-09-04", moneda: "USD", monto: 3850, saldo: 3850, notas: "Infraestructura agosto" },
   { id: "dp2", companiaId: "tx", proveedor: "Inmobiliaria Lindora", numero: "IL-2208", tipo: "FAC", fecha: "2026-08-01", fechaVence: "2026-09-01", moneda: "CRC", monto: 1850000, saldo: 900000, notas: "Alquiler setiembre (abono parcial)" },
