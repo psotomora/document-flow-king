@@ -1,6 +1,7 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.37.0";
-export const APP_FECHA_VERSION = "2026-09-16";
+export const APP_VERSION = "1.38.0";
+export const APP_FECHA_VERSION = "2026-09-17";
+
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -13,6 +14,17 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.38.0",
+    fecha: "2026-09-17",
+    cambios: [
+      "Modo multiempresa: una sola instalación puede atender a varias empresas, cada una con su propia base de datos.",
+      "La pantalla de ingreso pide el código de empresa; no existe ninguna lista de empresas visible.",
+      "Nueva consola de Aplix (Empresas atendidas) para registrar, probar y preparar la base de cada empresa.",
+      "Nuevo script database/tenant/00_catalogo.sql con la base de catálogo.",
+    ],
+  },
+  {
+
     version: "1.37.0",
     fecha: "2026-09-16",
     cambios: [

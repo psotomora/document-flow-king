@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import { ResumenLicencia } from "@/components/layout/ResumenLicencia";
+import { empresaNombre } from "@/lib/empresa";
 import { VersionApp } from "@/components/layout/VersionApp";
 import logoAplix from "@/assets/aplix-isotipo.png";
 const navegacion = [
@@ -95,10 +96,28 @@ export function AppShell({ children }: { children: ReactNode }) {
     const opcion = opcionDeRuta(item.to);
     return !opcion || puedeVer(usuario, opcion.clave);
   };
-  const secciones = navegacion.map((seccion) => ({
-    grupo: seccion.grupo,
-    items: [...seccion.items],
-  }));
+  type Seccion = {
+    grupo: string;
+    items: { to: string; etiqueta: string; icono: typeof Building2 }[];
+  };
+  const secciones: Seccion[] = navegacion
+    .map((seccion) => ({
+      grupo: seccion.grupo as string,
+      items: [...seccion.items] as Seccion["items"],
+    }))
+
+    .concat(
+      // La consola de empresas solo existe para el personal de Aplix.
+      usuario?.perfil === "superadmin"
+        ? [
+            {
+              grupo: "Aplix",
+              items: [{ to: "/empresas", etiqueta: "Empresas atendidas", icono: Building2 }],
+            },
+          ]
+        : [],
+    );
+
 
   const opcionActual = opcionDeRuta(pathname);
   const accesoDenegado = !!opcionActual && !puedeVer(usuario, opcionActual.clave);
@@ -158,7 +177,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div className="space-y-1 border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/60">
           <p className="text-xs font-medium text-sidebar-foreground/90">{usuario.nombre}</p>
+          {empresaNombre() && <p className="truncate">Empresa: {empresaNombre()}</p>}
           <p className="capitalize">Perfil: {usuario.perfil}</p>
+
           <p className="truncate">
             Compañía:{" "}
             {companiaActiva === "todas"

@@ -29,6 +29,8 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
+import { guardarEmpresaCodigo, guardarEmpresaNombre } from "@/lib/empresa";
+
 import {
   contratosPorFacturarDelMes,
   pedidosPendientesDeContratos,
@@ -182,7 +184,7 @@ interface EstadoApp {
   puedeEditar: boolean;
   esAdministrador: boolean;
   iniciarSesion: (usuarioId: string) => void;
-  autenticar: (usuario: string, contrasena: string) => Promise<void>;
+  autenticar: (usuario: string, contrasena: string, clienteCodigo?: string) => Promise<void>;
   /** Entra a la aplicación con los datos de prueba, sin conectarse a SQL Server. */
   entrarDemostracion: () => void;
   recargar: () => Promise<void>;
@@ -436,13 +438,21 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
 
   const autenticar = useCallback(
-    async (nombreUsuario: string, contrasena: string) => {
-      const resp = await api<{ token: string; usuario: Usuario }>("/auth/login", {
-        metodo: "POST",
-        cuerpo: { usuario: nombreUsuario, contrasena },
-        sinToken: true,
-      });
+    async (nombreUsuario: string, contrasena: string, clienteCodigo?: string) => {
+      const codigo = (clienteCodigo ?? "").trim();
+      const resp = await api<{ token: string; usuario: Usuario; cliente?: string | null }>(
+        "/auth/login",
+        {
+          metodo: "POST",
+          cuerpo: codigo
+            ? { usuario: nombreUsuario, contrasena, clienteCodigo: codigo }
+            : { usuario: nombreUsuario, contrasena },
+          sinToken: true,
+        },
+      );
       guardarToken(resp.token);
+      guardarEmpresaCodigo(codigo);
+      guardarEmpresaNombre(resp.cliente ?? null);
       setUsuario(resp.usuario);
       setAutenticado(true);
       setSesionCerrada(false);
@@ -450,6 +460,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     },
     [recargar],
   );
+
 
   /** Ejecuta una mutación contra la API y recarga el estado; en modo demo usa el callback local. */
   /** Ejecuta el cambio (en la API o localmente) y resuelve `true` solo si se guardó. */

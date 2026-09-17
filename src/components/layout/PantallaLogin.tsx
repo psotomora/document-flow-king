@@ -2,6 +2,8 @@ import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Loader2, LockKeyhole, ServerCog, Tag } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
 import { configurarUrlApi, probarConexionApi, urlApi } from "@/lib/api";
+import { empresaCodigo } from "@/lib/empresa";
+
 import { APP_FECHA_VERSION, APP_VERSION } from "@/lib/version";
 import { Button } from "@/components/ui/button";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
@@ -22,7 +24,9 @@ import {
 export function PantallaLogin() {
   const { autenticar, entrarDemostracion } = useApp();
   const [usuario, setUsuario] = useState("");
+  const [empresa, setEmpresa] = useState(empresaCodigo());
   const [contrasena, setContrasena] = useState("");
+
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [servidor, setServidor] = useState(urlApi());
@@ -70,13 +74,14 @@ export function PantallaLogin() {
     }
     setEnviando(true);
     try {
-      await autenticar(usuario.trim(), contrasena);
+      await autenticar(usuario.trim(), contrasena, empresa.trim());
     } catch (err) {
       setError(err instanceof Error ? err.message : "No fue posible iniciar sesión");
     } finally {
       setEnviando(false);
     }
   }
+
 
   function alPresionarEnter(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
@@ -122,6 +127,19 @@ export function PantallaLogin() {
 
           <form onSubmit={enviar} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="empresa">Código de empresa</Label>
+              <Input
+                id="empresa"
+                autoComplete="organization"
+                placeholder="El que le entregó Aplix"
+                disabled={demostracion}
+                value={empresa}
+                onChange={(e) => setEmpresa(e.target.value)}
+                onKeyDown={alPresionarEnter}
+              />
+            </div>
+            <div className="space-y-2">
+
               <Label htmlFor="usuario">Usuario</Label>
               <Input
                 id="usuario"
