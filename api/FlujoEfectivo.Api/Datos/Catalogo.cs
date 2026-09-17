@@ -222,6 +222,19 @@ public sealed class Catalogo(IConfiguration configuracion)
                 Detalle       NVARCHAR(MAX) NULL
             );
         """,
+        """
+        IF OBJECT_ID('catalogo.Bitacora', 'U') IS NOT NULL
+        BEGIN
+            IF COL_LENGTH('catalogo.Bitacora', 'NombreUsuario') IS NULL
+                ALTER TABLE catalogo.Bitacora ADD NombreUsuario NVARCHAR(150) NOT NULL CONSTRAINT DF_CatBit_Usuario DEFAULT '';
+            IF COL_LENGTH('catalogo.Bitacora', 'Operacion') IS NULL
+                ALTER TABLE catalogo.Bitacora ADD Operacion NVARCHAR(40) NOT NULL CONSTRAINT DF_CatBit_Operacion DEFAULT '';
+            IF COL_LENGTH('catalogo.Bitacora', 'Registro') IS NULL
+                ALTER TABLE catalogo.Bitacora ADD Registro NVARCHAR(150) NOT NULL CONSTRAINT DF_CatBit_Registro DEFAULT '';
+            IF COL_LENGTH('catalogo.Bitacora', 'Detalle') IS NULL
+                ALTER TABLE catalogo.Bitacora ADD Detalle NVARCHAR(MAX) NULL;
+        END
+        """,
     ];
 
     /* ------------------------------ Consultas ------------------------------- */
