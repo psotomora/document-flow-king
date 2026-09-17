@@ -107,10 +107,59 @@ public sealed class Catalogo(IConfiguration configuracion)
                     });
                 log.LogInformation("Catálogo creado: la base actual quedó registrada con el código PRINCIPAL.");
             }
+
+            SembrarUsuariosAplix(cn, log);
         }
         catch (Exception ex)
         {
             log.LogWarning(ex, "No fue posible preparar la base de catálogo de clientes.");
+        }
+    }
+
+    /// <summary>
+    /// Si aún no hay usuarios de Aplix, copia los administradores activos de la
+    /// base principal para que puedan entrar con el código APLIX usando la misma
+    /// contraseña que ya tenían.
+    /// </summary>
+    private void SembrarUsuariosAplix(IDbConnection cn, ILogger log)
+    {
+        try
+        {
+            var hay = cn.ExecuteScalar<int>("SELECT COUNT(1) FROM catalogo.UsuarioAplix");
+            if (hay > 0) return;
+
+            var principal = configuracion.GetConnectionString("FlujoEfectivo");
+            if (string.IsNullOrWhiteSpace(principal)) return;
+
+            using var cnPrincipal = new SqlConnection(principal);
+            cnPrincipal.Open();
+            var admins = cnPrincipal.Query<(string NombreUsuario, string NombreCompleto, string HashContrasena)>(
+                """
+                SELECT u.NombreUsuario, u.NombreCompleto, u.HashContrasena
+                FROM flujo.Usuario u
+                INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
+                WHERE u.Activo = 1 AND p.Codigo = 'administrador'
+                  AND u.HashContrasena IS NOT NULL AND LEN(u.HashContrasena) > 0
+                """).ToList();
+
+            foreach (var a in admins)
+                cn.Execute(
+                    """
+                    IF NOT EXISTS (SELECT 1 FROM catalogo.UsuarioAplix WHERE NombreUsuario = @nombreUsuario)
+                        INSERT INTO catalogo.UsuarioAplix (NombreUsuario, NombreCompleto, HashContrasena)
+                        VALUES (@nombreUsuario, @nombreCompleto, @hash)
+                    """,
+                    new { nombreUsuario = a.NombreUsuario, nombreCompleto = a.NombreCompleto, hash = a.HashContrasena });
+
+            if (admins.Count > 0)
+                log.LogInformation("Catálogo: se habilitaron {n} usuarios de Aplix a partir de los administradores.",
+                    admins.Count);
+            else
+                log.LogWarning("Catálogo: no hay administradores activos para habilitar el acceso con el código APLIX.");
+        }
+        catch (Exception ex)
+        {
+            log.LogWarning(ex, "No fue posible sembrar los usuarios de Aplix.");
         }
     }
 
