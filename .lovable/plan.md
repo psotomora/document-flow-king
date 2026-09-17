@@ -28,9 +28,11 @@ No incluye (etapas siguientes): facturación/cobro a clientes, autoservicio de r
 
 - `Db` deja de leer una cadena fija: nueva clase `Catalogo` (cache en memoria con expiración corta) que arma la cadena del cliente; `Db.Abrir()` usa el `ClienteId` del contexto de la petición.
 - `TokenServicio`: el JWT incorpora el claim `cli` (ClienteId). `Db` lo lee desde `IHttpContextAccessor`; sin claim válido responde 401. Esto garantiza que ninguna consulta pueda quedarse sin filtro, porque el aislamiento está en la conexión, no en un `WHERE`.
-- `POST /auth/login` recibe además `clienteCodigo`; valida que el cliente exista y esté activo, abre su base y verifica al usuario allí.
-- `GET /api/clientes-publicos` (anónimo): devuelve solo código y nombre de los clientes activos para llenar la lista de la pantalla de acceso.
-- `GET /api/salud` verifica el catálogo; se agrega `GET /api/salud/{codigo}` para diagnosticar la base de un cliente.
+- `POST /auth/login` recibe además `clienteCodigo`; valida que el cliente exista y esté activo, abre su base y verifica al usuario allí. Respuesta 401 genérica en todos los casos (código inexistente, inactivo, usuario o contraseña incorrectos) y retardo uniforme, para impedir adivinar códigos de otras empresas.
+- **No existe ningún endpoint anónimo que liste clientes.** El listado solo se obtiene con `GET /api/admin/clientes`, restringido al superadministrador de Aplix.
+- `GET /api/salud` verifica el catálogo sin nombrar clientes; el diagnóstico por cliente (`GET /api/admin/salud/{codigo}`) queda dentro del área de Aplix.
+- Límite de intentos por IP y por código en el login, para que el campo de empresa no se pueda usar como sonda.
+
 
 ### Superadministrador y pantalla de clientes
 
