@@ -29,7 +29,7 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
-import { guardarEmpresaCodigo, guardarEmpresaNombre } from "@/lib/empresa";
+import { fijarEmpresaTrabajo, guardarEmpresaCodigo, guardarEmpresaNombre } from "@/lib/empresa";
 
 import {
   contratosPorFacturarDelMes,
@@ -451,6 +451,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         },
       );
       guardarToken(resp.token);
+      fijarEmpresaTrabajo(null);
       guardarEmpresaCodigo(codigo);
       guardarEmpresaNombre(resp.cliente ?? null);
       setUsuario(resp.usuario);
@@ -973,6 +974,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       },
       cerrarSesion: () => {
         guardarToken(null);
+        fijarEmpresaTrabajo(null);
         setModoApi(hayApi());
         setAutenticado(false);
         setSesionCerrada(true);

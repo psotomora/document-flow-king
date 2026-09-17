@@ -35,7 +35,12 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import { ResumenLicencia } from "@/components/layout/ResumenLicencia";
-import { empresaNombre } from "@/lib/empresa";
+import {
+  empresaNombre,
+  empresaTrabajoId,
+  empresaTrabajoNombre,
+  fijarEmpresaTrabajo,
+} from "@/lib/empresa";
 import { VersionApp } from "@/components/layout/VersionApp";
 import logoAplix from "@/assets/aplix-isotipo.png";
 const navegacion = [
@@ -174,6 +179,24 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <ResumenLicencia />
+
+        {usuario?.perfil === "superadmin" && empresaTrabajoId() > 0 && (
+          <div className="mx-3 mb-2 rounded-md border border-sidebar-border bg-sidebar-accent/60 px-3 py-2 text-[11px]">
+            <p className="font-medium text-sidebar-accent-foreground">
+              Trabajando en: {empresaTrabajoNombre() || "empresa seleccionada"}
+            </p>
+            <button
+              type="button"
+              className="mt-1 underline underline-offset-2"
+              onClick={() => {
+                fijarEmpresaTrabajo(null);
+                window.location.reload();
+              }}
+            >
+              Salir de la empresa
+            </button>
+          </div>
+        )}
 
         <div className="space-y-1 border-t border-sidebar-border px-4 py-3 text-[11px] text-sidebar-foreground/60">
           <p className="text-xs font-medium text-sidebar-foreground/90">{usuario.nombre}</p>

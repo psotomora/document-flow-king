@@ -9,6 +9,8 @@
  * en memoria (útil para la vista previa y para capacitación).
  */
 
+import { empresaTrabajoId } from "@/lib/empresa";
+
 const ENV_API_URL = (import.meta.env["VITE_API_URL"] as string | undefined) ?? "";
 
 export const CLAVE_TOKEN = "flujo.token";
@@ -143,6 +145,9 @@ export async function api<T>(
   if (!opciones.sinToken) {
     const token = obtenerToken();
     if (token) cabeceras["Authorization"] = `Bearer ${token}`;
+    // Personal de Aplix trabajando dentro de una empresa concreta.
+    const empresa = empresaTrabajoId();
+    if (empresa > 0) cabeceras["X-Empresa"] = String(empresa);
   }
 
   let respuesta: Response;

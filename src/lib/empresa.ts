@@ -36,3 +36,32 @@ export function guardarEmpresaNombre(nombre: string | null | undefined) {
   if (nombre) almacen()?.setItem(CLAVE_NOMBRE, nombre);
   else almacen()?.removeItem(CLAVE_NOMBRE);
 }
+
+/**
+ * Empresa en la que trabaja temporalmente el personal de Aplix (superadmin).
+ * Mientras esté fijada, todas las consultas se hacen contra la base de esa
+ * empresa; sin ella, el superadministrador solo ve la instalación principal.
+ */
+const CLAVE_TRABAJO_ID = "flujo.empresaTrabajoId";
+const CLAVE_TRABAJO_NOMBRE = "flujo.empresaTrabajoNombre";
+
+export function empresaTrabajoId(): number {
+  const valor = Number(almacen()?.getItem(CLAVE_TRABAJO_ID) ?? 0);
+  return Number.isFinite(valor) && valor > 0 ? valor : 0;
+}
+
+export function empresaTrabajoNombre(): string {
+  return almacen()?.getItem(CLAVE_TRABAJO_NOMBRE) ?? "";
+}
+
+export function fijarEmpresaTrabajo(id: number | null, nombre?: string) {
+  const a = almacen();
+  if (!a) return;
+  if (id && id > 0) {
+    a.setItem(CLAVE_TRABAJO_ID, String(id));
+    a.setItem(CLAVE_TRABAJO_NOMBRE, nombre ?? "");
+  } else {
+    a.removeItem(CLAVE_TRABAJO_ID);
+    a.removeItem(CLAVE_TRABAJO_NOMBRE);
+  }
+}

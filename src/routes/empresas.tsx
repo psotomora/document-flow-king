@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Loader2, PlugZap, RefreshCw, Wrench } from "lucide-react";
+import { Building2, Loader2, LogIn, PlugZap, RefreshCw, Wrench } from "lucide-react";
+import { fijarEmpresaTrabajo } from "@/lib/empresa";
 import { toast } from "sonner";
 import { useApp } from "@/contexto/AppContexto";
 import {
@@ -241,6 +242,17 @@ function PaginaEmpresas() {
                     >
                       <Wrench className="mr-1 size-4" aria-hidden />
                       Preparar base
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={!c.activo}
+                      onClick={() => {
+                        fijarEmpresaTrabajo(c.id, c.nombre);
+                        window.location.assign(import.meta.env.BASE_URL || "/");
+                      }}
+                    >
+                      <LogIn className="mr-1 size-4" aria-hidden />
+                      Trabajar aquí
                     </Button>
                   </TableCell>
                 </TableRow>
