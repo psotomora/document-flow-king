@@ -47,8 +47,8 @@ public static class UsuariosEndpoints
             if (!EsAdmin(ctx)) return Results.Forbid();
             if (string.IsNullOrWhiteSpace(datos.Nombre) || string.IsNullOrWhiteSpace(datos.NombreUsuario))
                 return Results.BadRequest(new { mensaje = "Nombre y nombre de usuario son obligatorios." });
-            if (!string.IsNullOrEmpty(datos.Contrasena) && datos.Contrasena.Length < 8)
-                return Results.BadRequest(new { mensaje = "La contraseña debe tener al menos 8 caracteres." });
+            if (string.IsNullOrWhiteSpace(datos.Contrasena) || datos.Contrasena.Length < 8)
+                return Results.BadRequest(new { mensaje = "La contraseña inicial es obligatoria y debe tener al menos 8 caracteres." });
 
             using var cn = db.Abrir();
             var perfilId = PerfilId(cn, datos.Perfil);
@@ -80,7 +80,7 @@ public static class UsuariosEndpoints
                     datos.NombreUsuario,
                     datos.Nombre,
                     Correo = string.IsNullOrWhiteSpace(datos.Correo) ? null : datos.Correo,
-                    Hash = string.IsNullOrEmpty(datos.Contrasena) ? null : Contrasenas.Crear(datos.Contrasena),
+                    Hash = Contrasenas.Crear(datos.Contrasena),
                     PerfilId = perfilId,
                     Activo = datos.Activo,
                     VerBancos = datos.VerBancos ?? true,

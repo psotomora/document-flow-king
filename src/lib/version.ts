@@ -20,6 +20,7 @@ export const HISTORIAL_VERSIONES: EntradaVersion[] = [
       "Los usuarios creados por Aplix dentro de una empresa aparecen inmediatamente en la lista correcta.",
       "Se evita confundir al superadministrador con un usuario de la empresa que tenga el mismo identificador.",
       "Al trabajar en una empresa, su código queda preparado para el próximo inicio de sesión.",
+      "La contraseña inicial ahora es obligatoria para impedir usuarios creados sin acceso.",
     ],
   },
   {
