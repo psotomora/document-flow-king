@@ -10,7 +10,8 @@ namespace FlujoEfectivo.Api.Endpoints;
 public static class UsuariosEndpoints
 {
     private static bool EsAdmin(HttpContext ctx) =>
-        string.Equals(ctx.User.Perfil(), "administrador", StringComparison.OrdinalIgnoreCase);
+        string.Equals(ctx.User.Perfil(), "administrador", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(ctx.User.Perfil(), "superadmin", StringComparison.OrdinalIgnoreCase);
 
     private static int? PerfilId(System.Data.IDbConnection cn, string codigo) =>
         cn.QueryFirstOrDefault<int?>("SELECT PerfilId FROM flujo.Perfil WHERE Codigo = @codigo",
