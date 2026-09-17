@@ -961,10 +961,13 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setAutenticado(true);
       },
       cerrarSesion: () => {
+        const eraDemo = !hayApi();
         guardarToken(null);
         setModoApi(hayApi());
         setAutenticado(false);
-        setSesionCerrada(true);
+        // En modo demostración no se muestra la pantalla de despedida:
+        // el botón Salir regresa directo a la pantalla de ingreso.
+        setSesionCerrada(!eraDemo);
       },
       volverAlLogin: () => setSesionCerrada(false),
 
