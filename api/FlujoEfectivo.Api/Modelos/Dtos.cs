@@ -330,7 +330,29 @@ public record EstadoDto(
 
 /* ------------------------- Entradas ------------------------- */
 
-public record LoginRequest(string Usuario, string Contrasena);
+public record LoginRequest(string Usuario, string Contrasena, string? ClienteCodigo = null);
+
+/// <summary>Cliente (empresa) del catálogo multicliente; solo para la consola de Aplix.</summary>
+public record ClienteAdminDto(
+    int Id,
+    string Codigo,
+    string Nombre,
+    string Servidor,
+    string BaseDatos,
+    string Usuario,
+    bool Encriptar,
+    bool Activo);
+
+public record CambioCliente(
+    string Codigo,
+    string Nombre,
+    string Servidor,
+    string BaseDatos,
+    string? Usuario,
+    string? Clave,
+    bool Encriptar = true,
+    bool Activo = true);
+
 
 public record NuevoUsuario(
     string Nombre,
