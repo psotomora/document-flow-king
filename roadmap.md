@@ -15,5 +15,5 @@
 - [x] v1.35.0 Segunda conexión a fuente externa en Parámetros y selector de fuente en el Comparativo anual.
 - [x] v1.36.0 Sistema de licenciamiento: archivo .lic firmado, control en Parámetros y emisor interno.
 - [x] v1.36.13 Empaquetar el logo con la aplicación y eliminar dependencias del dominio de Lovable.
-- [ ] Mostrar un mensaje controlado ante errores HTML de IIS, sin exponer la página recibida.
-- [ ] Aumentar la aplicación y la API a v1.37.2 y verificar.
+- [x] Mostrar un mensaje controlado ante errores HTML de IIS, sin exponer la página recibida.
+- [x] Aumentar la aplicación y la API a v1.37.2 y verificar.
