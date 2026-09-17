@@ -43,7 +43,7 @@ No incluye (etapas siguientes): facturación/cobro a clientes, autoservicio de r
 
 ### Frontend
 
-- `PantallaLogin.tsx`: selector de empresa alimentado por `/clientes-publicos`, recordado en el navegador; se envía en el login.
+- `PantallaLogin.tsx`: campo de texto "Código de empresa" (sin lista), recordado en el navegador y enviado en el login.
 - `AppContexto.tsx`: el cliente activo forma parte de la sesión; al cerrar sesión se limpia el estado para no mezclar datos entre empresas.
 - `ResumenLicencia.tsx` / panel lateral: mostrar el nombre de la empresa activa.
 
