@@ -195,10 +195,13 @@ npm run build:node
 ```
 
 > **Publicación en una subcarpeta** (por ejemplo `http://SRV-APP/cashflow`).
-> Hay dos formas; use **una** de las dos y compile de nuevo desde cero:
+> Fuera de Lovable, el proyecto usa `/cashflow` automáticamente. Por tanto,
+> para el despliegue habitual basta con ejecutar `npm run build:node`.
+> Si necesita publicar con una ruta diferente, use **una** de estas opciones:
 >
 > *Forma A (archivo, recomendada):* cree en la raíz del proyecto el archivo
-> `ruta-base.txt` con una sola línea: `/cashflow`. Luego `npm run build:node`.
+> `ruta-base.txt` con una sola línea, por ejemplo `/otra-ruta`. Luego
+> `npm run build:node`.
 >
 > *Forma B (variable de PowerShell):* escriba las dos líneas **en la misma
 > ventana de PowerShell**, una después de la otra (la variable solo vive en esa
@@ -206,13 +209,14 @@ npm run build:node
 >
 > ```powershell
 > cd C:\document-flow-king
-> $env:APP_BASE_PATH = "/cashflow"
+> $env:APP_BASE_PATH = "/otra-ruta"
 > npm run build:node
 > ```
 >
 > Al iniciar la compilación debe leerse:
-> `[vite] Ruta base de la aplicación: /cashflow`. Si dice `/`, la ruta no se
-> aplicó: borre la carpeta `.output` y repita.
+> Para la publicación habitual debe leerse:
+> `[vite] Ruta base de la aplicación: /cashflow`. Si dice `/`, no publique esa
+> salida: borre la carpeta `.output` y repita.
 >
 > Con esto, los estilos, los scripts y la navegación usan el prefijo
 > `/cashflow`. **Configuración en IIS (elija según su caso):**
@@ -238,8 +242,8 @@ npm run build:node
 >
 >   **Caso real: `https://apps.aplix.cr/cashflow`** (el sitio `apps.aplix.cr`
 >   publica varias aplicaciones y esta va en la subcarpeta `cashflow`):
->   1. Compile con `ruta-base.txt` = `/cashflow` (Forma A) y copie `.output\`
->      a la carpeta del proceso Node (por ejemplo `C:\inetpub\FlujoEfectivoWeb`).
+>   1. Ejecute `npm run build:node` y copie `.output\` a la carpeta del proceso
+>      Node (por ejemplo `C:\inetpub\FlujoEfectivoWeb`).
 >      Verifique en pantalla `[vite] Ruta base de la aplicación: /cashflow`.
 >   2. En el sitio `apps.aplix.cr` de IIS agregue **solo** la regla
 >      `CashflowSubcarpeta` de arriba (ajuste el puerto si el proceso Node de

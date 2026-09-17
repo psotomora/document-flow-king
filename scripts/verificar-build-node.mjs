@@ -9,10 +9,11 @@ const wrangler = resolve(raiz, ".output/server/wrangler.json");
 
 function leerRutaBase() {
   const archivo = resolve(raiz, "ruta-base.txt");
+  const rutaPredeterminada = process.env["LOVABLE_PROJECT_ID"] ? "/" : "/cashflow";
   const valor = (
     process.env["APP_BASE_PATH"] ||
     (existsSync(archivo) ? readFileSync(archivo, "utf8").split("\n")[0] : "") ||
-    "/"
+    rutaPredeterminada
   ).trim();
   return valor === "/" ? "" : valor.replace(/^\/+|\/+$/g, "");
 }

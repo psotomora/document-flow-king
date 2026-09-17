@@ -33,7 +33,15 @@ function leerRutaBaseDeArchivo(): string {
 }
 
 const rutaBase = (() => {
-  const valor = (process.env["APP_BASE_PATH"] || leerRutaBaseDeArchivo() || "/").trim();
+  // En Lovable la aplicación vive en la raíz. Las compilaciones realizadas por
+  // el cliente se publican, por defecto, en la subcarpeta fija de IIS.
+  // APP_BASE_PATH o ruta-base.txt siguen permitiendo sobrescribirla.
+  const rutaPredeterminada = process.env["LOVABLE_PROJECT_ID"] ? "/" : "/cashflow";
+  const valor = (
+    process.env["APP_BASE_PATH"] ||
+    leerRutaBaseDeArchivo() ||
+    rutaPredeterminada
+  ).trim();
   if (valor === "" || valor === "/" || valor.startsWith("#")) return "/";
   return `/${valor.replace(/^\/+|\/+$/g, "")}/`;
 })();
