@@ -36,7 +36,9 @@ export const Route = createFileRoute("/acceso")({
   component: PaginaAcceso,
 });
 
-const PERMISOS: { accion: string; permitido: Record<Perfil, boolean> }[] = [
+type EstadoPermiso = "si" | "no" | "configurable";
+
+const PERMISOS: { accion: string; permitido: Record<Perfil, EstadoPermiso> }[] = [
   { accion: "Consultar tableros y reportes", permitido: { administrador: true, registro: true, consulta: true } },
   { accion: "Exportar a Excel y PDF", permitido: { administrador: true, registro: true, consulta: true } },
   { accion: "Registrar facturas, pagos y erogaciones", permitido: { administrador: true, registro: true, consulta: false } },
@@ -44,6 +46,10 @@ const PERMISOS: { accion: string; permitido: Record<Perfil, boolean> }[] = [
   { accion: "Modificar catálogos de bancos", permitido: { administrador: true, registro: false, consulta: false } },
   { accion: "Actualizar el tipo de cambio", permitido: { administrador: true, registro: false, consulta: false } },
   { accion: "Ejecutar la carga inicial", permitido: { administrador: true, registro: true, consulta: false } },
+  { accion: "Editar erogaciones", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
+  { accion: "Asignar factura a contratos del mes", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
+  { accion: "Trasladar contratos pagados al histórico", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
+  { accion: "Editar transferencias entre bancos", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
 ];
 
 function PaginaAcceso() {
