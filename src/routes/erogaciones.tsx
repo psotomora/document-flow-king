@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useMemo, useState } from "react";
@@ -72,6 +73,7 @@ function PaginaErogaciones() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
+  const [mostrarPagados, setMostrarPagados] = useState(false);
   const [editando, setEditando] = useState<Erogacion | null>(null);
   const puedeEditarErogaciones = esAdministrador || (puedeEditar && usuario.editarErogaciones !== false);
 
@@ -126,7 +128,7 @@ function PaginaErogaciones() {
             <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
               <FileDown className="size-4" /> Exportar Excel
             </Button>
-            {puedeEditar ? <DialogoErogacion abierto={abierto} setAbierto={setAbierto} /> : null}
+            {puedeEditar ? <DialogoErogacion abierto={abierto} setAbierto={setAbierto} mostrarPagados={mostrarPagados} /> : null}
           </>
         }
       />
@@ -170,6 +172,16 @@ function PaginaErogaciones() {
               <SelectItem value="rango">Rango de fechas</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex h-9 items-center gap-2 self-end">
+          <Checkbox
+            id="f-pagados"
+            checked={mostrarPagados}
+            onCheckedChange={(v) => setMostrarPagados(v === true)}
+          />
+          <Label htmlFor="f-pagados" className="cursor-pointer font-normal">
+            Mostrar facturas en estado pagado
+          </Label>
         </div>
         {periodo === "rango" ? (
           <>
@@ -306,10 +318,13 @@ function DialogoErogacion({
   abierto,
   setAbierto,
   erogacion,
+  mostrarPagados = false,
 }: {
   abierto: boolean;
   setAbierto: (v: boolean) => void;
   erogacion?: Erogacion;
+  /** Incluye documentos ya pagados (saldo 0): el pago se registra sin cambiar su estado. */
+  mostrarPagados?: boolean;
 }) {
   const { companias, bancos, agregarErogacion, actualizarErogacion, erogaciones, documentosPorPagar, hoy } = useApp();
   const [documentoPagoId, setDocumentoPagoId] = useState(erogacion?.documentoPagoId ?? "sin");
@@ -325,7 +340,7 @@ function DialogoErogacion({
 
   const bancosCompania = bancos.filter((b) => b.companiaId === companiaId);
   const documentosCompania = documentosPorPagar.filter(
-    (d) => d.companiaId === companiaId && d.saldo > 0,
+    (d) => d.companiaId === companiaId && (d.saldo > 0 || (mostrarPagados && !erogacion)),
   );
   const documentoElegido = documentosCompania.find((d) => d.id === documentoPagoId);
   const documentoOriginalAusente = Boolean(
@@ -341,7 +356,7 @@ function DialogoErogacion({
     if (doc) {
       setProveedor(doc.proveedor);
       setMoneda(doc.moneda);
-      setMonto(String(doc.saldo));
+      setMonto(String(doc.saldo > 0 ? doc.saldo : doc.monto));
     }
   };
 
@@ -376,7 +391,13 @@ function DialogoErogacion({
     };
     if (erogacion) actualizarErogacion(erogacion.id, datos);
     else agregarErogacion(datos);
-    toast.success(erogacion ? "Erogación actualizada" : "Erogación registrada");
+    toast.success(
+      erogacion
+        ? "Erogación actualizada"
+        : documentoElegido && documentoElegido.saldo <= 0
+          ? "Pago registrado; el documento ya estaba pagado y conserva su estado"
+          : "Erogación registrada",
+    );
     setAbierto(false);
     setNumero("");
     setProveedor("");
@@ -436,7 +457,10 @@ function DialogoErogacion({
                 ) : null}
                 {documentosCompania.map((d) => (
                   <SelectItem key={d.id} value={d.id}>
-                    {d.numero} — {d.proveedor} ({d.moneda} {d.saldo.toLocaleString("es-CR")})
+                    {d.numero} — {d.proveedor}{" "}
+                    {d.saldo > 0
+                      ? `(${d.moneda} ${d.saldo.toLocaleString("es-CR")})`
+                      : `(Pagado · ${d.moneda} ${d.monto.toLocaleString("es-CR")})`}
                   </SelectItem>
                 ))}
               </SelectContent>
