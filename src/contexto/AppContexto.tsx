@@ -249,6 +249,7 @@ interface EstadoApp {
   actualizarPedido: (id: string, cambios: Partial<Pedido>) => void;
   eliminarPedido: (id: string) => void;
   agregarTransferencia: (t: Omit<Transferencia, "id">) => void;
+  actualizarTransferencia: (id: string, t: Omit<Transferencia, "id">) => void;
   eliminarTransferencia: (id: string) => void;
   agregarBanco: (b: Omit<Banco, "id">) => void;
   actualizarBanco: (id: string, cambios: Partial<Banco>) => void;
