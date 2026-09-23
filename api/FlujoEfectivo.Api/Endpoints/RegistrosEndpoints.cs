@@ -1134,7 +1134,7 @@ public static class RegistrosEndpoints
         using var cn = db.Abrir();
         return cn.ExecuteScalar<bool>(
             """
-            SELECT CAST(CASE WHEN ISNULL(u.EditarCatalogos, 0) = 1 AND p.Nombre <> 'consulta' THEN 1 ELSE 0 END AS BIT)
+            SELECT CAST(CASE WHEN ISNULL(u.EditarCatalogos, 0) = 1 AND p.Codigo <> 'consulta' THEN 1 ELSE 0 END AS BIT)
             FROM flujo.Usuario u JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
             WHERE u.UsuarioId = @id
             """, new { id = ctx.User.UsuarioId() });

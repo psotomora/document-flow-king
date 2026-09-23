@@ -43,7 +43,7 @@ const PERMISOS: { accion: string; permitido: Record<Perfil, EstadoPermiso> }[] =
   { accion: "Exportar a Excel y PDF", permitido: { administrador: "si", registro: "si", consulta: "si" } },
   { accion: "Registrar facturas, pagos y erogaciones", permitido: { administrador: "si", registro: "si", consulta: "no" } },
   { accion: "Administrar contratos y pedidos", permitido: { administrador: "si", registro: "si", consulta: "no" } },
-  { accion: "Modificar catálogos de bancos", permitido: { administrador: "si", registro: "no", consulta: "no" } },
+  { accion: "Modificar catálogos de bancos", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
   { accion: "Actualizar el tipo de cambio", permitido: { administrador: "si", registro: "no", consulta: "no" } },
   { accion: "Ejecutar la carga inicial", permitido: { administrador: "si", registro: "si", consulta: "no" } },
   { accion: "Editar erogaciones", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
