@@ -12,6 +12,7 @@ import {
   Menu,
   PiggyBank,
   Receipt,
+  ShieldCheck,
   Settings2,
   ShoppingCart,
   TrendingUp,
@@ -35,6 +36,11 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import { VersionApp } from "@/components/layout/VersionApp";
+import {
+  estadoLicencia,
+  licenciaDisponible,
+  type EstadoLicencia,
+} from "@/lib/licencia";
 import logoAplix from "@/assets/aplix-isotipo.png";
 const navegacion = [
   {
@@ -87,8 +93,35 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navegar = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [licencia, setLicencia] = useState<EstadoLicencia | null>(null);
   // El panel móvil se cierra al cambiar de pantalla.
   useEffect(() => setMenuAbierto(false), [pathname]);
+
+  useEffect(() => {
+    if (!licenciaDisponible()) return;
+    let activo = true;
+    void estadoLicencia()
+      .then((estado) => {
+        if (activo) setLicencia(estado);
+      })
+      .catch(() => {
+        // El estado de la licencia no debe impedir el uso del menú.
+      });
+    return () => {
+      activo = false;
+    };
+  }, []);
+
+  const detalleLicencia = licencia
+    ? {
+        vigente: { etiqueta: "Vigente", tono: "text-exito" },
+        porVencer: { etiqueta: "Próxima a vencer", tono: "text-advertencia-foreground" },
+        gracia: { etiqueta: "Periodo de gracia", tono: "text-destructive" },
+        bloqueada: { etiqueta: "Bloqueada", tono: "text-destructive" },
+        ausente: { etiqueta: "Sin licencia", tono: "text-destructive" },
+        libre: { etiqueta: "No requerida", tono: "text-sidebar-foreground/70" },
+      }[licencia.estado]
+    : null;
 
   // Opciones ocultas para el usuario según sus permisos de visibilidad.
   const rutaVisible = (item: { to: string }) => {
@@ -164,6 +197,18 @@ export function AppShell({ children }: { children: ReactNode }) {
               : (companias.find((c) => c.id === companiaActiva)?.nombre ?? "—")}
           </p>
           <p>Fecha de corte: {formatearFecha(hoy)}</p>
+          {licencia && detalleLicencia ? (
+            <div className="my-2 border-y border-sidebar-border py-2">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-sidebar-foreground/90">
+                <ShieldCheck className="size-3.5 shrink-0" />
+                Licencia
+              </p>
+              <p className={cn("mt-1 font-medium", detalleLicencia.tono)}>
+                Estado: {detalleLicencia.etiqueta}
+              </p>
+              {licencia.vence ? <p>Vence: {formatearFecha(licencia.vence)}</p> : null}
+            </div>
+          ) : null}
           <VersionApp />
         </div>
 
