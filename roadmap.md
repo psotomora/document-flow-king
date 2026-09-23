@@ -17,3 +17,5 @@
 - [x] v1.36.13 Empaquetar el logo con la aplicación y eliminar dependencias del dominio de Lovable.
 - [x] Mostrar un mensaje controlado ante errores HTML de IIS, sin exponer la página recibida.
 - [x] Aumentar la aplicación y la API a v1.37.2 y verificar.
+- [x] Mostrar el estado y vencimiento de la licencia junto a los datos del usuario.
+- [x] Aumentar la aplicación y la API a v1.37.5 y verificar.
