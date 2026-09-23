@@ -5,6 +5,7 @@ import {
   Banknote,
   CalendarClock,
   CircleDollarSign,
+  ClipboardList,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -76,26 +77,32 @@ function Tablero() {
     hoy,
   } = useApp();
 
-  const [periodo, setPeriodo] = useState<"semanal" | "mensual">("mensual");
   const [moneda, setMoneda] = useState<Moneda>("USD");
 
   const facturas = filtrarPorCompania(facturasCalculadas, companiaActiva);
-  const inicio = inicioDePeriodo(hoy, periodo);
+  const inicio = inicioDePeriodo(hoy, "mensual");
 
   const indicadores = useMemo(() => indicadoresPorMoneda(facturas, moneda), [facturas, moneda]);
 
   // Contratos del mes pendientes: sin pedido ni factura y sin marca de pagado.
-  const contratosMesUSD = useMemo(() => {
+  const contratosMes = useMemo(() => {
     const pendientes = filtrarPorCompania(contratosDelMes, companiaActiva).filter(
       (c) => !c.yaDocumentado && !contratosMesPagados.has(`${c.contratoId}|${c.fecha}`),
     );
-    return (
-      pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
-      (tipoCambio > 0
-        ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
-        : 0)
-    );
+    return {
+      usd:
+        pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
+        (tipoCambio > 0
+          ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
+          : 0),
+      cantidad: pendientes.length,
+    };
   }, [contratosDelMes, contratosMesPagados, companiaActiva, tipoCambio]);
+
+  const pedidosPendientes = useMemo(
+    () => filtrarPorCompania(pedidos, companiaActiva).filter((p) => p.estado === "Pendiente"),
+    [pedidos, companiaActiva],
+  );
 
   const proyeccion = useMemo(() => {
     const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
@@ -105,10 +112,10 @@ function Tablero() {
       facturas,
       filtrarPorCompania(pedidos, companiaActiva),
       tipoCambio,
-      contratosMesUSD,
+      contratosMes.usd,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bancos, pagos, erogaciones, transferencias, facturas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
+  }, [bancos, pagos, erogaciones, transferencias, facturas, pedidos, companiaActiva, tipoCambio, contratosMes.usd]);
 
   const tramos = useMemo(() => proyeccionPorTramos(facturas, moneda), [facturas, moneda]);
 
@@ -120,6 +127,14 @@ function Tablero() {
     (e) => e.fecha >= inicio && e.fecha <= hoy && e.moneda === moneda,
   );
   const totalErogacionesPeriodo = erogacionesPeriodo.reduce((s, e) => s + e.monto, 0);
+
+  // Por cobrar total expresado en dólares (facturas USD + CRC al tipo de cambio).
+  const porCobrarTotalUSD =
+    proyeccion.porCobrarUSD +
+    (tipoCambio > 0 ? proyeccion.porCobrarCRC / tipoCambio : 0);
+  const facturasPendientes = facturas.filter(
+    (f) => f.saldoPendiente > 0.009 && f.cobrada !== true,
+  );
 
   const distribucion = [
     { nombre: "Pagadas", valor: indicadores.pagadas, color: "var(--exito)" },
