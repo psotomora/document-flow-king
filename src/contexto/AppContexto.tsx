@@ -205,6 +205,7 @@ interface EstadoApp {
     editarErogaciones?: boolean;
     asignarFacturaContrato?: boolean;
     trasladarContratosHistorico?: boolean;
+    editarTransferencias?: boolean;
   }) => Promise<void>;
   actualizarUsuario: (
     id: string,
@@ -223,6 +224,7 @@ interface EstadoApp {
       editarErogaciones?: boolean;
       asignarFacturaContrato?: boolean;
       trasladarContratosHistorico?: boolean;
+      editarTransferencias?: boolean;
     },
   ) => Promise<void>;
   eliminarUsuario: (id: string) => Promise<void>;
@@ -1004,6 +1006,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           editarErogaciones: datos.editarErogaciones ?? true,
           asignarFacturaContrato: datos.asignarFacturaContrato ?? false,
           trasladarContratosHistorico: datos.trasladarContratosHistorico ?? false,
+          editarTransferencias: datos.editarTransferencias ?? false,
         };
         setUsuarios((prev) => [...prev, nuevo]);
         anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
@@ -1033,6 +1036,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
             : {}),
           ...(cambios.trasladarContratosHistorico !== undefined
             ? { trasladarContratosHistorico: cambios.trasladarContratosHistorico }
+            : {}),
+          ...(cambios.editarTransferencias !== undefined
+            ? { editarTransferencias: cambios.editarTransferencias }
             : {}),
         };
         setUsuarios((prev) =>
@@ -1247,6 +1253,11 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
             "Creación",
             `${t.moneda} ${t.monto}`,
           );
+        }),
+      actualizarTransferencia: (id, cambios) =>
+        mutar(`/transferencias/${id}`, "PUT", cambios, () => {
+          setTransferencias((prev) => prev.map((x) => (x.id === id ? { ...x, ...cambios } : x)));
+          anotar("Transferencias", cambios.referencia, "Modificación", `${cambios.moneda} ${cambios.monto}`);
         }),
       eliminarTransferencia: (id) =>
         mutar(`/transferencias/${id}`, "DELETE", undefined, () => {
