@@ -86,6 +86,9 @@ function PaginaUsuario() {
   const [trasladarContratosHistorico, setTrasladarContratosHistorico] = useState(
     actual?.trasladarContratosHistorico ?? false,
   );
+  const [editarTransferencias, setEditarTransferencias] = useState(
+    actual?.editarTransferencias ?? false,
+  );
 
   const volver = () => void navigate({ to: "/acceso" });
 
@@ -137,6 +140,7 @@ function PaginaUsuario() {
           editarErogaciones,
           asignarFacturaContrato,
           trasladarContratosHistorico,
+          editarTransferencias,
         });
         toast.success("Usuario creado");
       } else {
@@ -151,6 +155,7 @@ function PaginaUsuario() {
           editarErogaciones,
           asignarFacturaContrato,
           trasladarContratosHistorico,
+          editarTransferencias,
         });
         toast.success("Usuario actualizado");
       }
@@ -297,6 +302,19 @@ function PaginaUsuario() {
                 checked={perfil === "administrador" ? true : trasladarContratosHistorico}
                 disabled={perfil === "administrador"}
                 onCheckedChange={setTrasladarContratosHistorico}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md bg-muted/40 p-2.5">
+              <div>
+                <p className="text-sm font-medium">Editar transferencias entre bancos</p>
+                <p className="text-xs text-muted-foreground">
+                  Habilita el botón Editar en las transferencias de Saldos por banco.
+                </p>
+              </div>
+              <Switch
+                checked={perfil === "administrador" ? true : editarTransferencias}
+                disabled={perfil === "administrador"}
+                onCheckedChange={setEditarTransferencias}
               />
             </div>
           </div>

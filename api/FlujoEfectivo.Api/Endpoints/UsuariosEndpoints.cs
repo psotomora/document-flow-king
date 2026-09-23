@@ -69,10 +69,10 @@ public static class UsuariosEndpoints
                 """
                 INSERT INTO flujo.Usuario
                     (NombreUsuario, NombreCompleto, CorreoElectronico, HashContrasena, PerfilId, Activo,
-                      VerBancos, VerConsolidado, VerErogaciones, VerProyeccion, VerCatalogos, EditarErogaciones, AsignarFacturaContrato, TrasladarContratosHistorico)
+                      VerBancos, VerConsolidado, VerErogaciones, VerProyeccion, VerCatalogos, EditarErogaciones, AsignarFacturaContrato, TrasladarContratosHistorico, EditarTransferencias)
                 OUTPUT INSERTED.UsuarioId
                 VALUES (@NombreUsuario, @Nombre, @Correo, @Hash, @PerfilId, @Activo,
-                        @VerBancos, @VerConsolidado, @VerErogaciones, @VerProyeccion, @VerCatalogos, @EditarErogaciones, @AsignarFacturaContrato, @TrasladarContratosHistorico)
+                        @VerBancos, @VerConsolidado, @VerErogaciones, @VerProyeccion, @VerCatalogos, @EditarErogaciones, @AsignarFacturaContrato, @TrasladarContratosHistorico, @EditarTransferencias)
                 """,
                 new
                 {
@@ -90,6 +90,7 @@ public static class UsuariosEndpoints
                     EditarErogaciones = datos.EditarErogaciones ?? true,
                     AsignarFacturaContrato = datos.AsignarFacturaContrato ?? false,
                     TrasladarContratosHistorico = datos.TrasladarContratosHistorico ?? false,
+                    EditarTransferencias = datos.EditarTransferencias ?? false,
                 });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Seguridad",
@@ -102,7 +103,8 @@ public static class UsuariosEndpoints
                     + $"Catálogos: {(datos.VerCatalogos ?? true ? "Sí" : "No")}; "
                     + $"Editar erogaciones: {(datos.EditarErogaciones ?? true ? "Sí" : "No")}; "
                     + $"Asignar factura a contratos: {(datos.AsignarFacturaContrato ?? false ? "Sí" : "No")}; "
-                    + $"Trasladar contratos al histórico: {(datos.TrasladarContratosHistorico ?? false ? "Sí" : "No")}");
+                    + $"Trasladar contratos al histórico: {(datos.TrasladarContratosHistorico ?? false ? "Sí" : "No")}; "
+                    + $"Editar transferencias: {(datos.EditarTransferencias ?? false ? "Sí" : "No")}");
 
             return Results.Ok(new { id = id.ToString() });
         });
@@ -163,7 +165,8 @@ public static class UsuariosEndpoints
                     VerCatalogos      = ISNULL(@VerCatalogos, VerCatalogos),
                     EditarErogaciones = ISNULL(@EditarErogaciones, EditarErogaciones),
                     AsignarFacturaContrato = ISNULL(@AsignarFacturaContrato, AsignarFacturaContrato),
-                    TrasladarContratosHistorico = ISNULL(@TrasladarContratosHistorico, TrasladarContratosHistorico)
+                    TrasladarContratosHistorico = ISNULL(@TrasladarContratosHistorico, TrasladarContratosHistorico),
+                    EditarTransferencias = ISNULL(@EditarTransferencias, EditarTransferencias)
                 WHERE UsuarioId = @usuarioId
                 """,
                 new
@@ -182,6 +185,7 @@ public static class UsuariosEndpoints
                     datos.EditarErogaciones,
                     datos.AsignarFacturaContrato,
                     datos.TrasladarContratosHistorico,
+                    datos.EditarTransferencias,
                     usuarioId,
                 });
 
@@ -193,7 +197,8 @@ public static class UsuariosEndpoints
                     + $"Erogaciones: {Si(actual.VerErogaciones)}; Proyección de cobros: {Si(actual.VerProyeccion)}; "
                     + $"Catálogos: {Si(actual.VerCatalogos)}; Editar erogaciones: {Si(actual.EditarErogaciones)}; "
                     + $"Asignar factura a contratos: {Si(actual.AsignarFacturaContrato)}; "
-                    + $"Trasladar contratos al histórico: {Si(actual.TrasladarContratosHistorico)}",
+                    + $"Trasladar contratos al histórico: {Si(actual.TrasladarContratosHistorico)}; "
+                    + $"Editar transferencias: {Si(actual.EditarTransferencias)}",
                 valorNuevo: $"Perfil: {datos.Perfil ?? actual.Perfil}; Activo: {datos.Activo ?? actual.Activo}; "
                     + $"Saldo por banco: {Si(datos.VerBancos ?? actual.VerBancos)}; "
                     + $"Saldo consolidado: {Si(datos.VerConsolidado ?? actual.VerConsolidado)}; "
@@ -202,7 +207,8 @@ public static class UsuariosEndpoints
                     + $"Catálogos: {Si(datos.VerCatalogos ?? actual.VerCatalogos)}; "
                     + $"Editar erogaciones: {Si(datos.EditarErogaciones ?? actual.EditarErogaciones)}; "
                     + $"Asignar factura a contratos: {Si(datos.AsignarFacturaContrato ?? actual.AsignarFacturaContrato)}; "
-                    + $"Trasladar contratos al histórico: {Si(datos.TrasladarContratosHistorico ?? actual.TrasladarContratosHistorico)}");
+                    + $"Trasladar contratos al histórico: {Si(datos.TrasladarContratosHistorico ?? actual.TrasladarContratosHistorico)}; "
+                    + $"Editar transferencias: {Si(datos.EditarTransferencias ?? actual.EditarTransferencias)}");
 
             return Results.Ok(new { mensaje = "Usuario actualizado." });
         });
@@ -257,7 +263,7 @@ public static class UsuariosEndpoints
             SELECT CAST(u.UsuarioId AS NVARCHAR(20)) AS Id, u.NombreCompleto AS Nombre,
                    u.NombreUsuario, u.CorreoElectronico AS Correo, p.Codigo AS Perfil, u.Activo,
                     u.VerBancos, u.VerConsolidado, u.VerErogaciones, u.VerProyeccion, u.VerCatalogos,
-                    u.EditarErogaciones, u.AsignarFacturaContrato, u.TrasladarContratosHistorico
+                    u.EditarErogaciones, u.AsignarFacturaContrato, u.TrasladarContratosHistorico, u.EditarTransferencias
             FROM flujo.Usuario u
             INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
             WHERE 1 = 1

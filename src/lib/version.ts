@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.37.3";
+export const APP_VERSION = "1.37.4";
 export const APP_FECHA_VERSION = "2026-09-23";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.37.4",
+    fecha: "2026-09-23",
+    cambios: [
+      "Saldos por banco: las transferencias se pueden editar con el nuevo privilegio por usuario Editar transferencias, que solo un administrador habilita.",
+      "El script database/07_permisos_usuario.sql agrega la columna EditarTransferencias (la API también la crea al iniciar).",
+    ],
+  },
   {
     version: "1.37.3",
     fecha: "2026-09-23",

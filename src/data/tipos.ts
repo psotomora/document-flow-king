@@ -276,4 +276,6 @@ export interface Usuario {
   asignarFacturaContrato?: boolean;
   /** Permite trasladar manualmente al histórico los contratos del mes ya pagados. */
   trasladarContratosHistorico?: boolean;
+  /** Permite editar transferencias entre bancos; solo un administrador lo habilita. */
+  editarTransferencias?: boolean;
 }

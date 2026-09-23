@@ -47,3 +47,9 @@ IF COL_LENGTH('flujo.Usuario', 'TrasladarContratosHistorico') IS NULL
     ALTER TABLE flujo.Usuario ADD TrasladarContratosHistorico BIT NOT NULL
         CONSTRAINT DF_Usuario_TrasladarContratosHistorico DEFAULT 0;
 GO
+
+/* v1.37.4: privilegio para editar transferencias entre bancos (lo habilita un administrador). */
+IF COL_LENGTH('flujo.Usuario', 'EditarTransferencias') IS NULL
+    ALTER TABLE flujo.Usuario ADD EditarTransferencias BIT NOT NULL
+        CONSTRAINT DF_Usuario_EditarTransferencias DEFAULT 0;
+GO
