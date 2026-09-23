@@ -159,24 +159,14 @@ function Tablero() {
       <EncabezadoPagina
         titulo="Tablero de flujo de efectivo"
         requerimiento="RF-013"
-        descripcion={`Fecha de corte ${formatearFecha(hoy)}. El período ${
-          periodo === "semanal" ? "semanal" : "mensual"
-        } inicia el ${formatearFecha(inicio)}.`}
+        descripcion={`Fecha de corte ${formatearFecha(hoy)}. El mes inicia el ${formatearFecha(inicio)}.`}
         acciones={
-          <div className="flex flex-wrap gap-2">
-            <Tabs value={periodo} onValueChange={(v) => setPeriodo(v as "semanal" | "mensual")}>
-              <TabsList>
-                <TabsTrigger value="semanal">Semanal</TabsTrigger>
-                <TabsTrigger value="mensual">Mensual</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Tabs value={moneda} onValueChange={(v) => setMoneda(v as Moneda)}>
-              <TabsList>
-                <TabsTrigger value="USD">USD</TabsTrigger>
-                <TabsTrigger value="CRC">CRC</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          <Tabs value={moneda} onValueChange={(v) => setMoneda(v as Moneda)}>
+            <TabsList>
+              <TabsTrigger value="USD">USD</TabsTrigger>
+              <TabsTrigger value="CRC">CRC</TabsTrigger>
+            </TabsList>
+          </Tabs>
         }
       />
 
@@ -191,18 +181,24 @@ function Tablero() {
           icono={<Wallet className="size-4" />}
         />
         <TarjetaIndicador
-          titulo={`Por cobrar (${moneda})`}
-          valor={formatearMoneda(indicadores.saldoPorCobrar, moneda)}
-          detalle={`${formatearPorcentaje(indicadores.porcentajeCobrado)} ya cobrado`}
-          icono={<CircleDollarSign className="size-4" />}
+          titulo="Pedidos (por facturar)"
+          valor={formatearMoneda(proyeccion.pedidosPendientesUSD, "USD")}
+          detalle={`${pedidosPendientes.length} pedidos pendientes de facturar`}
+          icono={<ClipboardList className="size-4" />}
           tono="primario"
         />
         <TarjetaIndicador
-          titulo={`Vencido sin cobrar (${moneda})`}
-          valor={formatearMoneda(indicadores.saldoVencido, moneda)}
-          detalle={`${indicadores.vencidas} facturas vencidas`}
-          icono={<AlertTriangle className="size-4" />}
-          tono={indicadores.saldoVencido > 0 ? "peligro" : "exito"}
+          titulo="Por cobrar (USD)"
+          valor={formatearMoneda(porCobrarTotalUSD, "USD")}
+          detalle={`${facturasPendientes.length} facturas pendientes de cobro`}
+          icono={<CircleDollarSign className="size-4" />}
+        />
+        <TarjetaIndicador
+          titulo="Contratos (del mes)"
+          valor={formatearMoneda(contratosMes.usd, "USD")}
+          detalle={`${contratosMes.cantidad} contratos sin documento este mes`}
+          icono={<CalendarClock className="size-4" />}
+          tono="advertencia"
         />
         <TarjetaIndicador
           titulo="Proyectado consolidado (USD)"
@@ -211,18 +207,15 @@ function Tablero() {
           icono={<TrendingUp className="size-4" />}
           tono="exito"
         />
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-2">
         <TarjetaIndicador
-          titulo={`Cobrado en el período (${moneda})`}
+          titulo={`Cobrado del periodo (mes) (${moneda})`}
           valor={formatearMoneda(totalPagosPeriodo, moneda)}
           detalle={`${pagosPeriodo.length} pagos desde ${formatearFecha(inicio)}`}
           icono={<Banknote className="size-4" />}
           tono="exito"
         />
         <TarjetaIndicador
-          titulo={`Erogaciones del período (${moneda})`}
+          titulo={`Erogaciones (mes) (${moneda})`}
           valor={formatearMoneda(totalErogacionesPeriodo, moneda)}
           detalle={`${erogacionesPeriodo.length} salidas desde ${formatearFecha(inicio)}`}
           icono={<Banknote className="size-4" />}
