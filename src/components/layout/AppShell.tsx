@@ -136,6 +136,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const opcionActual = opcionDeRuta(pathname);
   const accesoDenegado = !!opcionActual && !puedeVer(usuario, opcionActual.clave);
 
+  // Sin permiso para el Tablero, se abre la primera opción visible del menú.
+  const primeraVisible = secciones
+    .flatMap((s) => s.items)
+    .find((i) => i.to !== "/" && rutaVisible(i))?.to;
+  useEffect(() => {
+    if (pathname === "/" && accesoDenegado && primeraVisible) {
+      void navegar({ to: primeraVisible as "/" });
+    }
+  }, [pathname, accesoDenegado, primeraVisible, navegar]);
+
 
   /** Contenido del menú, compartido por la barra fija de escritorio y el panel móvil. */
   const contenidoMenu = (alNavegar?: () => void) => (
