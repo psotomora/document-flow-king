@@ -171,12 +171,13 @@ function Tablero() {
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         <TarjetaIndicador
-          titulo={`Disponible en bancos (${moneda})`}
+          titulo="Disponible en bancos (USD)"
           valor={formatearMoneda(
-            moneda === "USD" ? proyeccion.saldoActualUSD : proyeccion.saldoActualCRC,
-            moneda,
+            proyeccion.saldoActualUSD +
+              (tipoCambio > 0 ? proyeccion.saldoActualCRC / tipoCambio : 0),
+            "USD",
           )}
-          detalle="Saldo inicial + pagos − erogaciones"
+          detalle="Consolidado USD + CRC al tipo de cambio"
           icono={<Wallet className="size-4" />}
         />
         <TarjetaIndicador
