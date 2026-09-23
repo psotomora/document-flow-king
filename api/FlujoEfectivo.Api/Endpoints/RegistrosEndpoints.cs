@@ -1127,7 +1127,8 @@ public static class RegistrosEndpoints
             tx.Commit();
             return Results.Ok(new { insertadas });
         });
-    
+    }
+
     /// <summary>Privilegio por usuario para modificar catálogos (perfil consulta nunca puede).</summary>
     private static bool PuedeEditarCatalogos(HttpContext ctx, Db db)
     {
@@ -1139,5 +1140,4 @@ public static class RegistrosEndpoints
             WHERE u.UsuarioId = @id
             """, new { id = ctx.User.UsuarioId() });
     }
-}
 }
