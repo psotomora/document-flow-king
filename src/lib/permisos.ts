@@ -3,6 +3,12 @@ import type { Usuario } from "@/data/tipos";
 /** Opciones de la aplicación cuya visibilidad se controla por usuario. */
 export const OPCIONES_VISIBILIDAD = [
   {
+    clave: "verTablero",
+    etiqueta: "Tablero",
+    ruta: "/",
+    detalle: "Ver el tablero con los indicadores principales.",
+  },
+  {
     clave: "verBancos",
     etiqueta: "Saldo por banco",
     ruta: "/bancos",
@@ -44,5 +50,7 @@ export function puedeVer(usuario: Usuario, clave: ClaveVisibilidad): boolean {
 
 /** Devuelve la opción restringida que corresponde a la ruta indicada, si existe. */
 export function opcionDeRuta(ruta: string) {
-  return OPCIONES_VISIBILIDAD.find((o) => ruta === o.ruta || ruta.startsWith(`${o.ruta}/`));
+  return OPCIONES_VISIBILIDAD.find(
+    (o) => ruta === o.ruta || (o.ruta !== "/" && ruta.startsWith(`${o.ruta}/`)),
+  );
 }

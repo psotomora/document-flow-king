@@ -18,6 +18,7 @@ public class UsuarioAdminDto
     public bool VerErogaciones { get; set; } = true;
     public bool VerProyeccion { get; set; } = true;
     public bool VerCatalogos { get; set; } = true;
+    public bool VerTablero { get; set; } = true;
     public bool EditarErogaciones { get; set; } = true;
     public bool AsignarFacturaContrato { get; set; }
     public bool TrasladarContratosHistorico { get; set; }
@@ -348,6 +349,7 @@ public record NuevoUsuario(
     bool? VerErogaciones = null,
     bool? VerProyeccion = null,
     bool? VerCatalogos = null,
+    bool? VerTablero = null,
     bool? EditarErogaciones = null,
     bool? AsignarFacturaContrato = null,
     bool? TrasladarContratosHistorico = null,
@@ -365,6 +367,7 @@ public record CambioUsuario(
     bool? VerErogaciones = null,
     bool? VerProyeccion = null,
     bool? VerCatalogos = null,
+    bool? VerTablero = null,
     bool? EditarErogaciones = null,
     bool? AsignarFacturaContrato = null,
     bool? TrasladarContratosHistorico = null,

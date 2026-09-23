@@ -202,6 +202,7 @@ interface EstadoApp {
     verErogaciones?: boolean;
     verProyeccion?: boolean;
     verCatalogos?: boolean;
+    verTablero?: boolean;
     editarErogaciones?: boolean;
     asignarFacturaContrato?: boolean;
     trasladarContratosHistorico?: boolean;
@@ -221,6 +222,7 @@ interface EstadoApp {
       verErogaciones?: boolean;
       verProyeccion?: boolean;
       verCatalogos?: boolean;
+    verTablero?: boolean;
       editarErogaciones?: boolean;
       asignarFacturaContrato?: boolean;
       trasladarContratosHistorico?: boolean;
@@ -1004,6 +1006,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           verErogaciones: datos.verErogaciones ?? true,
           verProyeccion: datos.verProyeccion ?? true,
           verCatalogos: datos.verCatalogos ?? true,
+          verTablero: datos.verTablero ?? true,
           editarErogaciones: datos.editarErogaciones ?? true,
           asignarFacturaContrato: datos.asignarFacturaContrato ?? false,
           trasladarContratosHistorico: datos.trasladarContratosHistorico ?? false,
@@ -1029,6 +1032,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
             : {}),
           ...(cambios.verProyeccion !== undefined ? { verProyeccion: cambios.verProyeccion } : {}),
           ...(cambios.verCatalogos !== undefined ? { verCatalogos: cambios.verCatalogos } : {}),
+          ...(cambios.verTablero !== undefined ? { verTablero: cambios.verTablero } : {}),
           ...(cambios.editarErogaciones !== undefined
             ? { editarErogaciones: cambios.editarErogaciones }
             : {}),
