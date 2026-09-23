@@ -171,6 +171,7 @@ function PaginaPagos() {
             </Button>
             {puedeEditar ? (
               <DialogoPago
+                key={mostrarPagadas ? "con-pagadas" : "solo-pendientes"}
                 abierto={abierto}
                 setAbierto={setAbierto}
                 mostrarPagadas={mostrarPagadas}
@@ -468,7 +469,9 @@ function DialogoPago({
                   {factura ? (
                     <span className="truncate">
                       {factura.numero} · {factura.cliente} · saldo{" "}
-                      {formatearMoneda(factura.saldoPendiente, factura.moneda)}
+                      {facturaYaPagada
+                        ? "Pagada"
+                        : formatearMoneda(factura.saldoPendiente, factura.moneda)}
                     </span>
                   ) : (
                     "Seleccione una factura"
