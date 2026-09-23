@@ -55,7 +55,9 @@ export const Route = createFileRoute("/catalogos")({
 });
 
 function PaginaCatalogos() {
-  const { companias, bancos, esAdministrador, actualizarBanco } = useApp();
+  const { companias, bancos, esAdministrador: esAdmin, usuario, actualizarBanco } = useApp();
+  const esAdministrador =
+    esAdmin || (usuario.perfil !== "consulta" && usuario.editarCatalogos === true);
   const [abierto, setAbierto] = useState(false);
 
   return (
@@ -63,7 +65,7 @@ function PaginaCatalogos() {
       <EncabezadoPagina
         titulo="Catálogos"
         requerimiento="RF-001"
-        descripcion="Compañías y cuentas bancarias del sistema. Solo el perfil administrador puede modificarlos."
+        descripcion="Compañías y cuentas bancarias del sistema. Solo los administradores y los usuarios con el privilegio Modificar catálogos pueden modificarlos."
         acciones={esAdministrador ? <DialogoBanco abierto={abierto} setAbierto={setAbierto} /> : null}
       />
 

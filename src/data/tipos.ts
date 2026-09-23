@@ -281,4 +281,6 @@ export interface Usuario {
   trasladarContratosHistorico?: boolean;
   /** Permite editar transferencias entre bancos; solo un administrador lo habilita. */
   editarTransferencias?: boolean;
+  /** Permite modificar los catálogos (cuentas bancarias); solo un administrador lo habilita. */
+  editarCatalogos?: boolean;
 }

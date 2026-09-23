@@ -60,3 +60,9 @@ IF COL_LENGTH('flujo.Usuario', 'VerTablero') IS NULL
     ALTER TABLE flujo.Usuario ADD VerTablero BIT NOT NULL
         CONSTRAINT DF_Usuario_VerTablero DEFAULT 1;
 GO
+
+-- v1.37.9: privilegio por usuario para modificar catálogos (lo habilita un administrador).
+IF COL_LENGTH('flujo.Usuario', 'EditarCatalogos') IS NULL
+    ALTER TABLE flujo.Usuario ADD EditarCatalogos BIT NOT NULL
+        CONSTRAINT DF_Usuario_EditarCatalogos DEFAULT 0;
+GO

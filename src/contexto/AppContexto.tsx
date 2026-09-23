@@ -207,6 +207,7 @@ interface EstadoApp {
     asignarFacturaContrato?: boolean;
     trasladarContratosHistorico?: boolean;
     editarTransferencias?: boolean;
+    editarCatalogos?: boolean;
   }) => Promise<void>;
   actualizarUsuario: (
     id: string,
@@ -227,6 +228,7 @@ interface EstadoApp {
       asignarFacturaContrato?: boolean;
       trasladarContratosHistorico?: boolean;
       editarTransferencias?: boolean;
+      editarCatalogos?: boolean;
     },
   ) => Promise<void>;
   eliminarUsuario: (id: string) => Promise<void>;
@@ -1011,6 +1013,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           asignarFacturaContrato: datos.asignarFacturaContrato ?? false,
           trasladarContratosHistorico: datos.trasladarContratosHistorico ?? false,
           editarTransferencias: datos.editarTransferencias ?? false,
+          editarCatalogos: datos.editarCatalogos ?? false,
         };
         setUsuarios((prev) => [...prev, nuevo]);
         anotar("Seguridad", datos.nombreUsuario, "Creación", `Perfil: ${datos.perfil}`);
@@ -1044,6 +1047,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
             : {}),
           ...(cambios.editarTransferencias !== undefined
             ? { editarTransferencias: cambios.editarTransferencias }
+            : {}),
+          ...(cambios.editarCatalogos !== undefined
+            ? { editarCatalogos: cambios.editarCatalogos }
             : {}),
         };
         setUsuarios((prev) =>
