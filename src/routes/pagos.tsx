@@ -117,7 +117,10 @@ function PaginaPagos() {
           return {
             pago: p,
             factura,
-            aplicado: factura ? montoPagoEnMonedaFactura(p, factura.moneda) : 0,
+            aplicado:
+              factura && p.aplicaFactura !== false
+                ? montoPagoEnMonedaFactura(p, factura.moneda)
+                : 0,
           };
         })
         .filter(({ factura }) =>
@@ -287,7 +290,11 @@ function PaginaPagos() {
                   {pago.tipoCambioOperacion ? formatearNumero(pago.tipoCambioOperacion) : "—"}
                 </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
-                  {factura ? formatearMoneda(aplicado, factura.moneda) : "—"}
+                  {pago.aplicaFactura === false
+                    ? "No aplica"
+                    : factura
+                      ? formatearMoneda(aplicado, factura.moneda)
+                      : "—"}
                 </TableCell>
                 <TableCell>{pago.metodo}</TableCell>
                 <TableCell className="text-muted-foreground">{pago.referencia ?? "—"}</TableCell>
