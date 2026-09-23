@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
-  AlertTriangle,
   Banknote,
   CalendarClock,
   CircleDollarSign,
+  ClipboardList,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -76,26 +76,32 @@ function Tablero() {
     hoy,
   } = useApp();
 
-  const [periodo, setPeriodo] = useState<"semanal" | "mensual">("mensual");
   const [moneda, setMoneda] = useState<Moneda>("USD");
 
   const facturas = filtrarPorCompania(facturasCalculadas, companiaActiva);
-  const inicio = inicioDePeriodo(hoy, periodo);
+  const inicio = inicioDePeriodo(hoy, "mensual");
 
   const indicadores = useMemo(() => indicadoresPorMoneda(facturas, moneda), [facturas, moneda]);
 
   // Contratos del mes pendientes: sin pedido ni factura y sin marca de pagado.
-  const contratosMesUSD = useMemo(() => {
+  const contratosMes = useMemo(() => {
     const pendientes = filtrarPorCompania(contratosDelMes, companiaActiva).filter(
       (c) => !c.yaDocumentado && !contratosMesPagados.has(`${c.contratoId}|${c.fecha}`),
     );
-    return (
-      pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
-      (tipoCambio > 0
-        ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
-        : 0)
-    );
+    return {
+      usd:
+        pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
+        (tipoCambio > 0
+          ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
+          : 0),
+      cantidad: pendientes.length,
+    };
   }, [contratosDelMes, contratosMesPagados, companiaActiva, tipoCambio]);
+
+  const pedidosPendientes = useMemo(
+    () => filtrarPorCompania(pedidos, companiaActiva).filter((p) => p.estado === "Pendiente"),
+    [pedidos, companiaActiva],
+  );
 
   const proyeccion = useMemo(() => {
     const visibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
@@ -105,10 +111,10 @@ function Tablero() {
       facturas,
       filtrarPorCompania(pedidos, companiaActiva),
       tipoCambio,
-      contratosMesUSD,
+      contratosMes.usd,
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bancos, pagos, erogaciones, transferencias, facturas, pedidos, companiaActiva, tipoCambio, contratosMesUSD]);
+  }, [bancos, pagos, erogaciones, transferencias, facturas, pedidos, companiaActiva, tipoCambio, contratosMes.usd]);
 
   const tramos = useMemo(() => proyeccionPorTramos(facturas, moneda), [facturas, moneda]);
 
@@ -120,6 +126,14 @@ function Tablero() {
     (e) => e.fecha >= inicio && e.fecha <= hoy && e.moneda === moneda,
   );
   const totalErogacionesPeriodo = erogacionesPeriodo.reduce((s, e) => s + e.monto, 0);
+
+  // Por cobrar total expresado en dólares (facturas USD + CRC al tipo de cambio).
+  const porCobrarTotalUSD =
+    proyeccion.porCobrarUSD +
+    (tipoCambio > 0 ? proyeccion.porCobrarCRC / tipoCambio : 0);
+  const facturasPendientes = facturas.filter(
+    (f) => f.saldoPendiente > 0.009 && f.cobrada !== true,
+  );
 
   const distribucion = [
     { nombre: "Pagadas", valor: indicadores.pagadas, color: "var(--exito)" },
@@ -144,24 +158,14 @@ function Tablero() {
       <EncabezadoPagina
         titulo="Tablero de flujo de efectivo"
         requerimiento="RF-013"
-        descripcion={`Fecha de corte ${formatearFecha(hoy)}. El período ${
-          periodo === "semanal" ? "semanal" : "mensual"
-        } inicia el ${formatearFecha(inicio)}.`}
+        descripcion={`Fecha de corte ${formatearFecha(hoy)}. El mes inicia el ${formatearFecha(inicio)}.`}
         acciones={
-          <div className="flex flex-wrap gap-2">
-            <Tabs value={periodo} onValueChange={(v) => setPeriodo(v as "semanal" | "mensual")}>
-              <TabsList>
-                <TabsTrigger value="semanal">Semanal</TabsTrigger>
-                <TabsTrigger value="mensual">Mensual</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Tabs value={moneda} onValueChange={(v) => setMoneda(v as Moneda)}>
-              <TabsList>
-                <TabsTrigger value="USD">USD</TabsTrigger>
-                <TabsTrigger value="CRC">CRC</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          <Tabs value={moneda} onValueChange={(v) => setMoneda(v as Moneda)}>
+            <TabsList>
+              <TabsTrigger value="USD">USD</TabsTrigger>
+              <TabsTrigger value="CRC">CRC</TabsTrigger>
+            </TabsList>
+          </Tabs>
         }
       />
 
@@ -176,18 +180,24 @@ function Tablero() {
           icono={<Wallet className="size-4" />}
         />
         <TarjetaIndicador
-          titulo={`Por cobrar (${moneda})`}
-          valor={formatearMoneda(indicadores.saldoPorCobrar, moneda)}
-          detalle={`${formatearPorcentaje(indicadores.porcentajeCobrado)} ya cobrado`}
-          icono={<CircleDollarSign className="size-4" />}
+          titulo="Pedidos (por facturar)"
+          valor={formatearMoneda(proyeccion.pedidosPendientesUSD, "USD")}
+          detalle={`${pedidosPendientes.length} pedidos pendientes de facturar`}
+          icono={<ClipboardList className="size-4" />}
           tono="primario"
         />
         <TarjetaIndicador
-          titulo={`Vencido sin cobrar (${moneda})`}
-          valor={formatearMoneda(indicadores.saldoVencido, moneda)}
-          detalle={`${indicadores.vencidas} facturas vencidas`}
-          icono={<AlertTriangle className="size-4" />}
-          tono={indicadores.saldoVencido > 0 ? "peligro" : "exito"}
+          titulo="Por cobrar (USD)"
+          valor={formatearMoneda(porCobrarTotalUSD, "USD")}
+          detalle={`${facturasPendientes.length} facturas pendientes de cobro`}
+          icono={<CircleDollarSign className="size-4" />}
+        />
+        <TarjetaIndicador
+          titulo="Contratos (del mes)"
+          valor={formatearMoneda(contratosMes.usd, "USD")}
+          detalle={`${contratosMes.cantidad} contratos sin documento este mes`}
+          icono={<CalendarClock className="size-4" />}
+          tono="advertencia"
         />
         <TarjetaIndicador
           titulo="Proyectado consolidado (USD)"
@@ -196,18 +206,15 @@ function Tablero() {
           icono={<TrendingUp className="size-4" />}
           tono="exito"
         />
-      </div>
-
-      <div className="grid gap-3 md:grid-cols-2">
         <TarjetaIndicador
-          titulo={`Cobrado en el período (${moneda})`}
+          titulo={`Cobrado del periodo (mes) (${moneda})`}
           valor={formatearMoneda(totalPagosPeriodo, moneda)}
           detalle={`${pagosPeriodo.length} pagos desde ${formatearFecha(inicio)}`}
           icono={<Banknote className="size-4" />}
           tono="exito"
         />
         <TarjetaIndicador
-          titulo={`Erogaciones del período (${moneda})`}
+          titulo={`Erogaciones (mes) (${moneda})`}
           valor={formatearMoneda(totalErogacionesPeriodo, moneda)}
           detalle={`${erogacionesPeriodo.length} salidas desde ${formatearFecha(inicio)}`}
           icono={<Banknote className="size-4" />}
