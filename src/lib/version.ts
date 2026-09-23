@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.37.6";
+export const APP_VERSION = "1.37.7";
 export const APP_FECHA_VERSION = "2026-09-23";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.37.7",
+    fecha: "2026-09-23",
+    cambios: [
+      "Nuevo orden de tarjetas en el tablero: Disponible en bancos, Pedidos (por facturar), Por cobrar (USD), Contratos (del mes), Proyectado consolidado, Cobrado del periodo (mes) y Erogaciones (mes).",
+      "Nuevas tarjetas de Pedidos por facturar y Contratos del mes; el cobrado y las erogaciones del tablero corresponden siempre al mes.",
+    ],
+  },
   {
     version: "1.37.6",
     fecha: "2026-09-23",
