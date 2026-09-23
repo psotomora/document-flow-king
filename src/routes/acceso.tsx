@@ -39,13 +39,13 @@ export const Route = createFileRoute("/acceso")({
 type EstadoPermiso = "si" | "no" | "configurable";
 
 const PERMISOS: { accion: string; permitido: Record<Perfil, EstadoPermiso> }[] = [
-  { accion: "Consultar tableros y reportes", permitido: { administrador: true, registro: true, consulta: true } },
-  { accion: "Exportar a Excel y PDF", permitido: { administrador: true, registro: true, consulta: true } },
-  { accion: "Registrar facturas, pagos y erogaciones", permitido: { administrador: true, registro: true, consulta: false } },
-  { accion: "Administrar contratos y pedidos", permitido: { administrador: true, registro: true, consulta: false } },
-  { accion: "Modificar catálogos de bancos", permitido: { administrador: true, registro: false, consulta: false } },
-  { accion: "Actualizar el tipo de cambio", permitido: { administrador: true, registro: false, consulta: false } },
-  { accion: "Ejecutar la carga inicial", permitido: { administrador: true, registro: true, consulta: false } },
+  { accion: "Consultar tableros y reportes", permitido: { administrador: "si", registro: "si", consulta: "si" } },
+  { accion: "Exportar a Excel y PDF", permitido: { administrador: "si", registro: "si", consulta: "si" } },
+  { accion: "Registrar facturas, pagos y erogaciones", permitido: { administrador: "si", registro: "si", consulta: "no" } },
+  { accion: "Administrar contratos y pedidos", permitido: { administrador: "si", registro: "si", consulta: "no" } },
+  { accion: "Modificar catálogos de bancos", permitido: { administrador: "si", registro: "no", consulta: "no" } },
+  { accion: "Actualizar el tipo de cambio", permitido: { administrador: "si", registro: "no", consulta: "no" } },
+  { accion: "Ejecutar la carga inicial", permitido: { administrador: "si", registro: "si", consulta: "no" } },
   { accion: "Editar erogaciones", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
   { accion: "Asignar factura a contratos del mes", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
   { accion: "Trasladar contratos pagados al histórico", permitido: { administrador: "si", registro: "configurable", consulta: "no" } },
@@ -159,8 +159,12 @@ function PaginaAcceso() {
                 <TableCell className="font-medium">{p.accion}</TableCell>
                 {(["administrador", "registro", "consulta"] as Perfil[]).map((perfil) => (
                   <TableCell key={perfil} className="text-center">
-                    {p.permitido[perfil] ? (
+                    {p.permitido[perfil] === "si" ? (
                       <Check className="mx-auto size-4 text-exito" aria-label="Permitido" />
+                    ) : p.permitido[perfil] === "configurable" ? (
+                      <Badge variant="outline" className="whitespace-nowrap text-[10px]">
+                        Por usuario
+                      </Badge>
                     ) : (
                       <X className="mx-auto size-4 text-muted-foreground" aria-label="No permitido" />
                     )}
