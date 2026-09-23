@@ -187,6 +187,13 @@ string[] pasosEsquema =
     END
     """,
     """
+    -- Permite registrar ingresos bancarios asociados a facturas ya pagadas sin alterar su estado.
+    IF OBJECT_ID('flujo.Pago', 'U') IS NOT NULL
+       AND COL_LENGTH('flujo.Pago', 'AplicaFactura') IS NULL
+        ALTER TABLE flujo.Pago ADD AplicaFactura BIT NOT NULL
+            CONSTRAINT DF_Pago_AplicaFactura DEFAULT (1) WITH VALUES;
+    """,
+    """
     IF OBJECT_ID('flujo.FuenteExterna', 'U') IS NULL
         CREATE TABLE flujo.FuenteExterna
         (

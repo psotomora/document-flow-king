@@ -125,9 +125,9 @@ public static class RegistrosEndpoints
 
             var id = cn.ExecuteScalar<int>(
                 """
-                INSERT INTO flujo.Pago (FacturaId, FacturaExterna, CuentaBancariaId, Fecha, Moneda, Monto, TipoCambioOperacion, Metodo, Referencia)
+                INSERT INTO flujo.Pago (FacturaId, FacturaExterna, CuentaBancariaId, Fecha, Moneda, Monto, TipoCambioOperacion, Metodo, Referencia, AplicaFactura)
                 OUTPUT INSERTED.PagoId
-                VALUES (@FacturaId, @FacturaExterna, @BancoId, @Fecha, @Moneda, @Monto, @TipoCambioOperacion, @Metodo, @Referencia)
+                VALUES (@FacturaId, @FacturaExterna, @BancoId, @Fecha, @Moneda, @Monto, @TipoCambioOperacion, @Metodo, @Referencia, @AplicaFactura)
                 """,
                 new
                 {
@@ -135,11 +135,14 @@ public static class RegistrosEndpoints
                     FacturaExterna = esExterna ? p.FacturaId : null,
                     BancoId = Id(p.BancoId), Fecha = DateTime.Parse(p.Fecha),
                     p.Moneda, p.Monto, p.TipoCambioOperacion, p.Metodo, p.Referencia,
+                    AplicaFactura = p.AplicaFactura ?? true,
                 });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Pagos",
                 p.Referencia ?? numeroFactura, "Creación",
-                valorNuevo: $"{p.Moneda} {p.Monto}" + (esExterna ? $" · Factura SoftlandERP {numeroFactura}" : ""));
+                valorNuevo: $"{p.Moneda} {p.Monto}"
+                    + (esExterna ? $" · Factura SoftlandERP {numeroFactura}" : "")
+                    + (p.AplicaFactura == false ? " · Solo movimiento bancario" : ""));
             return Results.Ok(new { id = id.ToString() });
         });
 
@@ -1093,13 +1096,14 @@ public static class RegistrosEndpoints
             foreach (var p in lote.Pagos ?? [])
                 insertadas += cn.Execute(
                     """
-                    INSERT INTO flujo.Pago (FacturaId, CuentaBancariaId, Fecha, Moneda, Monto, TipoCambioOperacion, Metodo, Referencia)
-                    VALUES (@FacturaId, @BancoId, @Fecha, @Moneda, @Monto, @TipoCambioOperacion, @Metodo, @Referencia)
+                    INSERT INTO flujo.Pago (FacturaId, CuentaBancariaId, Fecha, Moneda, Monto, TipoCambioOperacion, Metodo, Referencia, AplicaFactura)
+                    VALUES (@FacturaId, @BancoId, @Fecha, @Moneda, @Monto, @TipoCambioOperacion, @Metodo, @Referencia, @AplicaFactura)
                     """,
                     new
                     {
                         FacturaId = Id(p.FacturaId), BancoId = Id(p.BancoId), Fecha = DateTime.Parse(p.Fecha),
                         p.Moneda, p.Monto, p.TipoCambioOperacion, p.Metodo, p.Referencia,
+                        AplicaFactura = p.AplicaFactura ?? true,
                     }, tx);
 
             foreach (var e in lote.Erogaciones ?? [])

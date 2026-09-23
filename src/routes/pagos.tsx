@@ -6,6 +6,7 @@ import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -66,6 +67,8 @@ export const Route = createFileRoute("/pagos")({
         property: "og:description",
         content: "Aplicación de pagos por banco, moneda y factura.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: PaginaPagos,
@@ -95,6 +98,7 @@ function PaginaPagos() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
+  const [mostrarPagadas, setMostrarPagadas] = useState(false);
 
   const texto = busqueda.trim().toLowerCase();
 
@@ -113,7 +117,10 @@ function PaginaPagos() {
           return {
             pago: p,
             factura,
-            aplicado: factura ? montoPagoEnMonedaFactura(p, factura.moneda) : 0,
+            aplicado:
+              factura && p.aplicaFactura !== false
+                ? montoPagoEnMonedaFactura(p, factura.moneda)
+                : 0,
           };
         })
         .filter(({ factura }) =>
@@ -162,7 +169,14 @@ function PaginaPagos() {
             <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
               <FileDown className="size-4" /> Exportar Excel
             </Button>
-            {puedeEditar ? <DialogoPago abierto={abierto} setAbierto={setAbierto} /> : null}
+            {puedeEditar ? (
+              <DialogoPago
+                key={mostrarPagadas ? "con-pagadas" : "solo-pendientes"}
+                abierto={abierto}
+                setAbierto={setAbierto}
+                mostrarPagadas={mostrarPagadas}
+              />
+            ) : null}
           </>
         }
       />
@@ -214,6 +228,16 @@ function PaginaPagos() {
             value={fechaFin}
             onChange={(e) => setFechaFin(e.target.value)}
           />
+        </div>
+        <div className="flex h-9 items-center gap-2 self-end">
+          <Checkbox
+            id="p-mostrar-pagadas"
+            checked={mostrarPagadas}
+            onCheckedChange={(valor) => setMostrarPagadas(valor === true)}
+          />
+          <Label htmlFor="p-mostrar-pagadas" className="cursor-pointer font-normal">
+            Mostrar facturas en estado pagado
+          </Label>
         </div>
       </div>
 
@@ -267,7 +291,11 @@ function PaginaPagos() {
                   {pago.tipoCambioOperacion ? formatearNumero(pago.tipoCambioOperacion) : "—"}
                 </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
-                  {factura ? formatearMoneda(aplicado, factura.moneda) : "—"}
+                  {pago.aplicaFactura === false
+                    ? "No aplica"
+                    : factura
+                      ? formatearMoneda(aplicado, factura.moneda)
+                      : "—"}
                 </TableCell>
                 <TableCell>{pago.metodo}</TableCell>
                 <TableCell className="text-muted-foreground">{pago.referencia ?? "—"}</TableCell>
@@ -305,18 +333,22 @@ function PaginaPagos() {
 function DialogoPago({
   abierto,
   setAbierto,
+  mostrarPagadas,
 }: {
   abierto: boolean;
   setAbierto: (v: boolean) => void;
+  mostrarPagadas: boolean;
 }) {
   const { facturasCalculadas, bancos, agregarPago, tipoCambio, hoy } = useApp();
-  const pendientes = facturasCalculadas.filter((f) => f.saldoPendiente > 0.009);
+  const seleccionables = facturasCalculadas.filter(
+    (f) => f.saldoPendiente > 0.009 || (mostrarPagadas && f.estado === "Pagada"),
+  );
 
   /** Solo cuentas activas de la compañía de la factura: así el pago se refleja en su saldo por banco. */
   const bancosPara = (companiaId?: string) =>
     bancos.filter((b) => b.activo && (!companiaId || b.companiaId === companiaId));
 
-  const inicial = pendientes[0];
+  const inicial = seleccionables[0];
   const [facturaId, setFacturaId] = useState(inicial?.id ?? "");
   const [busquedaFactura, setBusquedaFactura] = useState("");
   const [comboAbierto, setComboAbierto] = useState(false);
@@ -332,7 +364,7 @@ function DialogoPago({
     const f = facturasCalculadas.find((x) => x.id === id);
     if (f) {
       setMoneda(f.moneda);
-      setMonto(sugerirMonto(f.saldoPendiente));
+      setMonto(sugerirMonto(f.estado === "Pagada" ? f.monto : f.saldoPendiente));
       const opciones = bancosPara(f.companiaId);
       if (!opciones.some((b) => b.id === bancoId)) setBancoId(opciones[0]?.id ?? "");
     }
@@ -342,6 +374,7 @@ function DialogoPago({
   const [referencia, setReferencia] = useState("");
 
   const factura = facturasCalculadas.find((f) => f.id === facturaId);
+  const facturaYaPagada = factura?.estado === "Pagada";
   const requiereTc = !!factura && factura.moneda !== moneda;
   const aplicado =
     factura && monto
@@ -377,7 +410,7 @@ function DialogoPago({
       toast.error("Indique el tipo de cambio de la operación.");
       return;
     }
-    if (aplicado - factura.saldoPendiente > 0.01) {
+    if (!facturaYaPagada && aplicado - factura.saldoPendiente > 0.01) {
       toast.error("El pago no puede exceder el saldo pendiente de la factura.");
       return;
     }
@@ -392,10 +425,15 @@ function DialogoPago({
       tipoCambioOperacion: requiereTc ? Number(tc) : undefined,
       metodo,
       referencia,
+      aplicaFactura: !facturaYaPagada,
     });
     setGuardando(false);
     if (!ok) return;
-    toast.success("Pago registrado y aplicado a la factura");
+    toast.success(
+      facturaYaPagada
+        ? "Pago registrado en el banco; la factura conserva su estado pagado"
+        : "Pago registrado y aplicado a la factura",
+    );
     setAbierto(false);
     setMonto(0);
     setReferencia("");
@@ -412,7 +450,9 @@ function DialogoPago({
         <DialogHeader>
           <DialogTitle>Registrar pago recibido</DialogTitle>
           <DialogDescription>
-            El saldo y el estado de la factura se recalculan al guardar.
+            {facturaYaPagada
+              ? "El pago aumentará el saldo del banco sin modificar la factura, que ya está pagada."
+              : "El saldo y el estado de la factura se recalculan al guardar."}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -429,7 +469,9 @@ function DialogoPago({
                   {factura ? (
                     <span className="truncate">
                       {factura.numero} · {factura.cliente} · saldo{" "}
-                      {formatearMoneda(factura.saldoPendiente, factura.moneda)}
+                      {facturaYaPagada
+                        ? "Pagada"
+                        : formatearMoneda(factura.saldoPendiente, factura.moneda)}
                     </span>
                   ) : (
                     "Seleccione una factura"
@@ -447,7 +489,7 @@ function DialogoPago({
                   <CommandList>
                     <CommandEmpty>No se encontraron facturas.</CommandEmpty>
                     <CommandGroup>
-                      {pendientes.map((f) => (
+                      {seleccionables.map((f) => (
                         <CommandItem
                           key={f.id}
                           value={`${f.numero} ${f.cliente}`}
@@ -467,7 +509,9 @@ function DialogoPago({
                             {f.numero} · {f.cliente}
                           </span>
                           <span className="ml-2 shrink-0 text-xs text-muted-foreground">
-                            {formatearMoneda(f.saldoPendiente, f.moneda)}
+                            {f.estado === "Pagada"
+                              ? `Pagada · ${formatearMoneda(f.monto, f.moneda)}`
+                              : formatearMoneda(f.saldoPendiente, f.moneda)}
                           </span>
                         </CommandItem>
                       ))}
@@ -518,7 +562,9 @@ function DialogoPago({
             <InputNumero id="p-monto" value={monto} onChange={setMonto} />
             {factura ? (
               <p className="text-xs text-muted-foreground">
-                Sugerido: saldo pendiente {formatearMoneda(factura.saldoPendiente, factura.moneda)}
+                {facturaYaPagada
+                  ? `Factura pagada: el monto solo se sumará al banco seleccionado.`
+                  : `Sugerido: saldo pendiente ${formatearMoneda(factura.saldoPendiente, factura.moneda)}`}
               </p>
             ) : null}
           </div>
