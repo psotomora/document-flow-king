@@ -79,7 +79,12 @@ function PaginaBancos() {
     actualizarBanco,
     agregarTransferencia,
     eliminarTransferencia,
+    actualizarTransferencia,
   } = useApp();
+  const [transferenciaEnEdicion, setTransferenciaEnEdicion] = useState<Transferencia | null>(null);
+  const puedeEditarTransferencias =
+    esAdministrador || (puedeEditar && usuario.editarTransferencias === true);
+  const conAcciones = esAdministrador || puedeEditarTransferencias;
   const [enEdicion, setEnEdicion] = useState<Banco | null>(null);
   const [nuevaTransferencia, setNuevaTransferencia] = useState(false);
 
@@ -364,7 +369,7 @@ function PaginaBancos() {
                 <TableHead>Destino</TableHead>
                 <TableHead>Comentarios</TableHead>
                 <TableHead className="text-right">Monto</TableHead>
-                {esAdministrador ? <TableHead className="w-16 text-right">Eliminar</TableHead> : null}
+                {conAcciones ? <TableHead className="w-24 text-right">Acciones</TableHead> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -390,8 +395,19 @@ function PaginaBancos() {
                   <TableCell className="text-right font-mono tabular-nums">
                     {formatearMoneda(t.monto, t.moneda)}
                   </TableCell>
-                  {esAdministrador ? (
-                    <TableCell className="text-right">
+                  {conAcciones ? (
+                    <TableCell className="whitespace-nowrap text-right">
+                      {puedeEditarTransferencias ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Editar transferencia ${t.referencia}`}
+                          onClick={() => setTransferenciaEnEdicion(t)}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                      ) : null}
+                      {esAdministrador ? (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -403,6 +419,7 @@ function PaginaBancos() {
                       >
                         <Trash2 className="size-4" />
                       </Button>
+                      ) : null}
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -410,7 +427,7 @@ function PaginaBancos() {
               {movimientos.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={esAdministrador ? 7 : 6}
+                    colSpan={conAcciones ? 7 : 6}
                     className="py-10 text-center text-muted-foreground"
                   >
                     No hay transferencias registradas.
@@ -442,6 +459,25 @@ function PaginaBancos() {
           toast.success("Transferencia registrada y anotada en la bitácora");
         }}
       />
+      {transferenciaEnEdicion ? (
+        <DialogoTransferencia
+          key={transferenciaEnEdicion.id}
+          abierto
+          transferencia={transferenciaEnEdicion}
+          bancos={filtrarPorCompania(bancos, "todas").filter(
+            (b) =>
+              b.activo ||
+              b.id === transferenciaEnEdicion.cuentaOrigenId ||
+              b.id === transferenciaEnEdicion.cuentaDestinoId,
+          )}
+          alCerrar={() => setTransferenciaEnEdicion(null)}
+          alGuardar={(t) => {
+            actualizarTransferencia(transferenciaEnEdicion.id, t);
+            setTransferenciaEnEdicion(null);
+            toast.success("Transferencia actualizada y anotada en la bitácora");
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -532,20 +568,22 @@ function DialogoTransferencia({
   bancos,
   alCerrar,
   alGuardar,
+  transferencia,
 }: {
+  transferencia?: Transferencia;
   abierto: boolean;
   bancos: Banco[];
   alCerrar: () => void;
   alGuardar: (t: Omit<Transferencia, "id">) => void;
 }) {
   const hoy = new Date().toISOString().slice(0, 10);
-  const [fecha, setFecha] = useState(hoy);
-  const [referencia, setReferencia] = useState("");
-  const [origen, setOrigen] = useState("");
-  const [destino, setDestino] = useState("");
-  const [moneda, setMoneda] = useState<Moneda>("USD");
-  const [monto, setMonto] = useState("");
-  const [comentarios, setComentarios] = useState("");
+  const [fecha, setFecha] = useState(transferencia?.fecha.slice(0, 10) ?? hoy);
+  const [referencia, setReferencia] = useState(transferencia?.referencia ?? "");
+  const [origen, setOrigen] = useState(transferencia?.cuentaOrigenId ?? "");
+  const [destino, setDestino] = useState(transferencia?.cuentaDestinoId ?? "");
+  const [moneda, setMoneda] = useState<Moneda>(transferencia?.moneda ?? "USD");
+  const [monto, setMonto] = useState(transferencia ? String(transferencia.monto) : "");
+  const [comentarios, setComentarios] = useState(transferencia?.comentarios ?? "");
 
   const limpiar = () => {
     setFecha(hoy);
@@ -608,7 +646,7 @@ function DialogoTransferencia({
     >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Transferencia entre bancos</DialogTitle>
+          <DialogTitle>{transferencia ? "Editar transferencia" : "Transferencia entre bancos"}</DialogTitle>
           <DialogDescription>
             El monto se rebaja de la cuenta de origen y se suma a la de destino. Puede ser entre
             cuentas de la misma compañía o de compañías distintas.
