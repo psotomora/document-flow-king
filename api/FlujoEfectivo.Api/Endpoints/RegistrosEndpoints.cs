@@ -628,7 +628,7 @@ public static class RegistrosEndpoints
         /* -------------------- Cuentas bancarias (catálogo) ------------------- */
         g.MapPost("/bancos", (NuevoBanco b, HttpContext ctx, Db db) =>
         {
-            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            if (!ctx.User.EsAdministrador() && !PuedeEditarCatalogos(ctx, db)) return SinPermiso();
             using var cn = db.Abrir();
             var id = cn.ExecuteScalar<int>(
                 """
@@ -643,7 +643,7 @@ public static class RegistrosEndpoints
 
         g.MapPut("/bancos/{id}", (string id, CambioBanco b, HttpContext ctx, Db db) =>
         {
-            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            if (!ctx.User.EsAdministrador() && !PuedeEditarCatalogos(ctx, db)) return SinPermiso();
             using var cn = db.Abrir();
             var filas = cn.Execute(
                 """
@@ -1127,5 +1127,17 @@ public static class RegistrosEndpoints
             tx.Commit();
             return Results.Ok(new { insertadas });
         });
+    
+    /// <summary>Privilegio por usuario para modificar catálogos (perfil consulta nunca puede).</summary>
+    private static bool PuedeEditarCatalogos(HttpContext ctx, Db db)
+    {
+        using var cn = db.Abrir();
+        return cn.ExecuteScalar<bool>(
+            """
+            SELECT CAST(CASE WHEN ISNULL(u.EditarCatalogos, 0) = 1 AND p.Codigo <> 'consulta' THEN 1 ELSE 0 END AS BIT)
+            FROM flujo.Usuario u JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
+            WHERE u.UsuarioId = @id
+            """, new { id = ctx.User.UsuarioId() });
     }
+}
 }

@@ -90,6 +90,7 @@ function PaginaUsuario() {
   const [editarTransferencias, setEditarTransferencias] = useState(
     actual?.editarTransferencias ?? false,
   );
+  const [editarCatalogos, setEditarCatalogos] = useState(actual?.editarCatalogos ?? false);
 
   const volver = () => void navigate({ to: "/acceso" });
 
@@ -142,6 +143,7 @@ function PaginaUsuario() {
           asignarFacturaContrato,
           trasladarContratosHistorico,
           editarTransferencias,
+          editarCatalogos,
         });
         toast.success("Usuario creado");
       } else {
@@ -157,6 +159,7 @@ function PaginaUsuario() {
           asignarFacturaContrato,
           trasladarContratosHistorico,
           editarTransferencias,
+          editarCatalogos,
         });
         toast.success("Usuario actualizado");
       }
@@ -316,6 +319,19 @@ function PaginaUsuario() {
                 checked={perfil === "administrador" ? true : editarTransferencias}
                 disabled={perfil === "administrador"}
                 onCheckedChange={setEditarTransferencias}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-md bg-muted/40 p-2.5">
+              <div>
+                <p className="text-sm font-medium">Modificar catálogos</p>
+                <p className="text-xs text-muted-foreground">
+                  Permite agregar cuentas bancarias y activarlas o inactivarlas en Catálogos.
+                </p>
+              </div>
+              <Switch
+                checked={perfil === "administrador" ? true : editarCatalogos}
+                disabled={perfil === "administrador"}
+                onCheckedChange={setEditarCatalogos}
               />
             </div>
           </div>
