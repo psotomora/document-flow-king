@@ -229,6 +229,9 @@ string[] pasosEsquema =
     IF COL_LENGTH('flujo.Usuario', 'TrasladarContratosHistorico') IS NULL
         ALTER TABLE flujo.Usuario ADD TrasladarContratosHistorico BIT NOT NULL
             CONSTRAINT DF_Usuario_TrasladarContratosHistorico DEFAULT 0;
+    IF COL_LENGTH('flujo.Usuario', 'EditarTransferencias') IS NULL
+        ALTER TABLE flujo.Usuario ADD EditarTransferencias BIT NOT NULL
+            CONSTRAINT DF_Usuario_EditarTransferencias DEFAULT 0;
     """,
     """
     -- Fecha de creación en contratos (v1.20.4).

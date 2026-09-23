@@ -300,6 +300,47 @@ public static class RegistrosEndpoints
             return Results.Ok(new { id = id.ToString() });
         });
 
+        g.MapPut("/transferencias/{id}", (string id, NuevaTransferencia t, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            using var cn = db.Abrir();
+            var permitido = ctx.User.EsAdministrador() || cn.ExecuteScalar<bool>(
+                "SELECT ISNULL(EditarTransferencias, 0) FROM flujo.Usuario WHERE UsuarioId=@id",
+                new { id = ctx.User.UsuarioId() });
+            if (!permitido)
+                return Results.Json(new { mensaje = "No tiene el privilegio para editar transferencias." }, statusCode: 403);
+            if (t.Monto <= 0) return Results.BadRequest(new { mensaje = "El monto debe ser mayor que cero." });
+            if (t.CuentaOrigenId == t.CuentaDestinoId)
+                return Results.BadRequest(new { mensaje = "La cuenta de destino debe ser distinta a la de origen." });
+
+            var anterior = cn.QueryFirstOrDefault<string>(
+                "SELECT CONCAT(Referencia, ' · ', Moneda, ' ', Monto, '; cuenta ', CuentaOrigenId, ' → cuenta ', CuentaDestinoId) FROM flujo.Transferencia WHERE TransferenciaId=@id",
+                new { id = Id(id) });
+            if (anterior is null) return Results.NotFound(new { mensaje = "Transferencia inexistente." });
+
+            cn.Execute(
+                """
+                UPDATE flujo.Transferencia SET
+                    Fecha=@Fecha, Referencia=@Referencia,
+                    CompaniaOrigenId=@CompaniaOrigenId, CuentaOrigenId=@CuentaOrigenId,
+                    CompaniaDestinoId=@CompaniaDestinoId, CuentaDestinoId=@CuentaDestinoId,
+                    Moneda=@Moneda, Monto=@Monto, Comentarios=@Comentarios
+                WHERE TransferenciaId=@TransferenciaId
+                """,
+                new
+                {
+                    Fecha = DateTime.Parse(t.Fecha), t.Referencia,
+                    CompaniaOrigenId = Id(t.CompaniaOrigenId), CuentaOrigenId = Id(t.CuentaOrigenId),
+                    CompaniaDestinoId = Id(t.CompaniaDestinoId), CuentaDestinoId = Id(t.CuentaDestinoId),
+                    t.Moneda, t.Monto, t.Comentarios, TransferenciaId = Id(id),
+                });
+
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Transferencias",
+                t.Referencia, "Modificación", valorAnterior: anterior,
+                valorNuevo: $"{t.Referencia} · {t.Moneda} {t.Monto}; cuenta {t.CuentaOrigenId} → cuenta {t.CuentaDestinoId}");
+            return Results.Ok(new { mensaje = "Transferencia actualizada." });
+        });
+
         g.MapDelete("/transferencias/{id}", (string id, HttpContext ctx, Db db) =>
         {
             if (!ctx.User.EsAdministrador()) return SoloAdministrador();
