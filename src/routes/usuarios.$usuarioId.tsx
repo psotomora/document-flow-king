@@ -76,6 +76,7 @@ function PaginaUsuario() {
     verErogaciones: actual?.verErogaciones ?? true,
     verProyeccion: actual?.verProyeccion ?? true,
     verCatalogos: actual?.verCatalogos ?? true,
+    verTablero: actual?.verTablero ?? true,
   }));
   const [editarErogaciones, setEditarErogaciones] = useState(
     actual?.editarErogaciones ?? true,

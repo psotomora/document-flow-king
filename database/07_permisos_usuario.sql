@@ -53,3 +53,10 @@ IF COL_LENGTH('flujo.Usuario', 'EditarTransferencias') IS NULL
     ALTER TABLE flujo.Usuario ADD EditarTransferencias BIT NOT NULL
         CONSTRAINT DF_Usuario_EditarTransferencias DEFAULT 0;
 GO
+
+GO
+-- v1.37.8: permiso por usuario para ver el Tablero.
+IF COL_LENGTH('flujo.Usuario', 'VerTablero') IS NULL
+    ALTER TABLE flujo.Usuario ADD VerTablero BIT NOT NULL
+        CONSTRAINT DF_Usuario_VerTablero DEFAULT 1;
+GO

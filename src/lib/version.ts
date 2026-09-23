@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.37.7";
+export const APP_VERSION = "1.37.8";
 export const APP_FECHA_VERSION = "2026-09-23";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,15 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.37.8",
+    fecha: "2026-09-23",
+    cambios: [
+      "Nuevo permiso por usuario para ver el Tablero; si está desactivado, la aplicación abre la primera opción permitida.",
+      "La tarjeta Disponible en bancos muestra el consolidado en USD (USD + CRC al tipo de cambio).",
+      "El script database/07_permisos_usuario.sql agrega la columna VerTablero (la API también la crea al iniciar).",
+    ],
+  },
   {
     version: "1.37.7",
     fecha: "2026-09-23",
