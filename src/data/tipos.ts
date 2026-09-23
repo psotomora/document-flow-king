@@ -66,6 +66,8 @@ export interface Pago {
   tipoCambioOperacion?: number | undefined;
   metodo: string;
   referencia?: string | undefined;
+  /** Falso cuando el pago solo actualiza el banco porque la factura ya estaba pagada en el origen. */
+  aplicaFactura?: boolean | undefined;
 }
 
 export interface Erogacion {

@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.37.5";
+export const APP_VERSION = "1.37.6";
 export const APP_FECHA_VERSION = "2026-09-23";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.37.6",
+    fecha: "2026-09-23",
+    cambios: [
+      "Pagos recibidos permite mostrar facturas pagadas y registrar el ingreso en el banco sin modificar el saldo ni el estado de la factura.",
+      "Nuevo script database/17_pago_factura_pagada.sql para distinguir los pagos que son solo movimientos bancarios.",
+    ],
+  },
   {
     version: "1.37.5",
     fecha: "2026-09-23",

@@ -19,3 +19,5 @@
 - [x] Aumentar la aplicación y la API a v1.37.2 y verificar.
 - [x] Mostrar el estado y vencimiento de la licencia junto a los datos del usuario.
 - [x] Aumentar la aplicación y la API a v1.37.5 y verificar.
+- [x] Permitir registrar pagos bancarios sobre facturas ya pagadas sin alterar la factura.
+- [x] Agregar el script de compatibilidad y aumentar la aplicación y la API a v1.37.6.

@@ -69,7 +69,7 @@ export function montoPagoEnMonedaFactura(pago: Pago, monedaFactura: Moneda): num
 /** RF-004: total pagado de una factura. */
 export function totalPagado(factura: Factura, pagos: Pago[]): number {
   return pagos
-    .filter((p) => p.facturaId === factura.id)
+    .filter((p) => p.facturaId === factura.id && p.aplicaFactura !== false)
     .reduce((suma, p) => suma + montoPagoEnMonedaFactura(p, factura.moneda), 0);
 }
 

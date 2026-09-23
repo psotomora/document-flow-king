@@ -151,6 +151,7 @@ public class PagoDto
     public decimal? TipoCambioOperacion { get; set; }
     public string Metodo { get; set; } = "";
     public string? Referencia { get; set; }
+    public bool AplicaFactura { get; set; } = true;
 }
 
 public class TransferenciaDto
@@ -389,7 +390,8 @@ public record NuevoPago(
     string Moneda,
     decimal? TipoCambioOperacion,
     string Metodo,
-    string? Referencia);
+    string? Referencia,
+    bool? AplicaFactura = true);
 
 public record NuevaErogacion(
     string CompaniaId,

@@ -48,6 +48,7 @@ En SSMS conectado a la instancia destino, ejecute en este orden (Abrir archivo �
 | `database/06_parametros_generales.sql` | Parámetros generales (fuente externa, SoftlandERP) |
 | `database/07…15_*.sql` | Actualizaciones posteriores (permisos, preferencias, documentos, contratos, correo, licencia) |
 | `database/16_transferencias.sql` | Transferencias de fondos entre cuentas bancarias |
+| `database/17_pago_factura_pagada.sql` | Pagos bancarios asociados a facturas ya pagadas sin modificar su estado |
 
 Cree un login SQL para la API (recomendado, evita problemas de permisos del grupo de aplicaciones):
 

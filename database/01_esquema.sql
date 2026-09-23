@@ -153,6 +153,7 @@ CREATE TABLE flujo.Pago (
     TipoCambioOperacion DECIMAL(12,4) NULL,   -- obligatorio si la moneda difiere de la factura
     Metodo            NVARCHAR(50)  NOT NULL,
     Referencia        NVARCHAR(80)  NULL,
+    AplicaFactura     BIT           NOT NULL CONSTRAINT DF_Pago_AplicaFactura DEFAULT (1),
     CreadoEn          DATETIME2(0)  NOT NULL CONSTRAINT DF_Pago_CreadoEn DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT FK_Pago_Factura FOREIGN KEY (FacturaId) REFERENCES flujo.Factura(FacturaId),
     CONSTRAINT FK_Pago_Cuenta  FOREIGN KEY (CuentaBancariaId) REFERENCES flujo.CuentaBancaria(CuentaBancariaId),

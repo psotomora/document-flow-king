@@ -41,7 +41,8 @@ public static class EstadoEndpoints
                        COALESCE(CAST(FacturaId AS NVARCHAR(20)), FacturaExterna) AS FacturaId,
                        CONVERT(CHAR(10), Fecha, 23) AS Fecha,
                        CAST(CuentaBancariaId AS NVARCHAR(20)) AS BancoId,
-                       Monto, Moneda, TipoCambioOperacion, Metodo, Referencia
+                       Monto, Moneda, TipoCambioOperacion, Metodo, Referencia,
+                       CAST(ISNULL(AplicaFactura, 1) AS BIT) AS AplicaFactura
                 FROM flujo.Pago ORDER BY Fecha DESC, PagoId DESC
                 """);
 
