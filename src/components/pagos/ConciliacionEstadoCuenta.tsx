@@ -325,15 +325,15 @@ export function ConciliacionEstadoCuenta() {
                     ...pendientes.filter((f) => !sugeridas.has(f.id)),
                   ].filter((f) => f.id === fila.facturaId || !usados.has(f.id));
                   const etiqueta = fila.aplicado
-                    ? <Badge className="bg-success text-success-foreground">Aplicado</Badge>
+                    ? <Badge className="bg-exito text-exito-foreground">Aplicado</Badge>
                     : fila.omitido
                       ? <Badge variant="outline">Omitido</Badge>
                       : s.exactas.length === 1
-                        ? <Badge className="bg-success/15 text-success">Exacta</Badge>
+                        ? <Badge className="bg-exito-suave text-exito">Exacta</Badge>
                         : s.exactas.length > 1
-                          ? <Badge className="bg-warning/15 text-warning">Varias ({s.exactas.length})</Badge>
+                          ? <Badge className="bg-advertencia-suave text-advertencia">Varias ({s.exactas.length})</Badge>
                           : s.cruzadas.length
-                            ? <Badge className="bg-warning/15 text-warning">Otra moneda</Badge>
+                            ? <Badge className="bg-advertencia-suave text-advertencia">Otra moneda</Badge>
                             : <Badge variant="outline">Sin coincidencia</Badge>;
                   return (
                     <TableRow key={m.clave} className={fila.aplicado || fila.omitido ? "opacity-60" : ""}>
@@ -373,7 +373,7 @@ export function ConciliacionEstadoCuenta() {
                       </TableCell>
                       <TableCell className="text-right">
                         {fila.aplicado ? (
-                          <CheckCircle2 className="ml-auto size-5 text-success" />
+                          <CheckCircle2 className="ml-auto size-5 text-exito" />
                         ) : (
                           <div className="flex justify-end gap-1">
                             {!fila.omitido && (
