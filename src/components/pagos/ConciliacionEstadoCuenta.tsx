@@ -215,17 +215,17 @@ export function ConciliacionEstadoCuenta() {
     actualizar(m, { facturaId, tc: f ? tcImplicito(f, m.monto) : "" });
   };
 
-  const aplicar = async (m: Movimiento) => {
+  const aplicar = async (m: Movimiento): Promise<void> => {
     const fila = filaDe(m);
     const f = facturasCalculadas.find((x) => x.id === fila.facturaId);
-    if (!banco) return toast.error("Seleccione la cuenta bancaria del depósito.");
-    if (!f) return toast.error("Seleccione la factura a la que corresponde el depósito.");
+    if (!banco) { toast.error("Seleccione la cuenta bancaria del depósito.");
+    if (!f) { toast.error("Seleccione la factura a la que corresponde el depósito.");
     const cruzado = f.moneda !== moneda;
     const tc = Number(fila.tc);
-    if (cruzado && !(tc > 0)) return toast.error("Indique el tipo de cambio de la operación.");
+    if (cruzado && !(tc > 0)) { toast.error("Indique el tipo de cambio de la operación.");
     const aplicadoFactura = cruzado ? (f.moneda === "USD" ? m.monto / tc : m.monto * tc) : m.monto;
     if (aplicadoFactura - f.saldoPendiente > 0.01) {
-      return toast.error("El depósito excede el saldo pendiente de la factura; ajuste el tipo de cambio o elija otra factura.");
+      { toast.error("El depósito excede el saldo pendiente de la factura; ajuste el tipo de cambio o elija otra factura.");
     }
     setProcesando(m.clave);
     const ok = await agregarPago({
