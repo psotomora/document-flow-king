@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.37.9";
-export const APP_FECHA_VERSION = "2026-09-23";
+export const APP_VERSION = "1.38.0";
+export const APP_FECHA_VERSION = "2026-10-10";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.38.0",
+    fecha: "2026-10-10",
+    cambios: [
+      "Pagos recibidos: conciliación con estado de cuenta bancario, sugerencia de factura por monto y botón Aplicar.",
+      "Depósitos en otra moneda (p. ej. colones contra factura en dólares) calculan automáticamente el tipo de cambio.",
+    ],
+  },
   {
     version: "1.37.9",
     fecha: "2026-09-23",

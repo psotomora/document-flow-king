@@ -52,6 +52,7 @@ import type { Moneda } from "@/data/tipos";
 import { formatearFecha, formatearMoneda, formatearNumero } from "@/lib/formato";
 import { montoPagoEnMonedaFactura } from "@/lib/calculos";
 import { exportarExcel } from "@/lib/exportar";
+import { ConciliacionEstadoCuenta } from "@/components/pagos/ConciliacionEstadoCuenta";
 
 export const Route = createFileRoute("/pagos")({
   head: () => ({
@@ -326,6 +327,8 @@ function PaginaPagos() {
           </TableBody>
         </Table>
       </div>
+
+      {puedeEditar && <ConciliacionEstadoCuenta />}
     </div>
   );
 }
