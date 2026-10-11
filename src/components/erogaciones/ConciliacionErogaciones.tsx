@@ -30,6 +30,8 @@ export interface Movimiento {
   clave: string;
   fecha: string;
   referencia: string;
+  /** Descripción del movimiento en el estado de cuenta (columna Descripción/Detalle). */
+  descripcion: string;
   monto: number;
 }
 
@@ -46,7 +48,8 @@ const normalizar = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
 
 const CLAVES_FECHA = ["fecha", "fechaoperacion", "fechatransaccion", "ftransaccion", "fechacontable", "date", "fechamovimiento"];
-const CLAVES_REF = ["referencia", "descripcion", "detalle", "concepto", "documento", "numtransaccion", "numerodocumento", "description", "reference"];
+const CLAVES_REF = ["referencia", "referencia1", "numerodocumento", "numtransaccion", "documento", "reference"];
+const CLAVES_DESC = ["descripcion", "detalle", "concepto", "detalleoperacion", "detalletransaccion", "motivo", "description", "observacion"];
 const CLAVES_DEBITO = ["debito", "debitos", "retiro", "retiros", "cargo", "cargos", "salida", "salidas", "debit", "withdrawal"];
 const CLAVES_MONTO = ["monto", "importe", "amount", "valor"];
 
@@ -165,6 +168,7 @@ export function ConciliacionErogaciones({
       const encabezados = (matriz[filaEnc] ?? []).map((c) => String(c));
       const colFecha = buscarColumna(encabezados, CLAVES_FECHA)!;
       const colRef = buscarColumna(encabezados, CLAVES_REF);
+      const colDesc = buscarColumna(encabezados, CLAVES_DESC);
       const colDebito = buscarColumna(encabezados, CLAVES_DEBITO);
       const colMonto = colDebito ?? buscarColumna(encabezados, CLAVES_MONTO)!;
       const idx = (c?: string) => (c ? encabezados.indexOf(c) : -1);
@@ -176,10 +180,13 @@ export function ConciliacionErogaciones({
         const monto = colDebito ? Math.abs(bruto) : bruto < 0 ? -bruto : 0;
         const fecha = aFechaIso(fila[idx(colFecha)]);
         if (!(monto > 0) || !fecha) return;
+        const textoRef = colRef ? String(fila[idx(colRef)] ?? "").trim() : "";
+        const textoDesc = colDesc && colDesc !== colRef ? String(fila[idx(colDesc)] ?? "").trim() : "";
         lista.push({
           clave: `${i}-${fecha}-${monto}`,
           fecha,
-          referencia: colRef ? String(fila[idx(colRef)] ?? "").trim() : "",
+          referencia: textoRef || textoDesc,
+          descripcion: textoDesc || textoRef,
           monto: Math.round(monto * 100) / 100,
         });
       });
@@ -210,7 +217,7 @@ export function ConciliacionErogaciones({
 
   const numeroUnico = (m: Movimiento) => {
     const usados = new Set(erogaciones.map((e) => e.numeroTransferencia));
-    const base = (m.referencia || `EC-${m.fecha}`).slice(0, 40);
+    const base = (m.referencia || m.descripcion || `EC-${m.fecha}`).slice(0, 40);
     if (!usados.has(base)) return base;
     let n = 2;
     while (usados.has(`${base}-${n}`)) n++;
@@ -233,7 +240,7 @@ export function ConciliacionErogaciones({
       companiaId: banco.companiaId,
       bancoId: banco.id,
       numeroTransferencia: numeroUnico(m),
-      proveedor: d?.proveedor ?? (m.referencia || "Pago según estado de cuenta"),
+      proveedor: d?.proveedor ?? (m.descripcion || m.referencia || "Pago según estado de cuenta"),
       fecha: m.fecha,
       moneda,
       monto: m.monto,
@@ -306,7 +313,7 @@ export function ConciliacionErogaciones({
               <TableHeader>
                 <TableRow>
                   <TableHead>Fecha</TableHead>
-                  <TableHead>Referencia</TableHead>
+                  <TableHead>Descripción</TableHead>
                   <TableHead className="text-right">Pago</TableHead>
                   <TableHead>Coincidencia</TableHead>
                   <TableHead className="min-w-72">Documento por pagar</TableHead>
@@ -340,7 +347,7 @@ export function ConciliacionErogaciones({
                   return (
                     <TableRow key={m.clave} className={fila.aplicado || fila.omitido ? "opacity-60" : ""}>
                       <TableCell className="whitespace-nowrap">{m.fecha}</TableCell>
-                      <TableCell className="max-w-48 truncate" title={m.referencia}>{m.referencia || "—"}</TableCell>
+                      <TableCell className="max-w-48 truncate" title={m.descripcion || m.referencia}>{m.descripcion || m.referencia || "—"}</TableCell>
                       <TableCell className="whitespace-nowrap text-right font-medium">{formatearMoneda(m.monto, moneda)}</TableCell>
                       <TableCell>{etiqueta}</TableCell>
                       <TableCell>
