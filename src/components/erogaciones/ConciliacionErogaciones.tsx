@@ -26,7 +26,7 @@ import type { DocumentoPorPagar, Moneda } from "@/data/tipos";
 import { formatearMoneda } from "@/lib/formato";
 
 /** Movimiento de débito (pago emitido) leído del estado de cuenta. */
-interface Movimiento {
+export interface Movimiento {
   clave: string;
   fecha: string;
   referencia: string;
@@ -99,7 +99,12 @@ const MARGEN_CRUZADO = 0.03;
  * Concilia los débitos del estado de cuenta con los documentos por pagar:
  * sugiere el documento por monto y, al aplicar, registra la erogación.
  */
-export function ConciliacionErogaciones() {
+export function ConciliacionErogaciones({
+  onSinDocumento,
+}: {
+  /** Abre el diálogo de nueva erogación precargado con los datos del movimiento. */
+  onSinDocumento?: (m: Movimiento) => void;
+}) {
   const { documentosPorPagar, bancos, companiaActiva, agregarErogacion, erogaciones, tipoCambio, puedeEditar } =
     useApp();
   const bancosActivos = filtrarPorCompania(bancos.filter((b) => b.activo), companiaActiva);
@@ -378,6 +383,17 @@ export function ConciliacionErogaciones() {
                             {!fila.omitido && (
                               <Button size="sm" disabled={!puedeEditar || !fila.documentoId} onClick={() => aplicar(m)}>
                                 Aplicar
+                              </Button>
+                            )}
+                            {!fila.omitido && onSinDocumento && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={!puedeEditar}
+                                title="Registrar como erogación sin documento, con los datos del movimiento"
+                                onClick={() => onSinDocumento(m)}
+                              >
+                                Sin documento
                               </Button>
                             )}
                             <Button size="sm" variant="ghost" onClick={() => actualizar(m, { omitido: !fila.omitido })}>
