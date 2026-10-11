@@ -360,7 +360,7 @@ function DialogoErogacion({
   const [numeroTransferencia, setNumero] = useState(
     erogacion?.numeroTransferencia ?? (precarga?.referencia || `EC-${precarga?.fecha ?? ""}`).slice(0, 40),
   );
-  const [proveedor, setProveedor] = useState(erogacion?.proveedor ?? "");
+  const [proveedor, setProveedor] = useState(erogacion?.proveedor ?? precarga?.referencia ?? "");
   const [fecha, setFecha] = useState(erogacion?.fecha ?? precarga?.fecha ?? hoy);
   const [bancoId, setBancoId] = useState(erogacion?.bancoId ?? bancos[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(erogacion?.moneda ?? "USD");
