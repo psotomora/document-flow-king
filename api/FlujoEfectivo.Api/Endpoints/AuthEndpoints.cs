@@ -42,6 +42,60 @@ public static class AuthEndpoints
             return Results.Ok(new LoginResponse(token, usuario, expira));
         }).AllowAnonymous();
 
+        grupo.MapPost("/auth/recuperar", (RecuperarRequest datos, Db db, IConfiguration config) =>
+        {
+            var nombre = (datos.Usuario ?? "").Trim();
+            if (nombre.Length == 0)
+                return Results.BadRequest(new { mensaje = "Indique el nombre de usuario." });
+
+            using var cn = db.Abrir();
+            var fila = cn.QueryFirstOrDefault<FilaRecuperacion>(
+                """
+                SELECT UsuarioId, NombreCompleto, CorreoElectronico, Activo
+                FROM flujo.Usuario WHERE NombreUsuario = @nombre
+                """,
+                new { nombre });
+
+            if (fila is null || !fila.Activo)
+                return Results.BadRequest(new { mensaje = "No existe un usuario activo con ese nombre." });
+            if (string.IsNullOrWhiteSpace(fila.CorreoElectronico))
+                return Results.BadRequest(new
+                {
+                    mensaje = "El usuario no tiene un correo registrado. Solicite al administrador que lo actualice en Acceso y le asigne una nueva contraseña.",
+                });
+
+            var cfg = Correo.Leer(cn);
+            if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                return Results.BadRequest(new
+                {
+                    mensaje = "Falta configurar el servidor de correo en Parámetros → Servidor de correo. Mientras tanto, un administrador puede asignarle una nueva contraseña desde Acceso.",
+                });
+
+            // Contraseña temporal de un solo uso: el usuario debe cambiarla al ingresar.
+            var temporal = GenerarTemporal();
+            cn.Execute("UPDATE flujo.Usuario SET HashContrasena = @hash WHERE UsuarioId = @id",
+                new { hash = Contrasenas.Crear(temporal), id = fila.UsuarioId });
+
+            var cuerpo =
+                $"<p>Estimado(a) <strong>{System.Net.WebUtility.HtmlEncode(fila.NombreCompleto)}</strong>,</p>" +
+                "<p>Recibimos una solicitud para recuperar la contraseña de su usuario " +
+                $"<strong>{System.Net.WebUtility.HtmlEncode(nombre)}</strong> en el sistema Control de Flujo de Efectivo.</p>" +
+                $"<p>Su contraseña temporal es: <strong style=\"font-size:16px\">{temporal}</strong></p>" +
+                "<p>Ingrese con ella y cámbiela de inmediato desde la opción «Cambiar contraseña». " +
+                "Si usted no solicitó este cambio, avise al administrador del sistema.</p>" +
+                "<p>Cordialmente,<br/><strong>Administración Aplix</strong></p>";
+
+            var (ok, mensaje) = Correo.Enviar(cfg, config["Jwt:Llave"] ?? "",
+                fila.CorreoElectronico.Trim(), "Recuperación de contraseña — Flujo de Efectivo", cuerpo);
+            if (!ok)
+                return Results.BadRequest(new { mensaje });
+
+            Db.Auditar(cn, fila.UsuarioId, fila.NombreCompleto, "Seguridad", nombre, "Modificación",
+                valorNuevo: "Recuperación de contraseña: se envió una contraseña temporal al correo registrado");
+
+            return Results.Ok(new { mensaje = "Se envió una contraseña temporal al correo registrado. Revise su bandeja de entrada y la carpeta de correo no deseado." });
+        }).AllowAnonymous();
+
         grupo.MapGet("/auth/yo", (HttpContext ctx) => Results.Ok(new UsuarioDto(
             ctx.User.UsuarioId().ToString(),
             ctx.User.NombreUsuario(),
