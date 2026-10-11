@@ -360,13 +360,13 @@ function DialogoErogacion({
   const [numeroTransferencia, setNumero] = useState(
     erogacion?.numeroTransferencia ?? (precarga?.referencia || `EC-${precarga?.fecha ?? ""}`).slice(0, 40),
   );
-  const [proveedor, setProveedor] = useState(erogacion?.proveedor ?? precarga?.referencia ?? "");
+  const [proveedor, setProveedor] = useState(erogacion?.proveedor ?? (precarga?.descripcion || precarga?.referencia || ""));
   const [fecha, setFecha] = useState(erogacion?.fecha ?? precarga?.fecha ?? hoy);
   const [bancoId, setBancoId] = useState(erogacion?.bancoId ?? bancos[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(erogacion?.moneda ?? "USD");
   const [monto, setMonto] = useState(erogacion ? String(erogacion.monto) : precarga ? String(precarga.monto) : "");
   const [notas, setNotas] = useState(
-    erogacion?.notas ?? (precarga ? `Registrado desde estado de cuenta · ${precarga.referencia || precarga.fecha}` : ""),
+    erogacion?.notas ?? (precarga ? `Registrado desde estado de cuenta · ${precarga.descripcion || precarga.referencia || precarga.fecha}` : ""),
   );
 
   const bancosCompania = bancos.filter((b) => b.companiaId === companiaId);
