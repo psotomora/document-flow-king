@@ -2,7 +2,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useMemo, useState } from "react";
-import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { ConciliacionErogaciones } from "@/components/erogaciones/ConciliacionErogaciones";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
@@ -223,6 +233,8 @@ function PaginaErogaciones() {
         </div>
       </div>
 
+      {puedeEditar ? <ConciliacionErogaciones /> : null}
+
       <div className="flex justify-end">
         <SelectorFilas id="filas-erogaciones" filas={filasVisibles} onCambio={establecerFilas} />
       </div>
@@ -328,6 +340,7 @@ function DialogoErogacion({
 }) {
   const { companias, bancos, agregarErogacion, actualizarErogacion, erogaciones, documentosPorPagar, hoy } = useApp();
   const [documentoPagoId, setDocumentoPagoId] = useState(erogacion?.documentoPagoId ?? "sin");
+  const [comboAbierto, setComboAbierto] = useState(false);
   const [companiaId, setCompaniaId] = useState(erogacion?.companiaId ?? companias[0]?.id ?? "");
   useCompaniaValida(companias, companiaId, setCompaniaId);
   const [numeroTransferencia, setNumero] = useState(erogacion?.numeroTransferencia ?? "");
@@ -444,27 +457,68 @@ function DialogoErogacion({
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label>Documento por pagar</Label>
-            <Select value={documentoPagoId} onValueChange={elegirDocumento}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sin">Sin documento</SelectItem>
-                {documentoOriginalAusente ? (
-                  <SelectItem value={erogacion?.documentoPagoId ?? "sin"}>
-                    {erogacion?.documentoPagoNumero ?? "Documento asociado"}
-                  </SelectItem>
-                ) : null}
-                {documentosCompania.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.numero} — {d.proveedor}{" "}
-                    {d.saldo > 0
-                      ? `(${d.moneda} ${d.saldo.toLocaleString("es-CR")})`
-                      : `(Pagado · ${d.moneda} ${d.monto.toLocaleString("es-CR")})`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={comboAbierto} onOpenChange={setComboAbierto}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={comboAbierto}
+                  className="w-full justify-between font-normal"
+                >
+                  <span className="truncate">
+                    {documentoElegido
+                      ? `${documentoElegido.numero} — ${documentoElegido.proveedor}`
+                      : documentoOriginalAusente
+                        ? erogacion?.documentoPagoNumero ?? "Documento asociado"
+                        : "Sin documento"}
+                  </span>
+                  <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar por identificación, proveedor o documento…" />
+                  <CommandList>
+                    <CommandEmpty>No se encontraron documentos.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="sin documento"
+                        onSelect={() => {
+                          elegirDocumento("sin");
+                          setComboAbierto(false);
+                        }}
+                      >
+                        <Check className={`mr-2 size-4 ${documentoPagoId === "sin" ? "opacity-100" : "opacity-0"}`} />
+                        Sin documento
+                      </CommandItem>
+                      {documentosCompania.map((d) => (
+                        <CommandItem
+                          key={d.id}
+                          value={`${d.numero} ${d.proveedor} ${d.notas ?? ""} ${d.id}`}
+                          onSelect={() => {
+                            elegirDocumento(d.id);
+                            setComboAbierto(false);
+                          }}
+                        >
+                          <Check className={`mr-2 size-4 shrink-0 ${documentoPagoId === d.id ? "opacity-100" : "opacity-0"}`} />
+                          <div className="min-w-0">
+                            <p className="truncate">
+                              {d.numero} — {d.proveedor}
+                            </p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {d.notas ? `${d.notas} · ` : ""}
+                              {d.saldo > 0
+                                ? `${d.moneda} ${d.saldo.toLocaleString("es-CR")}`
+                                : `Pagado · ${d.moneda} ${d.monto.toLocaleString("es-CR")}`}
+                            </p>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="space-y-1.5">
             <Label>Banco</Label>
