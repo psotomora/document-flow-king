@@ -12,7 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ConciliacionErogaciones } from "@/components/erogaciones/ConciliacionErogaciones";
+import { ConciliacionErogaciones, type Movimiento } from "@/components/erogaciones/ConciliacionErogaciones";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
@@ -85,6 +85,7 @@ function PaginaErogaciones() {
   const [abierto, setAbierto] = useState(false);
   const [mostrarPagados, setMostrarPagados] = useState(false);
   const [editando, setEditando] = useState<Erogacion | null>(null);
+  const [precarga, setPrecarga] = useState<Movimiento | null>(null);
   const puedeEditarErogaciones = esAdministrador || (puedeEditar && usuario.editarErogaciones !== false);
 
   const mesActual = hoy.slice(0, 7);
@@ -233,7 +234,7 @@ function PaginaErogaciones() {
         </div>
       </div>
 
-      {puedeEditar ? <ConciliacionErogaciones /> : null}
+      {puedeEditar ? <ConciliacionErogaciones onSinDocumento={setPrecarga} /> : null}
 
       <div className="flex justify-end">
         <SelectorFilas id="filas-erogaciones" filas={filasVisibles} onCambio={establecerFilas} />
@@ -322,6 +323,16 @@ function PaginaErogaciones() {
           erogacion={editando}
         />
       ) : null}
+      {precarga ? (
+        <DialogoErogacion
+          key={precarga.clave}
+          abierto={true}
+          setAbierto={(valor) => {
+            if (!valor) setPrecarga(null);
+          }}
+          precarga={precarga}
+        />
+      ) : null}
     </div>
   );
 }
@@ -331,25 +342,32 @@ function DialogoErogacion({
   setAbierto,
   erogacion,
   mostrarPagados = false,
+  precarga,
 }: {
   abierto: boolean;
   setAbierto: (v: boolean) => void;
   erogacion?: Erogacion;
   /** Incluye documentos ya pagados (saldo 0): el pago se registra sin cambiar su estado. */
   mostrarPagados?: boolean;
+  /** Datos de un movimiento del estado de cuenta para precargar el formulario (sin documento). */
+  precarga?: Movimiento;
 }) {
   const { companias, bancos, agregarErogacion, actualizarErogacion, erogaciones, documentosPorPagar, hoy } = useApp();
   const [documentoPagoId, setDocumentoPagoId] = useState(erogacion?.documentoPagoId ?? "sin");
   const [comboAbierto, setComboAbierto] = useState(false);
   const [companiaId, setCompaniaId] = useState(erogacion?.companiaId ?? companias[0]?.id ?? "");
   useCompaniaValida(companias, companiaId, setCompaniaId);
-  const [numeroTransferencia, setNumero] = useState(erogacion?.numeroTransferencia ?? "");
+  const [numeroTransferencia, setNumero] = useState(
+    erogacion?.numeroTransferencia ?? (precarga?.referencia || `EC-${precarga?.fecha ?? ""}`).slice(0, 40),
+  );
   const [proveedor, setProveedor] = useState(erogacion?.proveedor ?? "");
-  const [fecha, setFecha] = useState(erogacion?.fecha ?? hoy);
+  const [fecha, setFecha] = useState(erogacion?.fecha ?? precarga?.fecha ?? hoy);
   const [bancoId, setBancoId] = useState(erogacion?.bancoId ?? bancos[0]?.id ?? "");
   const [moneda, setMoneda] = useState<Moneda>(erogacion?.moneda ?? "USD");
-  const [monto, setMonto] = useState(erogacion ? String(erogacion.monto) : "");
-  const [notas, setNotas] = useState(erogacion?.notas ?? "");
+  const [monto, setMonto] = useState(erogacion ? String(erogacion.monto) : precarga ? String(precarga.monto) : "");
+  const [notas, setNotas] = useState(
+    erogacion?.notas ?? (precarga ? `Registrado desde estado de cuenta · ${precarga.referencia || precarga.fecha}` : ""),
+  );
 
   const bancosCompania = bancos.filter((b) => b.companiaId === companiaId);
   const documentosCompania = documentosPorPagar.filter(
@@ -421,7 +439,7 @@ function DialogoErogacion({
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
-      {!erogacion ? <DialogTrigger asChild>
+      {!erogacion && !precarga ? <DialogTrigger asChild>
         <Button size="sm" className="gap-1.5">
           <Plus className="size-4" /> Nueva erogación
         </Button>
