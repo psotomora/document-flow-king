@@ -564,6 +564,11 @@ function DialogoErogacion({
           <div className="space-y-1.5">
             <Label htmlFor="e-prov">Proveedor</Label>
             <Input id="e-prov" value={proveedor} onChange={(e) => setProveedor(e.target.value)} />
+            {documentoElegido?.notas ? (
+              <p className="text-xs text-muted-foreground">
+                Descripción del documento: {documentoElegido.notas}
+              </p>
+            ) : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="e-fecha">Fecha</Label>
