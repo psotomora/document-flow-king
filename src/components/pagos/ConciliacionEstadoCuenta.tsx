@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SelectorBuscable } from "@/components/comunes/SelectorBuscable";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { Moneda } from "@/data/tipos";
 import type { FacturaCalculada } from "@/lib/calculos";
@@ -342,20 +343,19 @@ export function ConciliacionEstadoCuenta() {
                       <TableCell className="whitespace-nowrap text-right font-medium">{formatearMoneda(m.monto, moneda)}</TableCell>
                       <TableCell>{etiqueta}</TableCell>
                       <TableCell>
-                        <Select
-                          value={fila.facturaId}
-                          onValueChange={(v) => elegir(m, v)}
+                        <SelectorBuscable
+                          valor={fila.facturaId}
+                          onChange={(v) => elegir(m, v)}
                           disabled={fila.aplicado || fila.omitido}
-                        >
-                          <SelectTrigger className="h-8"><SelectValue placeholder="Elegir factura" /></SelectTrigger>
-                          <SelectContent>
-                            {opciones.map((f) => (
-                              <SelectItem key={f.id} value={f.id}>
-                                {sugeridas.has(f.id) ? "★ " : ""}{f.numero} · {f.cliente} · {formatearMoneda(f.saldoPendiente, f.moneda)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          placeholder="Elegir factura"
+                          buscarPlaceholder="Buscar por número o cliente..."
+                          opciones={opciones.map((f) => ({
+                            valor: f.id,
+                            etiqueta: `${f.numero} · ${f.cliente} · ${formatearMoneda(f.saldoPendiente, f.moneda)}`,
+                            busqueda: `${f.numero} ${f.cliente}`,
+                            destacada: sugeridas.has(f.id),
+                          }))}
+                        />
                       </TableCell>
                       <TableCell>
                         {cruzado ? (

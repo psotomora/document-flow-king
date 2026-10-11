@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { SelectorBuscable } from "@/components/comunes/SelectorBuscable";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { DocumentoPorPagar, Moneda } from "@/data/tipos";
 import { formatearMoneda } from "@/lib/formato";
@@ -338,17 +339,22 @@ export function ConciliacionErogaciones() {
                       <TableCell className="whitespace-nowrap text-right font-medium">{formatearMoneda(m.monto, moneda)}</TableCell>
                       <TableCell>{etiqueta}</TableCell>
                       <TableCell>
-                        <Select value={fila.documentoId} onValueChange={(v) => elegir(m, v)} disabled={fila.aplicado || fila.omitido}>
-                          <SelectTrigger className="h-8"><SelectValue placeholder="Elegir documento" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={SIN_DOCUMENTO}>Sin documento (erogación general)</SelectItem>
-                            {opciones.map((d) => (
-                              <SelectItem key={d.id} value={d.id}>
-                                {sugeridas.has(d.id) ? "★ " : ""}{d.numero} · {d.proveedor} · {formatearMoneda(d.saldo, d.moneda)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <SelectorBuscable
+                          valor={fila.documentoId}
+                          onChange={(v) => elegir(m, v)}
+                          disabled={fila.aplicado || fila.omitido}
+                          placeholder="Elegir documento"
+                          buscarPlaceholder="Buscar por número o proveedor..."
+                          opciones={[
+                            { valor: SIN_DOCUMENTO, etiqueta: "Sin documento (erogación general)" },
+                            ...opciones.map((d) => ({
+                              valor: d.id,
+                              etiqueta: `${d.numero} · ${d.proveedor} · ${formatearMoneda(d.saldo, d.moneda)}`,
+                              busqueda: `${d.numero} ${d.proveedor}`,
+                              destacada: sugeridas.has(d.id),
+                            })),
+                          ]}
+                        />
                       </TableCell>
                       <TableCell>
                         {cruzado ? (
