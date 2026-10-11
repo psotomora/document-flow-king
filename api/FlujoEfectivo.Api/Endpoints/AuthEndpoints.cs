@@ -124,4 +124,26 @@ public static class AuthEndpoints
     }
 
     public record CambioContrasena(string Actual, string Nueva);
+    public record RecuperarRequest(string Usuario);
+
+    public sealed class FilaRecuperacion
+    {
+        public int UsuarioId { get; set; }
+        public string NombreCompleto { get; set; } = "";
+        public string? CorreoElectronico { get; set; }
+        public bool Activo { get; set; }
+    }
+
+    /// <summary>Contraseña temporal legible: 10 caracteres sin ambiguos (0/O, 1/l/I).</summary>
+    private static string GenerarTemporal()
+    {
+        const string letras = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ";
+        const string digitos = "23456789";
+        var chars = new char[10];
+        for (var i = 0; i < 8; i++)
+            chars[i] = letras[System.Security.Cryptography.RandomNumberGenerator.GetInt32(letras.Length)];
+        chars[8] = digitos[System.Security.Cryptography.RandomNumberGenerator.GetInt32(digitos.Length)];
+        chars[9] = digitos[System.Security.Cryptography.RandomNumberGenerator.GetInt32(digitos.Length)];
+        return new string(chars);
+    }
 }
