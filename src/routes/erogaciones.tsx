@@ -233,6 +233,8 @@ function PaginaErogaciones() {
         </div>
       </div>
 
+      {puedeEditar ? <ConciliacionErogaciones /> : null}
+
       <div className="flex justify-end">
         <SelectorFilas id="filas-erogaciones" filas={filasVisibles} onCambio={establecerFilas} />
       </div>
