@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.38.0";
-export const APP_FECHA_VERSION = "2026-10-10";
+export const APP_VERSION = "1.38.1";
+export const APP_FECHA_VERSION = "2026-10-11";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.38.1",
+    fecha: "2026-10-11",
+    cambios: [
+      "Recuperación de contraseña desde la pantalla de ingreso: se envía una contraseña temporal al correo registrado del usuario.",
+      "Requiere el servidor de correo configurado en Parámetros; la solicitud queda anotada en la bitácora.",
+    ],
+  },
   {
     version: "1.38.0",
     fecha: "2026-10-10",

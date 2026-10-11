@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Loader2, LockKeyhole, ServerCog, Tag } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
-import { configurarUrlApi, probarConexionApi, urlApi } from "@/lib/api";
+import { configurarUrlApi, probarConexionApi, recuperarContrasena, urlApi } from "@/lib/api";
 import { APP_FECHA_VERSION, APP_VERSION } from "@/lib/version";
 import { Button } from "@/components/ui/button";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
@@ -30,6 +30,9 @@ export function PantallaLogin() {
   const [probandoServidor, setProbandoServidor] = useState(false);
   const [demostracion, setDemostracion] = useState(false);
   const [versionApi, setVersionApi] = useState<string | null>(null);
+  const [recuperando, setRecuperando] = useState(false);
+  const [enviandoRecuperacion, setEnviandoRecuperacion] = useState(false);
+  const [mensajeRecuperacion, setMensajeRecuperacion] = useState<string | null>(null);
 
   // Lee la versión expuesta por la API en /api/salud.
   useEffect(() => {
@@ -157,6 +160,67 @@ export function PantallaLogin() {
               {enviando && <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />}
               {demostracion ? "Entrar en modo demostración" : "Ingresar"}
             </Button>
+
+            {!demostracion && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => {
+                    setRecuperando((v) => !v);
+                    setMensajeRecuperacion(null);
+                    setError(null);
+                  }}
+                >
+                  ¿Olvidó su contraseña?
+                </button>
+              </div>
+            )}
+
+            {recuperando && !demostracion && (
+              <div className="space-y-2 rounded-md border p-3">
+                <p className="text-xs text-muted-foreground">
+                  Se enviará una contraseña temporal al correo registrado del usuario.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    aria-label="Usuario a recuperar"
+                    placeholder="Nombre de usuario"
+                    value={usuario}
+                    onChange={(e) => setUsuario(e.target.value)}
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={!usuario.trim() || enviandoRecuperacion}
+                    onClick={async () => {
+                      setError(null);
+                      setMensajeRecuperacion(null);
+                      setEnviandoRecuperacion(true);
+                      try {
+                        setMensajeRecuperacion(await recuperarContrasena(usuario.trim()));
+                      } catch (err) {
+                        setError(
+                          err instanceof Error ? err.message : "No fue posible recuperar la contraseña",
+                        );
+                      } finally {
+                        setEnviandoRecuperacion(false);
+                      }
+                    }}
+                  >
+                    {enviandoRecuperacion && (
+                      <Loader2 className="size-4 animate-spin" aria-hidden />
+                    )}
+                    {enviandoRecuperacion ? "Enviando" : "Enviar"}
+                  </Button>
+                </div>
+                {mensajeRecuperacion && (
+                  <p role="status" className="text-sm font-medium text-exito">
+                    {mensajeRecuperacion}
+                  </p>
+                )}
+              </div>
+            )}
           </form>
 
 

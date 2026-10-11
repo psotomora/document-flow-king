@@ -123,6 +123,16 @@ export async function probarConexionApi(url: string): Promise<string> {
 }
 
 
+/** Solicita una contraseña temporal por correo (no requiere sesión). */
+export async function recuperarContrasena(usuario: string): Promise<string> {
+  const r = await api<{ mensaje?: string }>("/auth/recuperar", {
+    metodo: "POST",
+    cuerpo: { usuario },
+    sinToken: true,
+  });
+  return r.mensaje ?? "Se envió una contraseña temporal al correo registrado.";
+}
+
 export function obtenerToken(): string | null {
   return esNavegador() ? window.localStorage.getItem(CLAVE_TOKEN) : null;
 }
