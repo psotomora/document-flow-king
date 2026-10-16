@@ -20,6 +20,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 const appCssHref = `${import.meta.env.BASE_URL}assets/app.css`;
 const faviconHref = `${import.meta.env.BASE_URL}favicon.png`;
+const appleTouchIconHref = `${import.meta.env.BASE_URL}apple-touch-icon.png`;
 
 function NotFoundComponent() {
   return (
@@ -106,9 +107,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: faviconHref, type: "image/png", sizes: "64x64" },
+      // Sin atributo sizes: un sizes restrictivo hace que Safari oculte el
+      // ícono en pestañas.
+      { rel: "icon", href: faviconHref, type: "image/png" },
       { rel: "shortcut icon", href: faviconHref, type: "image/png" },
-      { rel: "apple-touch-icon", href: faviconHref },
+      { rel: "apple-touch-icon", href: appleTouchIconHref },
+      { name: "apple-mobile-web-app-title", content: "Aplix Cash Flow" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
   }),
   shellComponent: RootShell,
