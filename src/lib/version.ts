@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.38.9";
-export const APP_FECHA_VERSION = "2026-10-11";
+export const APP_VERSION = "1.38.10";
+export const APP_FECHA_VERSION = "2026-10-16";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,14 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.38.10",
+    fecha: "2026-10-16",
+    cambios: [
+      "Soporte de ícono de pantalla de inicio en iOS: nuevo apple-touch-icon de 180×180 y metadatos apple-mobile-web-app en la raíz de la aplicación.",
+      "Los enlaces de ícono ya no usan el atributo sizes, que hacía que Safari ocultara el ícono en pestañas.",
+    ],
+  },
   {
     version: "1.38.9",
     fecha: "2026-10-11",
