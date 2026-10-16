@@ -75,7 +75,12 @@ function PaginaDocumentosPorPagar() {
     tipoCambio,
     usuario,
     hoy,
+    preferencias,
+    actualizarPreferencia,
   } = useApp();
+  const estadoGuardado = preferencias["documentosPagar_estado"];
+  const estado: "todos" | "pendientes" | "pagados" =
+    estadoGuardado === "todos" || estadoGuardado === "pagados" ? estadoGuardado : "pendientes";
 
   const [proveedorBusqueda, setProveedorBusqueda] = useState("");
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
@@ -94,7 +99,8 @@ function PaginaDocumentosPorPagar() {
   const filtrados = useMemo(
     () =>
       filtrarPorCompania(documentosPorPagar, companiaActiva).filter((d) => {
-        if (d.saldo <= 0) return false;
+        if (estado === "pendientes" && d.saldo <= 0) return false;
+        if (estado === "pagados" && d.saldo > 0) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
         if (proveedorTexto && !d.proveedor.toLowerCase().includes(proveedorTexto))
           return false;
@@ -110,6 +116,7 @@ function PaginaDocumentosPorPagar() {
     [
       documentosPorPagar,
       companiaActiva,
+      estado,
       moneda,
       proveedorTexto,
       numeroTexto,
@@ -148,7 +155,7 @@ function PaginaDocumentosPorPagar() {
       <EncabezadoPagina
         titulo="Documentos por pagar"
         requerimiento="RF-006"
-        descripcion="Documentos de proveedores con saldo pendiente de pago. Solo se muestran los que aún no están cancelados."
+        descripcion="Documentos de proveedores con saldo pendiente de pago. Filtre por estado para ver pendientes, pagados o todos."
         acciones={
           <>
             <BotonActualizar />
@@ -191,6 +198,22 @@ function PaginaDocumentosPorPagar() {
             value={numeroBusqueda}
             onChange={(e) => setNumeroBusqueda(e.target.value)}
           />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Estado</Label>
+          <Select
+            value={estado}
+            onValueChange={(v) => actualizarPreferencia("documentosPagar_estado", v)}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="pendientes">Pendientes</SelectItem>
+              <SelectItem value="pagados">Pagados</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label>Moneda</Label>
@@ -339,7 +362,7 @@ function PaginaDocumentosPorPagar() {
             {filtrados.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
-                  No hay documentos pendientes de pago para los filtros aplicados.
+                  No hay documentos para los filtros aplicados.
                 </TableCell>
               </TableRow>
             ) : null}
