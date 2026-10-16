@@ -20,6 +20,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 const appCssHref = `${import.meta.env.BASE_URL}assets/app.css`;
 const faviconHref = `${import.meta.env.BASE_URL}favicon.png`;
+const appleTouchIconHref = `${import.meta.env.BASE_URL}apple-touch-icon.png`;
 
 function NotFoundComponent() {
   return (
