@@ -217,7 +217,7 @@ export function ConciliacionErogaciones({
 
   const numeroUnico = (m: Movimiento) => {
     const usados = new Set(erogaciones.map((e) => e.numeroTransferencia));
-    const base = (m.referencia || m.descripcion || `EC-${m.fecha}`).slice(0, 40);
+    const base = (m.referencia || m.descripcion || "").slice(0, 40);
     if (!usados.has(base)) return base;
     let n = 2;
     while (usados.has(`${base}-${n}`)) n++;

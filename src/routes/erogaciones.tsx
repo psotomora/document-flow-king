@@ -358,7 +358,7 @@ function DialogoErogacion({
   const [companiaId, setCompaniaId] = useState(erogacion?.companiaId ?? companias[0]?.id ?? "");
   useCompaniaValida(companias, companiaId, setCompaniaId);
   const [numeroTransferencia, setNumero] = useState(
-    erogacion?.numeroTransferencia ?? (precarga?.referencia || `EC-${precarga?.fecha ?? ""}`).slice(0, 40),
+    erogacion?.numeroTransferencia ?? (precarga?.referencia ?? "").slice(0, 40),
   );
   const [proveedor, setProveedor] = useState(erogacion?.proveedor ?? (precarga?.descripcion || precarga?.referencia || ""));
   const [fecha, setFecha] = useState(erogacion?.fecha ?? precarga?.fecha ?? hoy);
