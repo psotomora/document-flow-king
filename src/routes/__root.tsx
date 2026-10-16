@@ -106,9 +106,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: faviconHref, type: "image/png", sizes: "64x64" },
+      // Sin atributo sizes: un sizes restrictivo hace que Safari oculte el
+      // ícono en pestañas.
+      { rel: "icon", href: faviconHref, type: "image/png" },
       { rel: "shortcut icon", href: faviconHref, type: "image/png" },
-      { rel: "apple-touch-icon", href: faviconHref },
+      { rel: "apple-touch-icon", href: appleTouchIconHref },
+      { name: "apple-mobile-web-app-title", content: "Aplix Cash Flow" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
   }),
   shellComponent: RootShell,
