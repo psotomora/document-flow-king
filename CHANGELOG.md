@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.15 — 2026-10-17
+- Contratos del mes: se reconoce la factura equivalente por compañía, cliente, moneda y monto original dentro del mismo mes, aunque su número no contenga el contrato.
+- Se unifica la coincidencia de la lista, Tablero, Saldo consolidado, histórico y avisos de pendientes para evitar sumar nuevamente el contrato.
+- Se priorizan las referencias explícitas y no se reutiliza una factura para varios contratos de igual importe.
+
 ## 1.38.14 — 2026-10-17
 - Filtros persistentes por usuario en Pedidos, Facturas por cobrar, Pagos recibidos, Erogaciones, Documentos por pagar, Reporte de documentos, Comparativo, Contratos y Bitácora.
 - Se conserva la compañía seleccionada, la vista del reporte y la cantidad de filas.

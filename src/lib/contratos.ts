@@ -97,7 +97,21 @@ export interface ContratoDelMes {
   yaDocumentado: boolean;
   /** Número del pedido o factura encontrado, si existe. */
   documento?: string;
+  /** Factura identificada con el mismo criterio usado por los totales. */
+  factura?: string;
 }
+
+export interface DocumentoContrato {
+  numero: string;
+  fecha: string;
+  companiaId: string;
+  cliente: string;
+  moneda: Contrato["moneda"];
+  monto: number;
+  tipo: "pedido" | "factura";
+}
+
+const normalizar = (valor: string) => valor.trim().replace(/\s+/g, " ").toUpperCase();
 
 /** Último día del mes indicado en formato YYYY-MM. */
 function finDeMes(mes: string): string {
@@ -113,7 +127,7 @@ function finDeMes(mes: string): string {
  */
 export function contratosPorFacturarDelMes(
   contratos: Contrato[],
-  documentos: { numero: string; fecha: string }[],
+  documentos: DocumentoContrato[],
   mes: string,
 ): ContratoDelMes[] {
   const inicio = `${mes}-01`;
@@ -136,13 +150,6 @@ export function contratosPorFacturarDelMes(
       vueltas++;
     }
     while (fecha >= inicio && fecha <= fin) {
-      const esperado = numeroPedidoDeContrato(c.numero, fecha);
-      const clave = c.numero.trim().toUpperCase();
-      const doc = delMes.find(
-        (d) =>
-          d.numero === esperado ||
-          (clave.length > 0 && d.numero.trim().toUpperCase().includes(clave)),
-      );
       resultado.push({
         contratoId: c.id,
         companiaId: c.companiaId,
@@ -153,12 +160,50 @@ export function contratosPorFacturarDelMes(
         moneda: c.moneda,
         monto: c.monto,
         fechaCreacion: c.fechaCreacion ?? c.proximaFacturacion,
-        yaDocumentado: doc !== undefined,
-        ...(doc ? { documento: doc.numero } : {}),
+        yaDocumentado: false,
       });
       fecha = sumarMeses(fecha, paso);
     }
   }
 
-  return resultado.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.numero.localeCompare(b.numero));
+  resultado.sort((a, b) => a.fecha.localeCompare(b.fecha) || a.numero.localeCompare(b.numero));
+  const facturasUsadas = new Set<DocumentoContrato>();
+  const asociar = (c: ContratoDelMes, doc: DocumentoContrato) => {
+    c.yaDocumentado = true;
+    c.documento = doc.numero;
+    if (doc.tipo === "factura") {
+      c.factura = doc.numero;
+      facturasUsadas.add(doc);
+    }
+  };
+
+  // Primero las referencias explícitas: no deben perder su factura ante otra
+  // línea del mismo cliente e importe. Siempre se limita a compañía y mes.
+  for (const c of resultado) {
+    const esperado = normalizar(numeroPedidoDeContrato(c.numero, c.fecha));
+    const clave = normalizar(c.numero);
+    const referenciados = delMes.filter((d) =>
+      d.companiaId === c.companiaId &&
+      (normalizar(d.numero) === esperado ||
+        (clave.length > 0 && normalizar(d.numero).includes(clave))),
+    );
+    const doc = referenciados.find((d) => d.tipo === "factura" && !facturasUsadas.has(d)) ??
+      referenciados.find((d) => d.tipo === "pedido");
+    if (doc) asociar(c, doc);
+  }
+
+  // La equivalencia usa el monto original de la factura, nunca su saldo de
+  // cobro. Una factura no puede cubrir varios contratos de igual importe.
+  for (const c of resultado) {
+    if (c.factura) continue;
+    const doc = delMes.find((d) =>
+      d.tipo === "factura" && !facturasUsadas.has(d) &&
+      d.companiaId === c.companiaId && normalizar(c.cliente).length > 0 &&
+      normalizar(d.cliente) === normalizar(c.cliente) && d.moneda === c.moneda &&
+      Number.isFinite(d.monto) && Number.isFinite(c.monto) &&
+      Math.abs(d.monto - c.monto) < 0.01,
+    );
+    if (doc) asociar(c, doc);
+  }
+  return resultado;
 }

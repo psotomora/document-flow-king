@@ -671,8 +671,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     const documentos = [
       ...pedidos
         .filter((p) => p.estado !== "Anulado")
-        .map((p) => ({ numero: p.numero, fecha: p.fechaCreacion })),
-      ...facturas.map((f) => ({ numero: f.numero, fecha: f.fechaEmision })),
+        .map((p) => ({ ...p, fecha: p.fechaCreacion, tipo: "pedido" as const })),
+      ...facturas.map((f) => ({ ...f, fecha: f.fechaEmision, tipo: "factura" as const })),
     ];
     return contratosPorFacturarDelMes(contratos, documentos, hoy.slice(0, 7));
   }, [contratos, pedidos, facturas, hoy]);
@@ -843,8 +843,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       const documentos = [
         ...pedidos
           .filter((p) => p.estado !== "Anulado")
-          .map((p) => ({ numero: p.numero, fecha: p.fechaCreacion })),
-        ...facturas.map((f) => ({ numero: f.numero, fecha: f.fechaEmision })),
+          .map((p) => ({ ...p, fecha: p.fechaCreacion, tipo: "pedido" as const })),
+        ...facturas.map((f) => ({ ...f, fecha: f.fechaEmision, tipo: "factura" as const })),
       ];
       const lineas: LineaHistoricoContrato[] = contratosPorFacturarDelMes(
         contratos,
@@ -889,7 +889,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     }
 
     guardarPreferencia(PREF_CONTRATOS_MES_REVISADO, mes);
-    const porFacturar = contratosDelMes.filter((c) => !c.yaDocumentado).length;
+    const porFacturar = contratosDelMes.filter(
+      (c) => !c.yaDocumentado && !contratosMesPagados.has(`${c.contratoId}|${c.fecha}`),
+    ).length;
     if (porFacturar > 0)
       toast.info(
         porFacturar === 1
@@ -907,6 +909,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     facturas,
     contratosDelMes,
     contratosMesHistorico,
+    contratosMesPagados,
     guardarPreferencia,
     cargarHistorico,
 
