@@ -224,6 +224,8 @@ function PaginaPagos() {
         </div>
       </div>
 
+      {puedeEditar && <ConciliacionEstadoCuenta />}
+
       <div className="grid gap-3 sm:grid-cols-2">
         {(["USD", "CRC"] as Moneda[]).map((m) => (
           <div key={m} className="rounded-lg border border-border bg-card p-4">
@@ -309,8 +311,6 @@ function PaginaPagos() {
           </TableBody>
         </Table>
       </div>
-
-      {puedeEditar && <ConciliacionEstadoCuenta />}
     </div>
   );
 }
