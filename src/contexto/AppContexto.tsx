@@ -305,13 +305,16 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const preferenciasActuales = useRef(preferencias);
   preferenciasActuales.current = preferencias;
   const guardadosPendientes = useRef(new Map<string, Promise<unknown>>());
+  const cambiosPreferencias = useRef(new Map<string, number>());
+  const revisionPreferencias = useRef(0);
+  const usuarioPreferencias = useRef<string | null>(null);
   const [avisoFuenteExterna, setAvisoFuenteExterna] = useState<string | null>(null);
   const iniciado = useRef(false);
 
   const hoy = modoApi ? new Date().toISOString().slice(0, 10) : semilla.FECHA_CORTE;
   const tipoCambio = tiposCambio[tiposCambio.length - 1]?.valor ?? 0;
 
-  const aplicarEstado = useCallback((estado: EstadoServidor) => {
+  const aplicarEstado = useCallback((estado: EstadoServidor, revisionInicio = revisionPreferencias.current) => {
     // El usuario del token trae datos mínimos; si viene la lista completa, se usa ese registro.
     const completo = estado.usuarios?.find((u) => u.id === estado.usuario.id);
     setUsuario(completo ? { ...estado.usuario, ...completo } : estado.usuario);
@@ -336,7 +339,20 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setTiposCambio(estado.tiposCambio);
     setBitacora(estado.bitacora);
     setParametros({ ...PARAMETROS_DEFECTO, ...(estado.parametros ?? {}) });
-    setPreferencias({ ...(estado.preferencias ?? {}) });
+    const restauradas = { ...(estado.preferencias ?? {}) };
+    if (usuarioPreferencias.current === estado.usuario.id) {
+      for (const [clave, revision] of cambiosPreferencias.current) {
+        if (revision > revisionInicio || guardadosPendientes.current.has(`${estado.usuario.id}:${clave}`)) {
+          const local = preferenciasActuales.current[clave];
+          if (local !== undefined) restauradas[clave] = local;
+        }
+      }
+    } else {
+      cambiosPreferencias.current.clear();
+    }
+    usuarioPreferencias.current = estado.usuario.id;
+    preferenciasActuales.current = restauradas;
+    setPreferencias(restauradas);
     setAvisoFuenteExterna(estado.avisoFuenteExterna ?? null);
   }, []);
 
@@ -372,8 +388,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     if (!hayApi()) return;
     setCargando(true);
     try {
+      const revisionInicio = revisionPreferencias.current;
       const estado = await api<EstadoServidor>("/estado");
-      aplicarEstado(estado);
+      aplicarEstado(estado, revisionInicio);
       setAutenticado(true);
       setErrorApi(null);
     } catch (e) {
@@ -896,6 +913,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   ]);
 
   const actualizarPreferencia = useCallback((clave: string, nuevoValor: string) => {
+        cambiosPreferencias.current.set(clave, ++revisionPreferencias.current);
         const siguientes = { ...preferenciasActuales.current, [clave]: nuevoValor };
         preferenciasActuales.current = siguientes;
         setPreferencias((prev) => ({ ...prev, [clave]: nuevoValor }));
@@ -1005,7 +1023,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       cerrarSesion: () => {
         const pendientes = [...guardadosPendientes.current.values()];
         const terminar = () => {
-        const eraDemo = !hayApi();
+        const eraDemo = !modoApi;
         guardarToken(null);
         setModoApi(hayApi());
         setAutenticado(false);

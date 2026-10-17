@@ -1,15 +1,25 @@
-import { useRef, type CSSProperties, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useRef, type CSSProperties, type Dispatch, type SetStateAction } from "react";
 import { useApp } from "@/contexto/AppContexto";
 import { claveFiltro, leerFiltro } from "@/lib/filtros-guardados";
 
 /** Lee directamente las preferencias: restaura también cuando cambia el usuario. */
 export function useFiltroGuardado<T>(pantalla: string, campo: string, defecto: T): [T, Dispatch<SetStateAction<T>>] {
-  const { preferencias, actualizarPreferencia } = useApp();
+  const { preferencias, actualizarPreferencia, usuario } = useApp();
   const clave = claveFiltro(pantalla, campo);
   const heredado = pantalla === "contratosMes"
     ? leerFiltro<Record<string, unknown>>(preferencias["contratosMesFiltros"], {})[campo]
     : undefined;
   const valor = leerFiltro(preferencias[clave] ?? (heredado === undefined ? undefined : JSON.stringify(heredado)), defecto);
+  const guardado = preferencias[clave];
+  useEffect(() => {
+    if (pantalla !== "facturas" || campo !== "estados" || guardado !== undefined) return;
+    try {
+      const antiguo = window.localStorage.getItem(`acfi:facturas:estados:${usuario.id}`);
+      if (antiguo) actualizarPreferencia(clave, JSON.stringify(leerFiltro(antiguo, [])));
+    } catch {
+      // Sin almacenamiento disponible, se conserva el valor predeterminado.
+    }
+  }, [pantalla, campo, guardado, usuario.id, clave, actualizarPreferencia]);
   const actual = useRef(valor);
   actual.current = valor;
   const establecer: Dispatch<SetStateAction<T>> = (nuevo) => {
