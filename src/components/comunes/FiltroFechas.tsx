@@ -24,7 +24,7 @@ function FechaFiltro({ id, etiqueta, valor, onCambio }: { id: string; etiqueta: 
             </Button>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-auto p-0">
-            <Calendar mode="single" locale={es} selected={valor ? parseISO(valor) : undefined} defaultMonth={valor ? parseISO(valor) : undefined} captionLayout="dropdown" startMonth={new Date(1990, 0)} endMonth={new Date(2100, 11)} className="pointer-events-auto" onSelect={(fecha) => { onCambio(fecha ? format(fecha, "yyyy-MM-dd") : ""); setAbierto(false); }} />
+            <Calendar mode="single" locale={es} selected={valor ? parseISO(valor) : undefined} {...(valor ? { defaultMonth: parseISO(valor) } : {})} captionLayout="dropdown" startMonth={new Date(1990, 0)} endMonth={new Date(2100, 11)} className="pointer-events-auto" onSelect={(fecha) => { onCambio(fecha ? format(fecha, "yyyy-MM-dd") : ""); setAbierto(false); }} />
           </PopoverContent>
         </Popover>
         {valor ? <Button variant="ghost" size="icon" aria-label={`Limpiar ${etiqueta.toLowerCase()}`} title={`Limpiar ${etiqueta.toLowerCase()}`} onClick={() => onCambio("")}><X className="size-4" /></Button> : null}

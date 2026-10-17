@@ -399,7 +399,6 @@ function ContratosDelMes() {
   } = useFilasVisibles("contratosMes");
   const {
     contratosDelMes,
-    hoy,
     contratos,
     facturas,
     companias,

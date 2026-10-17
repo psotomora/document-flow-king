@@ -115,8 +115,7 @@ function PaginaDocumentosPorCobrar() {
         return true;
       }),
     [
-      hoy,
-    documentosPorCobrar,
+      documentosPorCobrar,
       companiaActiva,
       clienteTexto,
       numeroTexto,
