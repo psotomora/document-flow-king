@@ -29,6 +29,7 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
+import { clavePreferenciasDemo, leerPreferenciasDemo } from "@/lib/filtros-guardados";
 import {
   contratosPorFacturarDelMes,
   pedidosPendientesDeContratos,
@@ -300,6 +301,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>(semilla.bitacoraInicial);
   const [parametros, setParametros] = useState<Record<string, string>>({ ...PARAMETROS_DEFECTO });
   const [preferencias, setPreferencias] = useState<Record<string, string>>({});
+  const preferenciasActuales = useRef(preferencias);
+  preferenciasActuales.current = preferencias;
+  const guardadosPendientes = useRef(new Map<string, Promise<unknown>>());
   const [avisoFuenteExterna, setAvisoFuenteExterna] = useState<string | null>(null);
   const iniciado = useRef(false);
 
@@ -922,17 +926,34 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       parametros,
       preferencias,
       actualizarPreferencia: (clave, nuevoValor) => {
+        const siguientes = { ...preferenciasActuales.current, [clave]: nuevoValor };
+        preferenciasActuales.current = siguientes;
         setPreferencias((prev) => ({ ...prev, [clave]: nuevoValor }));
-        if (hayApi())
-          void api(`/preferencias/${encodeURIComponent(clave)}`, {
+        if (!modoApi) {
+          try {
+            window.localStorage.setItem(clavePreferenciasDemo(usuario.id), JSON.stringify(siguientes));
+          } catch {
+            toast.error("No fue posible recordar la selección en este navegador.");
+          }
+        } else {
+          const cola = `${usuario.id}:${clave}`;
+          const guardar = () => api(`/preferencias/${encodeURIComponent(clave)}`, {
             metodo: "PUT",
             cuerpo: { valor: nuevoValor },
-          }).catch((error: unknown) => {
+          });
+          // El primer envío es inmediato; cambios posteriores del mismo campo se ordenan.
+          const anterior = guardadosPendientes.current.get(cola);
+          const pendiente = (anterior ? anterior.then(guardar, guardar) : guardar()).catch((error: unknown) => {
             const detalle = error instanceof Error ? error.message : "";
             toast.error("No fue posible guardar la preferencia", {
               description: detalle || "El cambio se perderá al recargar la página.",
             });
           });
+          guardadosPendientes.current.set(cola, pendiente);
+          void pendiente.finally(() => {
+            if (guardadosPendientes.current.get(cola) === pendiente) guardadosPendientes.current.delete(cola);
+          });
+        }
       },
       contratosDelMes,
       contratosMesHistorico,
@@ -961,6 +982,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         guardarToken(null);
         setModoApi(false);
         setUsuario(semilla.usuarios[0]!);
+        const demo = semilla.usuarios[0];
+        setPreferencias(demo ? leerPreferenciasDemo(demo.id) : {});
         setUsuarios(semilla.usuarios);
         setDocumentosPorCobrarComparativo(semilla.documentosPorCobrar);
         setAutenticado(true);
@@ -970,7 +993,10 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
       iniciarSesion: (usuarioId) => {
         const u = semilla.usuarios.find((x) => x.id === usuarioId);
-        if (u) setUsuario(u);
+        if (u) {
+          setUsuario(u);
+          setPreferencias(leerPreferenciasDemo(u.id));
+        }
         setAutenticado(true);
       },
       cerrarSesion: () => {
@@ -986,7 +1012,10 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
       cambiarUsuario: (usuarioId) => {
         const u = usuarios.find((x) => x.id === usuarioId);
-        if (u) setUsuario(u);
+        if (u) {
+          setUsuario(u);
+          setPreferencias(leerPreferenciasDemo(u.id));
+        }
       },
       crearUsuario: async (datos) => {
         if (hayApi()) {
