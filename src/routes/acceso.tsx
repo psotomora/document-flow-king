@@ -20,6 +20,8 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/acceso")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Usuarios y perfiles | Aplix Cash Flow Insights" },
       {
         name: "description",

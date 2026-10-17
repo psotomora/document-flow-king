@@ -1,5 +1,5 @@
 import { FiltroFechas } from "@/components/comunes/FiltroFechas";
-import { fechaEnPeriodo, periodoValido, type PeriodoFecha } from "@/lib/filtros-fecha";
+import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
@@ -51,7 +51,6 @@ import {
 import {
   filtrarPorCompania,
   useApp,
-  PREF_CONTRATOS_MES_FILTROS,
   PREF_CONTRATOS_MES_PAGADOS,
   PREF_CONTRATOS_MES_FACTURAS,
 } from "@/contexto/AppContexto";

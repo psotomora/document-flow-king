@@ -1,3 +1,4 @@
+import { useFiltroGuardado } from "@/lib/preferencias";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { FileDown } from "lucide-react";
@@ -32,6 +33,8 @@ import { exportarPdf } from "@/lib/exportar";
 export const Route = createFileRoute("/proyeccion")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Proyección de cobros | Aplix Cash Flow Insights" },
       {
         name: "description",
@@ -59,6 +62,7 @@ const COLORES: Record<string, string> = {
 
 function PaginaProyeccion() {
   const { facturasCalculadas, companiaActiva, usuario } = useApp();
+  const [monedaSeleccionada, setMonedaSeleccionada] = useFiltroGuardado("proyeccion", "moneda", "USD");
   const visibles = filtrarPorCompania(facturasCalculadas, companiaActiva);
 
   const datos = useMemo(
@@ -93,7 +97,7 @@ function PaginaProyeccion() {
         descripcion="Solo se incluyen facturas con saldo pendiente. Los tramos se calculan con los días para vencer a la fecha de corte."
       />
 
-      <Tabs defaultValue="USD">
+      <Tabs value={monedaSeleccionada} onValueChange={setMonedaSeleccionada}>
         <TabsList>
           <TabsTrigger value="USD">Dólares (USD)</TabsTrigger>
           <TabsTrigger value="CRC">Colones (CRC)</TabsTrigger>

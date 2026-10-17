@@ -38,6 +38,8 @@ import { formatearMoneda } from "@/lib/formato";
 export const Route = createFileRoute("/catalogos")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Catálogos de compañías y bancos | Aplix Cash Flow Insights" },
       {
         name: "description",

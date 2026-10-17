@@ -1,5 +1,6 @@
+import { useFiltroGuardado } from "@/lib/preferencias";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Banknote,
   CalendarClock,
@@ -78,7 +79,7 @@ function Tablero() {
     hoy,
   } = useApp();
 
-  const [moneda, setMoneda] = useState<Moneda>("USD");
+  const [moneda, setMoneda] = useFiltroGuardado<Moneda>("tablero", "moneda", "USD");
 
   const facturas = filtrarPorCompania(facturasCalculadas, companiaActiva);
   const inicio = inicioDePeriodo(hoy, "mensual");

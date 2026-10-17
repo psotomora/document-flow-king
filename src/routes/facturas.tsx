@@ -2,7 +2,7 @@ import { FiltroFechas } from "@/components/comunes/FiltroFechas";
 import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";

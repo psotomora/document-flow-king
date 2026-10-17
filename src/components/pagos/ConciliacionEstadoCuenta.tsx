@@ -1,3 +1,4 @@
+import { useFiltroGuardado } from "@/lib/preferencias";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { CheckCircle2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -107,8 +108,8 @@ export function ConciliacionEstadoCuenta() {
     bancos.filter((b) => b.activo),
     companiaActiva,
   );
-  const [bancoId, setBancoId] = useState(bancosActivos[0]?.id ?? "");
-  const [moneda, setMoneda] = useState<Moneda>("CRC");
+  const [bancoId, setBancoId] = useFiltroGuardado("conciliacion-pagos", "bancoId", bancosActivos[0]?.id ?? "");
+  const [moneda, setMoneda] = useFiltroGuardado<Moneda>("conciliacion-pagos", "moneda", "CRC");
   const [archivo, setArchivo] = useState("");
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [estado, setEstado] = useState<Record<string, EstadoFila>>({});

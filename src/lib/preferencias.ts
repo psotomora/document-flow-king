@@ -7,7 +7,7 @@ export function useFiltroGuardado<T>(pantalla: string, campo: string, defecto: T
   const { preferencias, actualizarPreferencia } = useApp();
   const clave = claveFiltro(pantalla, campo);
   const heredado = pantalla === "contratosMes"
-    ? leerFiltro<Record<string, unknown>>(preferencias["contratosMes_filtros"], {})[campo]
+    ? leerFiltro<Record<string, unknown>>(preferencias["contratosMesFiltros"], {})[campo]
     : undefined;
   const valor = leerFiltro(preferencias[clave] ?? (heredado === undefined ? undefined : JSON.stringify(heredado)), defecto);
   const actual = useRef(valor);
