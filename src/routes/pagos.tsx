@@ -6,7 +6,7 @@ import { Check, ChevronsUpDown, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -97,13 +97,13 @@ function PaginaPagos() {
 
   const facturasVisibles = filtrarPorCompania(facturasCalculadas, companiaActiva);
   const idsVisibles = new Set(facturasVisibles.map((f) => f.id));
-  const [banco, setBanco] = useState("todos");
-  const [busqueda, setBusqueda] = useState("");
-  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [banco, setBanco] = useFiltroGuardado("pagos", "banco", "todos");
+  const [busqueda, setBusqueda] = useFiltroGuardado("pagos", "busqueda", "");
+  const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("pagos", "periodo", "rango");
+  const [fechaInicio, setFechaInicio] = useFiltroGuardado("pagos", "fechaInicio", "");
+  const [fechaFin, setFechaFin] = useFiltroGuardado("pagos", "fechaFin", "");
   const [abierto, setAbierto] = useState(false);
-  const [mostrarPagadas, setMostrarPagadas] = useState(false);
+  const [mostrarPagadas, setMostrarPagadas] = useFiltroGuardado("pagos", "mostrarPagadas", false);
 
   const texto = busqueda.trim().toLowerCase();
 

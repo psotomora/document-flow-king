@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,15 +86,15 @@ function PaginaDocumentosPorCobrar() {
     usuario,
   } = useApp();
 
-  const [cliente, setCliente] = useState("");
-  const [numeroBusqueda, setNumeroBusqueda] = useState("");
-  const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV" | "NC">("todos");
-  const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<PeriodoFecha>("mes");
-  const [desde, setDesde] = useState("");
-  const [hasta, setHasta] = useState("");
+  const [cliente, setCliente] = useFiltroGuardado("documentos-cobrar", "cliente", "");
+  const [numeroBusqueda, setNumeroBusqueda] = useFiltroGuardado("documentos-cobrar", "numeroBusqueda", "");
+  const [tipo, setTipo] = useFiltroGuardado<"todos" | "FAC" | "DEV" | "NC">("documentos-cobrar", "tipo", "todos");
+  const [moneda, setMoneda] = useFiltroGuardado<Moneda | "todas">("documentos-cobrar", "moneda", "todas");
+  const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("documentos-cobrar", "periodo", "mes");
+  const [desde, setDesde] = useFiltroGuardado("documentos-cobrar", "desde", "");
+  const [hasta, setHasta] = useFiltroGuardado("documentos-cobrar", "hasta", "");
   // Cuando está activo, las devoluciones y notas de crédito restan (monto neto).
-  const [neto, setNeto] = useState(true);
+  const [neto, setNeto] = useFiltroGuardado("documentos-cobrar", "neto", true);
   const [nuevo, setNuevo] = useState(false);
   const [enEdicion, setEnEdicion] = useState<DocumentoPorCobrar | null>(null);
 

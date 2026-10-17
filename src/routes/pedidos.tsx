@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { DialogoLineasPedido } from "@/components/pedidos/DialogoLineasPedido";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,12 +95,12 @@ function PaginaPedidos() {
     modoApi,
   } = useApp();
   const fuenteExterna = modoApi && pedidosFuenteExterna;
-  const [estado, setEstado] = useState<EstadoPedido | "todos">("todos");
+  const [estado, setEstado] = useFiltroGuardado<EstadoPedido | "todos">("pedidos", "estado", "todos");
   const [abierto, setAbierto] = useState(false);
-  const [busqueda, setBusqueda] = useState("");
-  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [busqueda, setBusqueda] = useFiltroGuardado("pedidos", "busqueda", "");
+  const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("pedidos", "periodo", "rango");
+  const [fechaInicio, setFechaInicio] = useFiltroGuardado("pedidos", "fechaInicio", "");
+  const [fechaFin, setFechaFin] = useFiltroGuardado("pedidos", "fechaFin", "");
 
   const filtrados = filtrarPorCompania(pedidos, companiaActiva)
     .filter((p) => (fuenteExterna ? p.estado === "Pendiente" : estado === "todos" || p.estado === estado))

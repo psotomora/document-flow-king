@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { FileDown } from "lucide-react";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,9 +52,9 @@ function PaginaBitacora() {
     establecer: establecerFilas,
   } = useFilasVisibles("bitacora");
   const { bitacora, usuario } = useApp();
-  const [modulo, setModulo] = useState("todos");
-  const [operacion, setOperacion] = useState("todas");
-  const [texto, setTexto] = useState("");
+  const [modulo, setModulo] = useFiltroGuardado("bitacora", "modulo", "todos");
+  const [operacion, setOperacion] = useFiltroGuardado("bitacora", "operacion", "todas");
+  const [texto, setTexto] = useFiltroGuardado("bitacora", "texto", "");
 
   const modulos = useMemo(() => [...new Set(bitacora.map((b) => b.modulo))], [bitacora]);
 
