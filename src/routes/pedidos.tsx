@@ -1,3 +1,5 @@
+import { FiltroFechas } from "@/components/comunes/FiltroFechas";
+import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useState } from "react";
@@ -50,6 +52,8 @@ import {
 export const Route = createFileRoute("/pedidos")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Pedidos pendientes | Aplix Cash Flow Insights" },
       {
         name: "description",
@@ -75,6 +79,7 @@ function PaginaPedidos() {
     establecer: establecerFilas,
   } = useFilasVisibles("pedidos");
   const {
+    hoy,
     pedidos,
     companias,
     companiaActiva,
@@ -93,6 +98,7 @@ function PaginaPedidos() {
   const [estado, setEstado] = useState<EstadoPedido | "todos">("todos");
   const [abierto, setAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
 
@@ -104,9 +110,7 @@ function PaginaPedidos() {
       return p.numero.toLowerCase().includes(termino) || p.cliente.toLowerCase().includes(termino);
     })
     .filter((p) => {
-      if (fechaInicio && p.fechaCreacion < fechaInicio) return false;
-      if (fechaFin && p.fechaCreacion > fechaFin) return false;
-      return true;
+      return fechaEnPeriodo(p.fechaCreacion, periodo, hoy, fechaInicio, fechaFin);
     });
 
   const pendientesUSD = filtrados
@@ -202,26 +206,7 @@ function PaginaPedidos() {
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="pd-fecha-inicio">Fecha inicio</Label>
-          <Input
-            id="pd-fecha-inicio"
-            type="date"
-            className="w-44"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="pd-fecha-fin">Fecha fin</Label>
-          <Input
-            id="pd-fecha-fin"
-            type="date"
-            className="w-44"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-          />
-        </div>
+        <FiltroFechas id="pd-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
         <div className="ml-auto text-right">
           <p className="text-xs text-muted-foreground">
             Pedidos pendientes y en proceso (equivalente en USD)

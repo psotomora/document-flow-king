@@ -1,3 +1,5 @@
+import { FiltroFechas } from "@/components/comunes/FiltroFechas";
+import { fechaEnPeriodo, periodoValido, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
@@ -62,6 +64,8 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/contratos")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Contratos recurrentes | Aplix Cash Flow Insights" },
       {
         name: "description",
@@ -93,6 +97,7 @@ function PaginaContratos() {
     establecer: establecerFilas,
   } = useFilasVisibles("contratos");
   const {
+    hoy,
     contratos,
     companias,
     companiaActiva,
@@ -110,6 +115,7 @@ function PaginaContratos() {
 
   const [estado, setEstado] = useState<EstadoContrato | "todos" | "diferente">("todos");
   const [busqueda, setBusqueda] = useState("");
+  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
@@ -121,8 +127,7 @@ function PaginaContratos() {
     if (estado === "diferente" && c.estado === "Activo") return false;
     if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
     const fecha = c.proximaFacturacion.slice(0, 10);
-    if (fechaInicio && fecha < fechaInicio) return false;
-    if (fechaFin && fecha > fechaFin) return false;
+    if (!fechaEnPeriodo(fecha, periodo, hoy, fechaInicio, fechaFin)) return false;
     return true;
   });
 
@@ -244,31 +249,13 @@ function PaginaContratos() {
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="ct-ini">Fecha inicio</Label>
-          <Input
-            id="ct-ini"
-            type="date"
-            value={fechaInicio}
-            className="w-44"
-            onChange={(e) => setFechaInicio(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="ct-fin">Fecha fin</Label>
-          <Input
-            id="ct-fin"
-            type="date"
-            value={fechaFin}
-            className="w-44"
-            onChange={(e) => setFechaFin(e.target.value)}
-          />
-        </div>
-        {busqueda || fechaInicio || fechaFin ? (
+        <FiltroFechas id="ct-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
+        {busqueda || periodo !== "rango" || fechaInicio || fechaFin ? (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => {
+              setPeriodo("rango");
               setBusqueda("");
               setFechaInicio("");
               setFechaFin("");
@@ -436,9 +423,10 @@ function ContratosDelMes() {
   const guardados = useMemo(() => {
     try {
       const bruto = preferencias[PREF_CONTRATOS_MES_FILTROS];
-      if (!bruto) return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
+      if (!bruto) return { busqueda: "", periodo: "rango" as PeriodoFecha, fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
       const p = JSON.parse(bruto) as Record<string, unknown>;
       return {
+        periodo: periodoValido(p["periodo"]),
         busqueda: typeof p["busqueda"] === "string" ? p["busqueda"] : "",
         fechaInicio: typeof p["fechaInicio"] === "string" ? p["fechaInicio"] : "",
         fechaFin: typeof p["fechaFin"] === "string" ? p["fechaFin"] : "",
@@ -447,11 +435,12 @@ function ContratosDelMes() {
         facturaAsociada: typeof p["facturaAsociada"] === "string" ? p["facturaAsociada"] : "todas",
       };
     } catch {
-      return { busqueda: "", fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
+      return { busqueda: "", periodo: "rango" as PeriodoFecha, fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
     }
   }, [preferencias]);
 
   const [busqueda, setBusqueda] = useState(guardados.busqueda);
+  const [periodo, setPeriodo] = useState<PeriodoFecha>(guardados.periodo);
   const [fechaInicio, setFechaInicio] = useState(guardados.fechaInicio);
   const [fechaFin, setFechaFin] = useState(guardados.fechaFin);
   const [verPagados, setVerPagados] = useState(guardados.verPagados);
@@ -462,6 +451,7 @@ function ContratosDelMes() {
 
   // Toma los filtros recordados cuando llegan del servidor.
   useEffect(() => {
+    setPeriodo(guardados.periodo);
     setBusqueda(guardados.busqueda);
     setFechaInicio(guardados.fechaInicio);
     setFechaFin(guardados.fechaFin);
@@ -474,12 +464,12 @@ function ContratosDelMes() {
   // Guarda los filtros del usuario para la próxima vez que entre.
   useEffect(() => {
     if (!listo) return;
-    const actual = JSON.stringify({ busqueda, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada });
+    const actual = JSON.stringify({ busqueda, periodo, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada });
     if (actual === JSON.stringify(guardados)) return;
     const id = window.setTimeout(() => actualizarPreferencia(PREF_CONTRATOS_MES_FILTROS, actual), 600);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busqueda, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada, listo]);
+  }, [busqueda, periodo, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada, listo]);
 
   // Revisa cada línea del mes contra las facturas registradas: coincide cuando
   // el número de la factura contiene el número del contrato, o cuando el
@@ -550,8 +540,7 @@ function ContratosDelMes() {
   const texto = busqueda.trim().toLowerCase();
   const filtrados = filtrarPorCompania(contratosDelMes, companiaActiva).filter((c) => {
     if (texto && !`${c.numero} ${c.cliente}`.toLowerCase().includes(texto)) return false;
-    if (fechaInicio && c.fecha < fechaInicio) return false;
-    if (fechaFin && c.fecha > fechaFin) return false;
+    if (!fechaEnPeriodo(c.fecha, periodo, hoy, fechaInicio, fechaFin)) return false;
     const estaPagado = pagados.has(`${c.contratoId}|${c.fecha}`);
     if (!verPagados && estaPagado) return false;
     if (!verPendientes && !estaPagado) return false;
@@ -685,26 +674,7 @@ function ContratosDelMes() {
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="cm-ini">Fecha inicio</Label>
-          <Input
-            id="cm-ini"
-            type="date"
-            value={fechaInicio}
-            className="w-44"
-            onChange={(e) => setFechaInicio(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="cm-fin">Fecha fin</Label>
-          <Input
-            id="cm-fin"
-            type="date"
-            value={fechaFin}
-            className="w-44"
-            onChange={(e) => setFechaFin(e.target.value)}
-          />
-        </div>
+        <FiltroFechas id="cm-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
         <div className="space-y-1.5">
           <Label htmlFor="cm-factura">Factura asociada</Label>
           <Select
@@ -743,11 +713,12 @@ function ContratosDelMes() {
             </Label>
           </div>
         </div>
-        {busqueda || fechaInicio || fechaFin || !verPagados || !verPendientes || facturaAsociada !== "todas" ? (
+        {busqueda || periodo !== "rango" || fechaInicio || fechaFin || !verPagados || !verPendientes || facturaAsociada !== "todas" ? (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => {
+              setPeriodo("rango");
               setBusqueda("");
               setFechaInicio("");
               setFechaFin("");

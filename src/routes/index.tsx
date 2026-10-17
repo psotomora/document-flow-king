@@ -43,6 +43,8 @@ import { formatearFecha, formatearMoneda, formatearPorcentaje } from "@/lib/form
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Tablero de flujo de efectivo | Aplix Cash Flow Insights" },
       {
         name: "description",

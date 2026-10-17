@@ -21,3 +21,5 @@
 - [x] Aumentar la aplicación y la API a v1.37.5 y verificar.
 - [x] Permitir registrar pagos bancarios sobre facturas ya pagadas sin alterar la factura.
 - [x] Agregar el script de compatibilidad y aumentar la aplicación y la API a v1.37.6.
+- [x] Unificar todos los filtros de fecha con Hoy, Última semana, Último mes y Rango de fechas.
+- [x] Verificar los límites de fechas, las pantallas en demostración y actualizar a 1.38.12; sin conexión a la API local para probar datos reales.

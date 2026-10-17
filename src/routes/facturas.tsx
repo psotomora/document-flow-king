@@ -1,3 +1,5 @@
+import { FiltroFechas } from "@/components/comunes/FiltroFechas";
+import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
@@ -49,6 +51,8 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/facturas")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Facturas por cobrar | Aplix Cash Flow Insights" },
       {
         name: "description",
@@ -72,6 +76,7 @@ function PaginaFacturas() {
     establecer: establecerFilas,
   } = useFilasVisibles("facturas");
   const {
+    hoy,
     facturasCalculadas,
     companias,
     companiaActiva,
@@ -112,6 +117,7 @@ function PaginaFacturas() {
       }
       return siguiente;
     });
+  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [abierto, setAbierto] = useState(false);
@@ -121,11 +127,10 @@ function PaginaFacturas() {
       if (cliente && !f.cliente.toLowerCase().includes(cliente.toLowerCase())) return false;
       if (moneda !== "todas" && f.moneda !== moneda) return false;
       if (estados.length > 0 && !estados.includes(f.estado)) return false;
-      if (desde && f.fechaEmision < desde) return false;
-      if (hasta && f.fechaEmision > hasta) return false;
+      if (!fechaEnPeriodo(f.fechaEmision, periodo, hoy, desde, hasta)) return false;
       return true;
     });
-  }, [facturasCalculadas, companiaActiva, cliente, moneda, estados, desde, hasta]);
+  }, [facturasCalculadas, companiaActiva, cliente, moneda, estados, periodo, hoy, desde, hasta]);
 
   const totales = useMemo(() => {
     const acumular = (m: Moneda) => ({
@@ -221,14 +226,7 @@ function PaginaFacturas() {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="f-desde">Emisión desde</Label>
-          <Input id="f-desde" type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="f-hasta">Emisión hasta</Label>
-          <Input id="f-hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
-        </div>
+        <FiltroFechas id="f-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={desde} hasta={hasta} onDesdeCambio={setDesde} onHastaCambio={setHasta} className="md:col-span-2" />
         <div className="space-y-1.5 md:col-span-4">
           <Label>Estado</Label>
           <div className="flex min-h-9 flex-wrap items-center justify-start gap-x-6 gap-y-1 rounded-md border border-input bg-background px-3 py-1.5">

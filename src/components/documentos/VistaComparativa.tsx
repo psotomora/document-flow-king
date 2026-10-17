@@ -1,3 +1,4 @@
+import { rangoPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { useEffect, useMemo, useState } from "react";
 import { FileDown, Info } from "lucide-react";
 import {
@@ -37,7 +38,7 @@ import { exportarExcel } from "@/lib/exportar";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 
-type Periodo = "mes" | "anio" | "rango";
+type Periodo = PeriodoFecha;
 interface Rango {
   desde: string;
   hasta: string;
@@ -63,6 +64,7 @@ const esCredito = (t: string) => normalizarTipo(t) === "DEV" || normalizarTipo(t
 
 /** Resta un año a una fecha ISO, ajustando el 29 de febrero. */
 const restarAnio = (iso: string) => {
+  if (!iso) return "";
   const anio = Number(iso.slice(0, 4)) - 1;
   const resto = iso.slice(4);
   if (resto === "-02-29") return `${anio}-02-28`;
@@ -70,12 +72,7 @@ const restarAnio = (iso: string) => {
 };
 
 function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: string) {
-  const anio = hoyIso.slice(0, 4);
-  const mes = hoyIso.slice(5, 7);
-  let actual: Rango;
-  if (periodo === "mes") actual = { desde: `${anio}-${mes}-01`, hasta: hoyIso };
-  else if (periodo === "anio") actual = { desde: `${anio}-01-01`, hasta: hoyIso };
-  else actual = { desde: desde || `${anio}-01-01`, hasta: hasta || hoyIso };
+  const actual = rangoPeriodo(periodo, hoyIso, desde, hasta);
   return {
     actual,
     anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) },
@@ -99,6 +96,7 @@ export function VistaComparativa({
     establecer: establecerFilas,
   } = useFilasVisibles("documentos-cobrar-comparativo");
   const {
+    hoy,
     documentosPorCobrarComparativo,
     companias,
     companiaActiva,
@@ -130,7 +128,7 @@ export function VistaComparativa({
 
   const clienteTexto = cliente.trim().toLowerCase();
   const numeroTexto = numeroBusqueda.trim().toLowerCase();
-  const hoyIso = new Date().toISOString().slice(0, 10);
+  const hoyIso = hoy;
 
   const { actual, anterior } = useMemo(
     () => calcularRangos(periodo, hoyIso, desde, hasta),
@@ -152,7 +150,7 @@ export function VistaComparativa({
   const enRango = (lista: DocumentoPorCobrar[], r: Rango) =>
     lista.filter((d) => {
       const f = d.fecha.slice(0, 10);
-      return f >= r.desde && f <= r.hasta;
+      return (!r.desde || f >= r.desde) && (!r.hasta || f <= r.hasta);
     });
 
   // El año anterior puede leerse de la conexión 2, para comparar ambos orígenes.

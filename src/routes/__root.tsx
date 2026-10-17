@@ -96,6 +96,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "Aplix Cash Flow Insights" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "apple-mobile-web-app-title", content: "Aplix Cash Flow" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
     links: [
       // En desarrollo Vite inyecta styles.css directamente. En producción se
@@ -112,9 +115,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: faviconHref, type: "image/png" },
       { rel: "shortcut icon", href: faviconHref, type: "image/png" },
       { rel: "apple-touch-icon", href: appleTouchIconHref },
-      { name: "apple-mobile-web-app-title", content: "Aplix Cash Flow" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
   }),
   shellComponent: RootShell,
