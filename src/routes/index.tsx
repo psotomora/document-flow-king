@@ -152,7 +152,12 @@ function Tablero() {
     .slice(0, 6);
 
   const contratosProximos = filtrarPorCompania(contratos, companiaActiva)
-    .filter((c) => c.estado === "Activo" && !c.facturado)
+    .filter((c) => {
+      if (c.estado !== "Activo" || c.facturado) return false;
+      const lineaMes = contratosDelMes.find((linea) => linea.contratoId === c.id);
+      return !lineaMes ||
+        (!lineaMes.yaDocumentado && !contratosMesPagados.has(`${lineaMes.contratoId}|${lineaMes.fecha}`));
+    })
     .sort((a, b) => a.proximaFacturacion.localeCompare(b.proximaFacturacion))
     .slice(0, 5);
 
