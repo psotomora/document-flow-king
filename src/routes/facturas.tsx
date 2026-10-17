@@ -2,13 +2,13 @@ import { FiltroFechas } from "@/components/comunes/FiltroFechas";
 import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { EstadoBadge } from "@/components/comunes/EstadoBadge";
 import { DialogoLineasFactura } from "@/components/facturas/DialogoLineasFactura";
 import { DialogoEstadoCuenta } from "@/components/facturas/DialogoEstadoCuenta";
@@ -92,34 +92,19 @@ function PaginaFacturas() {
   } = useApp();
   const fuenteExterna = modoApi && facturasFuenteExterna;
 
-  const [cliente, setCliente] = useState("");
-  const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
+  const [cliente, setCliente] = useFiltroGuardado("facturas", "cliente", "");
+  const [moneda, setMoneda] = useFiltroGuardado<Moneda | "todas">("facturas", "moneda", "todas");
   /** Estados marcados; vacío equivale a "todos". Se recuerda por usuario. */
-  const claveFiltroEstados = `acfi:facturas:estados:${usuario.id}`;
-  const [estados, setEstados] = useState<EstadoFactura[]>([]);
-  useEffect(() => {
-    try {
-      const guardado = window.localStorage.getItem(claveFiltroEstados);
-      const lista = guardado ? (JSON.parse(guardado) as unknown) : [];
-      setEstados(Array.isArray(lista) ? (lista as EstadoFactura[]) : []);
-    } catch {
-      setEstados([]);
-    }
-  }, [claveFiltroEstados]);
+  const [estados, setEstados] = useFiltroGuardado<EstadoFactura[]>("facturas", "estados", []);
   const [facturaDetalle, setFacturaDetalle] = useState<Factura | null>(null);
   const alternarEstado = (e: EstadoFactura, marcado: boolean) =>
     setEstados((prev) => {
       const siguiente = marcado ? [...prev, e] : prev.filter((x) => x !== e);
-      try {
-        window.localStorage.setItem(claveFiltroEstados, JSON.stringify(siguiente));
-      } catch {
-        /* sin almacenamiento disponible */
-      }
       return siguiente;
     });
-  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
-  const [desde, setDesde] = useState("");
-  const [hasta, setHasta] = useState("");
+  const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("facturas", "periodo", "rango");
+  const [desde, setDesde] = useFiltroGuardado("facturas", "desde", "");
+  const [hasta, setHasta] = useFiltroGuardado("facturas", "hasta", "");
   const [abierto, setAbierto] = useState(false);
 
   const filtradas = useMemo(() => {

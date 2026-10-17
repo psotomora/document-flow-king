@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,12 +86,12 @@ function PaginaDocumentosPorPagar() {
   const estado: "todos" | "pendientes" | "pagados" =
     estadoGuardado === "todos" || estadoGuardado === "pagados" ? estadoGuardado : "pendientes";
 
-  const [proveedorBusqueda, setProveedorBusqueda] = useState("");
-  const [numeroBusqueda, setNumeroBusqueda] = useState("");
-  const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [proveedorBusqueda, setProveedorBusqueda] = useFiltroGuardado("documentos-pagar", "proveedorBusqueda", "");
+  const [numeroBusqueda, setNumeroBusqueda] = useFiltroGuardado("documentos-pagar", "numeroBusqueda", "");
+  const [moneda, setMoneda] = useFiltroGuardado<Moneda | "todas">("documentos-pagar", "moneda", "todas");
+  const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("documentos-pagar", "periodo", "rango");
+  const [fechaInicio, setFechaInicio] = useFiltroGuardado("documentos-pagar", "fechaInicio", "");
+  const [fechaFin, setFechaFin] = useFiltroGuardado("documentos-pagar", "fechaFin", "");
   const [nuevo, setNuevo] = useState(false);
   const [enEdicion, setEnEdicion] = useState<DocumentoPorPagar | null>(null);
 

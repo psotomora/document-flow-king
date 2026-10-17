@@ -29,6 +29,7 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
+import { clavePreferenciasDemo, leerPreferenciasDemo } from "@/lib/filtros-guardados";
 import {
   contratosPorFacturarDelMes,
   pedidosPendientesDeContratos,
@@ -278,7 +279,6 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [sesionCerrada, setSesionCerrada] = useState(false);
   const [usuario, setUsuario] = useState<Usuario>(semilla.usuarios[0]!);
   const [usuarios, setUsuarios] = useState<Usuario[]>(semilla.usuarios);
-  const [companiaActiva, setCompaniaActiva] = useState<string | "todas">("todas");
   const [companias, setCompanias] = useState<Compania[]>(semilla.companias);
   const [bancos, setBancos] = useState<Banco[]>(semilla.bancos);
   const [facturas, setFacturas] = useState<Factura[]>(semilla.facturas);
@@ -300,13 +300,21 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>(semilla.bitacoraInicial);
   const [parametros, setParametros] = useState<Record<string, string>>({ ...PARAMETROS_DEFECTO });
   const [preferencias, setPreferencias] = useState<Record<string, string>>({});
+  const companiaGuardada = preferencias["filtro_global_compania"] ?? "todas";
+  const companiaActiva = companiaGuardada === "todas" || companias.some((c) => c.id === companiaGuardada) ? companiaGuardada : "todas";
+  const preferenciasActuales = useRef(preferencias);
+  preferenciasActuales.current = preferencias;
+  const guardadosPendientes = useRef(new Map<string, Promise<unknown>>());
+  const cambiosPreferencias = useRef(new Map<string, number>());
+  const revisionPreferencias = useRef(0);
+  const usuarioPreferencias = useRef<string | null>(null);
   const [avisoFuenteExterna, setAvisoFuenteExterna] = useState<string | null>(null);
   const iniciado = useRef(false);
 
   const hoy = modoApi ? new Date().toISOString().slice(0, 10) : semilla.FECHA_CORTE;
   const tipoCambio = tiposCambio[tiposCambio.length - 1]?.valor ?? 0;
 
-  const aplicarEstado = useCallback((estado: EstadoServidor) => {
+  const aplicarEstado = useCallback((estado: EstadoServidor, revisionInicio = revisionPreferencias.current) => {
     // El usuario del token trae datos mínimos; si viene la lista completa, se usa ese registro.
     const completo = estado.usuarios?.find((u) => u.id === estado.usuario.id);
     setUsuario(completo ? { ...estado.usuario, ...completo } : estado.usuario);
@@ -331,7 +339,20 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     setTiposCambio(estado.tiposCambio);
     setBitacora(estado.bitacora);
     setParametros({ ...PARAMETROS_DEFECTO, ...(estado.parametros ?? {}) });
-    setPreferencias({ ...(estado.preferencias ?? {}) });
+    const restauradas = { ...(estado.preferencias ?? {}) };
+    if (usuarioPreferencias.current === estado.usuario.id) {
+      for (const [clave, revision] of cambiosPreferencias.current) {
+        if (revision > revisionInicio || guardadosPendientes.current.has(`${estado.usuario.id}:${clave}`)) {
+          const local = preferenciasActuales.current[clave];
+          if (local !== undefined) restauradas[clave] = local;
+        }
+      }
+    } else {
+      cambiosPreferencias.current.clear();
+    }
+    usuarioPreferencias.current = estado.usuario.id;
+    preferenciasActuales.current = restauradas;
+    setPreferencias(restauradas);
     setAvisoFuenteExterna(estado.avisoFuenteExterna ?? null);
   }, []);
 
@@ -367,8 +388,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     if (!hayApi()) return;
     setCargando(true);
     try {
+      const revisionInicio = revisionPreferencias.current;
       const estado = await api<EstadoServidor>("/estado");
-      aplicarEstado(estado);
+      aplicarEstado(estado, revisionInicio);
       setAutenticado(true);
       setErrorApi(null);
     } catch (e) {
@@ -890,6 +912,38 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
   ]);
 
+  const actualizarPreferencia = useCallback((clave: string, nuevoValor: string) => {
+        cambiosPreferencias.current.set(clave, ++revisionPreferencias.current);
+        const siguientes = { ...preferenciasActuales.current, [clave]: nuevoValor };
+        preferenciasActuales.current = siguientes;
+        setPreferencias((prev) => ({ ...prev, [clave]: nuevoValor }));
+        if (!modoApi) {
+          try {
+            window.localStorage.setItem(clavePreferenciasDemo(usuario.id), JSON.stringify(siguientes));
+          } catch {
+            toast.error("No fue posible recordar la selección en este navegador.");
+          }
+        } else {
+          const cola = `${usuario.id}:${clave}`;
+          const guardar = () => api(`/preferencias/${encodeURIComponent(clave)}`, {
+            metodo: "PUT",
+            cuerpo: { valor: nuevoValor },
+          });
+          // El primer envío es inmediato; cambios posteriores del mismo campo se ordenan.
+          const anterior = guardadosPendientes.current.get(cola);
+          const pendiente = (anterior ? anterior.then(guardar, guardar) : guardar()).catch((error: unknown) => {
+            const detalle = error instanceof Error ? error.message : "";
+            toast.error("No fue posible guardar la preferencia", {
+              description: detalle || "El cambio se perderá al recargar la página.",
+            });
+          });
+          guardadosPendientes.current.set(cola, pendiente);
+          void pendiente.finally(() => {
+            if (guardadosPendientes.current.get(cola) === pendiente) guardadosPendientes.current.delete(cola);
+          });
+        }
+        }, [modoApi, usuario.id]);
+
   const valor = useMemo<EstadoApp>(() => {
     const puedeEditar = usuario.perfil !== "consulta";
     const esAdministrador = usuario.perfil === "administrador";
@@ -921,19 +975,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       bitacora,
       parametros,
       preferencias,
-      actualizarPreferencia: (clave, nuevoValor) => {
-        setPreferencias((prev) => ({ ...prev, [clave]: nuevoValor }));
-        if (hayApi())
-          void api(`/preferencias/${encodeURIComponent(clave)}`, {
-            metodo: "PUT",
-            cuerpo: { valor: nuevoValor },
-          }).catch((error: unknown) => {
-            const detalle = error instanceof Error ? error.message : "";
-            toast.error("No fue posible guardar la preferencia", {
-              description: detalle || "El cambio se perderá al recargar la página.",
-            });
-          });
-      },
+      actualizarPreferencia,
       contratosDelMes,
       contratosMesHistorico,
       contratosMesPagados,
@@ -961,6 +1003,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         guardarToken(null);
         setModoApi(false);
         setUsuario(semilla.usuarios[0]!);
+        const demo = semilla.usuarios[0];
+        setPreferencias(demo ? leerPreferenciasDemo(demo.id) : {});
         setUsuarios(semilla.usuarios);
         setDocumentosPorCobrarComparativo(semilla.documentosPorCobrar);
         setAutenticado(true);
@@ -970,23 +1014,34 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
       iniciarSesion: (usuarioId) => {
         const u = semilla.usuarios.find((x) => x.id === usuarioId);
-        if (u) setUsuario(u);
+        if (u) {
+          setUsuario(u);
+          setPreferencias(leerPreferenciasDemo(u.id));
+        }
         setAutenticado(true);
       },
       cerrarSesion: () => {
-        const eraDemo = !hayApi();
+        const pendientes = [...guardadosPendientes.current.values()];
+        const terminar = () => {
+        const eraDemo = !modoApi;
         guardarToken(null);
         setModoApi(hayApi());
         setAutenticado(false);
         // En modo demostración no se muestra la pantalla de despedida:
         // el botón Salir regresa directo a la pantalla de ingreso.
         setSesionCerrada(!eraDemo);
+        };
+        if (pendientes.length) void Promise.allSettled(pendientes).then(terminar);
+        else terminar();
       },
       volverAlLogin: () => setSesionCerrada(false),
 
       cambiarUsuario: (usuarioId) => {
         const u = usuarios.find((x) => x.id === usuarioId);
-        if (u) setUsuario(u);
+        if (u) {
+          setUsuario(u);
+          setPreferencias(leerPreferenciasDemo(u.id));
+        }
       },
       crearUsuario: async (datos) => {
         if (hayApi()) {
@@ -1101,7 +1156,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setUsuarios((prev) => prev.filter((x) => x.id !== id));
         anotar("Seguridad", u.nombreUsuario ?? u.nombre, "Eliminación");
       },
-      setCompaniaActiva,
+      setCompaniaActiva: (id) => actualizarPreferencia("filtro_global_compania", id),
       agregarFactura: (f) =>
         mutar("/facturas", "POST", f, () => {
           setFacturas((prev) => [{ ...f, id: nuevoId("f") }, ...prev]);
@@ -1347,6 +1402,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       },
     };
   }, [
+    actualizarPreferencia,
     anotar,
     autenticar,
     autenticado,

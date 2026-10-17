@@ -23,3 +23,5 @@
 - [x] Agregar el script de compatibilidad y aumentar la aplicación y la API a v1.37.6.
 - [x] Unificar todos los filtros de fecha con Hoy, Última semana, Último mes y Rango de fechas.
 - [x] Verificar los límites de fechas, las pantallas en demostración y actualizar a 1.38.12; sin conexión a la API local para probar datos reales.
+- [x] Conservar todos los filtros por pantalla y usuario al navegar y volver a ingresar.
+- [x] Verificar persistencia y separación de usuarios en demostración y 9 pruebas; aumentar a 1.38.14. API local no accesible para comprobación con datos reales.

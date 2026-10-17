@@ -20,6 +20,8 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/importar")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Carga inicial desde Excel | Aplix Cash Flow Insights" },
       {
         name: "description",

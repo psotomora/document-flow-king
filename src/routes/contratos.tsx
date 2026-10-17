@@ -1,5 +1,5 @@
 import { FiltroFechas } from "@/components/comunes/FiltroFechas";
-import { fechaEnPeriodo, periodoValido, type PeriodoFecha } from "@/lib/filtros-fecha";
+import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
@@ -9,7 +9,7 @@ import { DialogoLineasContrato } from "@/components/contratos/DialogoLineasContr
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -51,7 +51,6 @@ import {
 import {
   filtrarPorCompania,
   useApp,
-  PREF_CONTRATOS_MES_FILTROS,
   PREF_CONTRATOS_MES_PAGADOS,
   PREF_CONTRATOS_MES_FACTURAS,
 } from "@/contexto/AppContexto";
@@ -113,11 +112,11 @@ function PaginaContratos() {
   // Con la fuente externa activa los contratos son de solo lectura.
   const soloLectura = modoApi && contratosFuenteExterna;
 
-  const [estado, setEstado] = useState<EstadoContrato | "todos" | "diferente">("todos");
-  const [busqueda, setBusqueda] = useState("");
-  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [estado, setEstado] = useFiltroGuardado<EstadoContrato | "todos" | "diferente">("contratos", "estado", "todos");
+  const [busqueda, setBusqueda] = useFiltroGuardado("contratos", "busqueda", "");
+  const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("contratos", "periodo", "rango");
+  const [fechaInicio, setFechaInicio] = useFiltroGuardado("contratos", "fechaInicio", "");
+  const [fechaFin, setFechaFin] = useFiltroGuardado("contratos", "fechaFin", "");
   const [abierto, setAbierto] = useState(false);
   const [enEdicion, setEnEdicion] = useState<string | null>(null);
 
@@ -420,56 +419,14 @@ function ContratosDelMes() {
   const soloLectura = modoApi && contratosFuenteExterna;
   const [enEdicion, setEnEdicion] = useState<string | null>(null);
 
-  const guardados = useMemo(() => {
-    try {
-      const bruto = preferencias[PREF_CONTRATOS_MES_FILTROS];
-      if (!bruto) return { busqueda: "", periodo: "rango" as PeriodoFecha, fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
-      const p = JSON.parse(bruto) as Record<string, unknown>;
-      return {
-        periodo: periodoValido(p["periodo"]),
-        busqueda: typeof p["busqueda"] === "string" ? p["busqueda"] : "",
-        fechaInicio: typeof p["fechaInicio"] === "string" ? p["fechaInicio"] : "",
-        fechaFin: typeof p["fechaFin"] === "string" ? p["fechaFin"] : "",
-        verPagados: typeof p["verPagados"] === "boolean" ? p["verPagados"] : true,
-        verPendientes: typeof p["verPendientes"] === "boolean" ? p["verPendientes"] : true,
-        facturaAsociada: typeof p["facturaAsociada"] === "string" ? p["facturaAsociada"] : "todas",
-      };
-    } catch {
-      return { busqueda: "", periodo: "rango" as PeriodoFecha, fechaInicio: "", fechaFin: "", verPagados: true, verPendientes: true, facturaAsociada: "todas" };
-    }
-  }, [preferencias]);
-
-  const [busqueda, setBusqueda] = useState(guardados.busqueda);
-  const [periodo, setPeriodo] = useState<PeriodoFecha>(guardados.periodo);
-  const [fechaInicio, setFechaInicio] = useState(guardados.fechaInicio);
-  const [fechaFin, setFechaFin] = useState(guardados.fechaFin);
-  const [verPagados, setVerPagados] = useState(guardados.verPagados);
-  const [verPendientes, setVerPendientes] = useState(guardados.verPendientes);
-  const [facturaAsociada, setFacturaAsociada] = useState(guardados.facturaAsociada);
+  const [busqueda, setBusqueda] = useFiltroGuardado("contratosMes", "busqueda", "");
+  const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("contratosMes", "periodo", "rango");
+  const [fechaInicio, setFechaInicio] = useFiltroGuardado("contratosMes", "fechaInicio", "");
+  const [fechaFin, setFechaFin] = useFiltroGuardado("contratosMes", "fechaFin", "");
+  const [verPagados, setVerPagados] = useFiltroGuardado("contratosMes", "verPagados", true);
+  const [verPendientes, setVerPendientes] = useFiltroGuardado("contratosMes", "verPendientes", true);
+  const [facturaAsociada, setFacturaAsociada] = useFiltroGuardado("contratosMes", "facturaAsociada", "todas");
   const [comboFacturaAbierto, setComboFacturaAbierto] = useState<string | null>(null);
-  const [listo, setListo] = useState(false);
-
-  // Toma los filtros recordados cuando llegan del servidor.
-  useEffect(() => {
-    setPeriodo(guardados.periodo);
-    setBusqueda(guardados.busqueda);
-    setFechaInicio(guardados.fechaInicio);
-    setFechaFin(guardados.fechaFin);
-    setVerPagados(guardados.verPagados);
-    setVerPendientes(guardados.verPendientes);
-    setFacturaAsociada(guardados.facturaAsociada);
-    setListo(true);
-  }, [guardados]);
-
-  // Guarda los filtros del usuario para la próxima vez que entre.
-  useEffect(() => {
-    if (!listo) return;
-    const actual = JSON.stringify({ busqueda, periodo, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada });
-    if (actual === JSON.stringify(guardados)) return;
-    const id = window.setTimeout(() => actualizarPreferencia(PREF_CONTRATOS_MES_FILTROS, actual), 600);
-    return () => window.clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busqueda, periodo, fechaInicio, fechaFin, verPagados, verPendientes, facturaAsociada, listo]);
 
   // Revisa cada línea del mes contra las facturas registradas: coincide cuando
   // el número de la factura contiene el número del contrato, o cuando el

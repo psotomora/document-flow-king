@@ -18,7 +18,7 @@ import { ConciliacionErogaciones, type Movimiento } from "@/components/erogacion
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,13 +81,13 @@ function PaginaErogaciones() {
   } = useFilasVisibles("erogaciones");
   const { erogaciones, bancos, companias, companiaActiva, puedeEditar, esAdministrador, eliminarErogacion, usuario, hoy } =
     useApp();
-  const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [proveedor, setProveedor] = useState("");
-  const [periodo, setPeriodo] = useState<PeriodoFecha>("mes");
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [moneda, setMoneda] = useFiltroGuardado<Moneda | "todas">("erogaciones", "moneda", "todas");
+  const [proveedor, setProveedor] = useFiltroGuardado("erogaciones", "proveedor", "");
+  const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("erogaciones", "periodo", "mes");
+  const [fechaInicio, setFechaInicio] = useFiltroGuardado("erogaciones", "fechaInicio", "");
+  const [fechaFin, setFechaFin] = useFiltroGuardado("erogaciones", "fechaFin", "");
   const [abierto, setAbierto] = useState(false);
-  const [mostrarPagados, setMostrarPagados] = useState(false);
+  const [mostrarPagados, setMostrarPagados] = useFiltroGuardado("erogaciones", "mostrarPagados", false);
   const [editando, setEditando] = useState<Erogacion | null>(null);
   const [precarga, setPrecarga] = useState<Movimiento | null>(null);
   const puedeEditarErogaciones = esAdministrador || (puedeEditar && usuario.editarErogaciones !== false);

@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
-import { useFilasVisibles } from "@/lib/preferencias";
+import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -105,9 +105,9 @@ export function VistaComparativa({
     modoApi,
   } = useApp();
 
-  const [monedaConsolidado, setMonedaConsolidado] = useState<Moneda>("USD");
+  const [monedaConsolidado, setMonedaConsolidado] = useFiltroGuardado<Moneda>("documentos-cobrar-comparativo", "monedaConsolidado", "USD");
   // Fuente externa usada para los documentos del año anterior.
-  const [fuenteAnterior, setFuenteAnterior] = useState<"softland" | "softland2">("softland");
+  const [fuenteAnterior, setFuenteAnterior] = useFiltroGuardado<"softland" | "softland2">("documentos-cobrar-comparativo", "fuenteAnterior", "softland");
   const [docsFuente2, setDocsFuente2] = useState<DocumentoPorCobrar[] | null>(null);
   const [cargandoFuente, setCargandoFuente] = useState(false);
 
