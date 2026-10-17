@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.13 — 2026-10-17
+- Pagos recibidos: la tarjeta de Conciliar estado de cuenta se muestra arriba, antes del listado de pagos.
+
 ## 1.38.12 — 2026-10-17
 - Filtros de fecha uniformes: Hoy, Última semana, Último mes y Rango de fechas en Pedidos, Facturas por cobrar, Pagos recibidos, Erogaciones, Documentos por pagar, Reporte de documentos, Contratos recurrentes y Contratos del mes.
 - Última semana incluye los últimos siete días y Último mes los últimos treinta días, contando hoy.
