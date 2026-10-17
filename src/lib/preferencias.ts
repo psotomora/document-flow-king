@@ -6,7 +6,10 @@ import { claveFiltro, leerFiltro } from "@/lib/filtros-guardados";
 export function useFiltroGuardado<T>(pantalla: string, campo: string, defecto: T): [T, Dispatch<SetStateAction<T>>] {
   const { preferencias, actualizarPreferencia } = useApp();
   const clave = claveFiltro(pantalla, campo);
-  const valor = leerFiltro(preferencias[clave], defecto);
+  const heredado = pantalla === "contratosMes"
+    ? leerFiltro<Record<string, unknown>>(preferencias["contratosMes_filtros"], {})[campo]
+    : undefined;
+  const valor = leerFiltro(preferencias[clave] ?? (heredado === undefined ? undefined : JSON.stringify(heredado)), defecto);
   const actual = useRef(valor);
   actual.current = valor;
   const establecer: Dispatch<SetStateAction<T>> = (nuevo) => {

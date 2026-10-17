@@ -95,6 +95,7 @@ function PaginaDocumentosPorCobrar() {
   const [hasta, setHasta] = useFiltroGuardado("documentos-cobrar", "hasta", "");
   // Cuando está activo, las devoluciones y notas de crédito restan (monto neto).
   const [neto, setNeto] = useFiltroGuardado("documentos-cobrar", "neto", true);
+  const [vista, setVista] = useFiltroGuardado("documentos-cobrar", "vista", "documentos");
   const [nuevo, setNuevo] = useState(false);
   const [enEdicion, setEnEdicion] = useState<DocumentoPorCobrar | null>(null);
 
@@ -186,7 +187,7 @@ function PaginaDocumentosPorCobrar() {
         }
       />
 
-      <Tabs defaultValue="documentos" className="space-y-6">
+      <Tabs value={vista} onValueChange={setVista} className="space-y-6">
         <TabsList>
           <TabsTrigger value="documentos">Documentos</TabsTrigger>
           <TabsTrigger value="comparativo">Comparativo anual</TabsTrigger>
