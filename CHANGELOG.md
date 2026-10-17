@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.16 — 2026-10-17
+- Recuperación de contraseña: se guarda la contraseña temporal únicamente después de que el servidor de correo acepte el envío. Si el envío falla, la contraseña anterior permanece intacta y no se registra una recuperación exitosa.
+- Pruebas de regresión del endpoint con envío rechazado, excepción de envío y envío exitoso, sin correo ni base de datos reales.
+
 ## 1.38.15 — 2026-10-17
 - Contratos del mes: se reconoce la factura equivalente por compañía, cliente, moneda y monto original dentro del mismo mes, aunque su número no contenga el contrato.
 - Se unifica la coincidencia de la lista, Tablero, Saldo consolidado, histórico y avisos de pendientes para evitar sumar nuevamente el contrato.

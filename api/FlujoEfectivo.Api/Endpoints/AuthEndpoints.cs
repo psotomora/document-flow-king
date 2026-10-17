@@ -73,8 +73,7 @@ public static class AuthEndpoints
 
             // Contraseña temporal de un solo uso: el usuario debe cambiarla al ingresar.
             var temporal = GenerarTemporal();
-            cn.Execute("UPDATE flujo.Usuario SET HashContrasena = @hash WHERE UsuarioId = @id",
-                new { hash = Contrasenas.Crear(temporal), id = fila.UsuarioId });
+            var hashTemporal = Contrasenas.Crear(temporal);
 
             var cuerpo =
                 $"<p>Estimado(a) <strong>{System.Net.WebUtility.HtmlEncode(fila.NombreCompleto)}</strong>,</p>" +
@@ -89,6 +88,10 @@ public static class AuthEndpoints
                 fila.CorreoElectronico.Trim(), "Recuperación de contraseña — Flujo de Efectivo", cuerpo);
             if (!ok)
                 return Results.BadRequest(new { mensaje });
+
+            // Si SMTP falla, la contraseña actual debe seguir funcionando.
+            cn.Execute("UPDATE flujo.Usuario SET HashContrasena = @hash WHERE UsuarioId = @id",
+                new { hash = hashTemporal, id = fila.UsuarioId });
 
             Db.Auditar(cn, fila.UsuarioId, fila.NombreCompleto, "Seguridad", nombre, "Modificación",
                 valorNuevo: "Recuperación de contraseña: se envió una contraseña temporal al correo registrado");
