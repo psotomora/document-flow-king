@@ -1,3 +1,5 @@
+import { FiltroFechas } from "@/components/comunes/FiltroFechas";
+import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Check, ChevronsUpDown, FileDown, Plus, Trash2 } from "lucide-react";
@@ -82,6 +84,7 @@ function PaginaPagos() {
     establecer: establecerFilas,
   } = useFilasVisibles("pagos");
   const {
+    hoy,
     pagos,
     facturasCalculadas,
     bancos,
@@ -96,6 +99,7 @@ function PaginaPagos() {
   const idsVisibles = new Set(facturasVisibles.map((f) => f.id));
   const [banco, setBanco] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
+  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
@@ -109,9 +113,7 @@ function PaginaPagos() {
         .filter((p) => idsVisibles.has(p.facturaId))
         .filter((p) => banco === "todos" || p.bancoId === banco)
         .filter((p) => {
-          if (fechaInicio && p.fecha < fechaInicio) return false;
-          if (fechaFin && p.fecha > fechaFin) return false;
-          return true;
+          return fechaEnPeriodo(p.fecha, periodo, hoy, fechaInicio, fechaFin);
         })
         .map((p) => {
           const factura = facturasCalculadas.find((f) => f.id === p.facturaId);
@@ -130,7 +132,7 @@ function PaginaPagos() {
             : true,
         ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pagos, facturasCalculadas, companiaActiva, banco, texto, fechaInicio, fechaFin],
+    [pagos, facturasCalculadas, companiaActiva, banco, texto, periodo, hoy, fechaInicio, fechaFin],
   );
 
 
@@ -209,27 +211,7 @@ function PaginaPagos() {
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
-        <div className="space-y-1.5">
-
-          <Label htmlFor="p-fecha-inicio">Fecha inicio</Label>
-          <Input
-            id="p-fecha-inicio"
-            type="date"
-            className="w-44"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="p-fecha-fin">Fecha fin</Label>
-          <Input
-            id="p-fecha-fin"
-            type="date"
-            className="w-44"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-          />
-        </div>
+        <FiltroFechas id="p-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
         <div className="flex h-9 items-center gap-2 self-end">
           <Checkbox
             id="p-mostrar-pagadas"

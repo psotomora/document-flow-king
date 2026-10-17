@@ -1,3 +1,5 @@
+import { FiltroFechas } from "@/components/comunes/FiltroFechas";
+import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
@@ -42,6 +44,8 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/documentos-pagar")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Documentos por pagar | Aplix Cash Flow Insights" },
       {
         name: "description",
@@ -85,13 +89,12 @@ function PaginaDocumentosPorPagar() {
   const [proveedorBusqueda, setProveedorBusqueda] = useState("");
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<"mes" | "todos" | "rango">("todos");
+  const [periodo, setPeriodo] = useState<PeriodoFecha>("rango");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [nuevo, setNuevo] = useState(false);
   const [enEdicion, setEnEdicion] = useState<DocumentoPorPagar | null>(null);
 
-  const mesActual = hoy.slice(0, 7);
   const proveedorTexto = proveedorBusqueda.trim().toLowerCase();
   const numeroTexto = numeroBusqueda.trim().toLowerCase();
   const soloLectura = documentosPagoFuenteExterna;
@@ -105,12 +108,7 @@ function PaginaDocumentosPorPagar() {
         if (proveedorTexto && !d.proveedor.toLowerCase().includes(proveedorTexto))
           return false;
         if (numeroTexto && !d.numero.toLowerCase().includes(numeroTexto)) return false;
-        const fecha = d.fecha.slice(0, 10);
-        if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
-        if (periodo === "rango") {
-          if (fechaInicio && fecha < fechaInicio) return false;
-          if (fechaFin && fecha > fechaFin) return false;
-        }
+        if (!fechaEnPeriodo(d.fecha, periodo, hoy, fechaInicio, fechaFin)) return false;
         return true;
       }),
     [
@@ -123,7 +121,7 @@ function PaginaDocumentosPorPagar() {
       periodo,
       fechaInicio,
       fechaFin,
-      mesActual,
+      hoy,
     ],
   );
 
@@ -228,43 +226,7 @@ function PaginaDocumentosPorPagar() {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
-          <Label>Periodo</Label>
-          <Select value={periodo} onValueChange={(v) => setPeriodo(v as "mes" | "todos" | "rango")}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mes">Este mes</SelectItem>
-              <SelectItem value="todos">Todos los registros</SelectItem>
-              <SelectItem value="rango">Rango de fechas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {periodo === "rango" ? (
-          <>
-            <div className="space-y-1.5">
-              <Label htmlFor="dp-ini">Fecha inicio</Label>
-              <Input
-                id="dp-ini"
-                type="date"
-                className="w-44"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="dp-fin">Fecha fin</Label>
-              <Input
-                id="dp-fin"
-                type="date"
-                className="w-44"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-              />
-            </div>
-          </>
-        ) : null}
+        <FiltroFechas id="dp-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
         <div className="ml-auto flex gap-6 text-right">
           <div>
             <p className="text-xs text-muted-foreground">Saldo USD</p>

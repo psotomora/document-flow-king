@@ -1,3 +1,5 @@
+import { FiltroFechas } from "@/components/comunes/FiltroFechas";
+import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
@@ -71,6 +73,7 @@ function PaginaDocumentosPorCobrar() {
     establecer: establecerFilas,
   } = useFilasVisibles("documentos-cobrar");
   const {
+    hoy,
     documentosPorCobrar,
     documentosCobroFuenteExterna,
     modoApi,
@@ -87,7 +90,7 @@ function PaginaDocumentosPorCobrar() {
   const [numeroBusqueda, setNumeroBusqueda] = useState("");
   const [tipo, setTipo] = useState<"todos" | "FAC" | "DEV" | "NC">("todos");
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
-  const [periodo, setPeriodo] = useState<"mes" | "anio" | "rango">("anio");
+  const [periodo, setPeriodo] = useState<PeriodoFecha>("mes");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   // Cuando está activo, las devoluciones y notas de crédito restan (monto neto).
@@ -99,9 +102,6 @@ function PaginaDocumentosPorCobrar() {
   const numeroTexto = numeroBusqueda.trim().toLowerCase();
   const soloLectura = modoApi && documentosCobroFuenteExterna;
 
-  const hoyIso = new Date().toISOString().slice(0, 10);
-  const mesActual = hoyIso.slice(0, 7);
-  const anioActual = hoyIso.slice(0, 4);
 
   const filtrados = useMemo(
     () =>
@@ -111,19 +111,12 @@ function PaginaDocumentosPorCobrar() {
         const tipoDoc = d.tipo.toUpperCase().replace("/", "");
         if (tipo !== "todos" && tipoDoc !== tipo) return false;
         if (moneda !== "todas" && d.moneda !== moneda) return false;
-        const fecha = d.fecha.slice(0, 10);
-        // "Este mes" y "Acumulado del año a la fecha" son rangos hasta hoy,
-        // para que el comparativo anual pueda usar el periodo equivalente.
-        if (periodo === "mes" && (fecha.slice(0, 7) !== mesActual || fecha > hoyIso)) return false;
-        if (periodo === "anio" && (fecha.slice(0, 4) !== anioActual || fecha > hoyIso)) return false;
-        if (periodo === "rango") {
-          if (desde && fecha < desde) return false;
-          if (hasta && fecha > hasta) return false;
-        }
+        if (!fechaEnPeriodo(d.fecha, periodo, hoy, desde, hasta)) return false;
         return true;
       }),
     [
-      documentosPorCobrar,
+      hoy,
+    documentosPorCobrar,
       companiaActiva,
       clienteTexto,
       numeroTexto,
@@ -132,9 +125,7 @@ function PaginaDocumentosPorCobrar() {
       periodo,
       desde,
       hasta,
-      mesActual,
-      anioActual,
-      hoyIso,
+      hoy,
     ],
   );
 
@@ -274,43 +265,7 @@ function PaginaDocumentosPorCobrar() {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
-          <Label>Periodo</Label>
-          <Select value={periodo} onValueChange={(v) => setPeriodo(v as "mes" | "anio" | "rango")}>
-            <SelectTrigger className="w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mes">Este mes</SelectItem>
-              <SelectItem value="anio">Acumulado del año a la fecha</SelectItem>
-              <SelectItem value="rango">Rango de fechas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {periodo === "rango" ? (
-          <>
-            <div className="space-y-1.5">
-              <Label htmlFor="dc-desde">Fecha inicio</Label>
-              <Input
-                id="dc-desde"
-                type="date"
-                className="w-44"
-                value={desde}
-                onChange={(e) => setDesde(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="dc-hasta">Fecha fin</Label>
-              <Input
-                id="dc-hasta"
-                type="date"
-                className="w-44"
-                value={hasta}
-                onChange={(e) => setHasta(e.target.value)}
-              />
-            </div>
-          </>
-        ) : null}
+        <FiltroFechas id="dc-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={desde} hasta={hasta} onDesdeCambio={setDesde} onHastaCambio={setHasta} />
         <div className="flex items-center gap-2 self-end pb-1">
           <Checkbox
             id="dc-neto"

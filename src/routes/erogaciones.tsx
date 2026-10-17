@@ -1,3 +1,5 @@
+import { FiltroFechas } from "@/components/comunes/FiltroFechas";
+import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
@@ -53,6 +55,8 @@ import { exportarExcel } from "@/lib/exportar";
 export const Route = createFileRoute("/erogaciones")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { title: "Erogaciones | Aplix Cash Flow Insights" },
       {
         name: "description",
@@ -79,7 +83,7 @@ function PaginaErogaciones() {
     useApp();
   const [moneda, setMoneda] = useState<Moneda | "todas">("todas");
   const [proveedor, setProveedor] = useState("");
-  const [periodo, setPeriodo] = useState<"mes" | "todos" | "rango">("mes");
+  const [periodo, setPeriodo] = useState<PeriodoFecha>("mes");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
   const [abierto, setAbierto] = useState(false);
@@ -88,7 +92,6 @@ function PaginaErogaciones() {
   const [precarga, setPrecarga] = useState<Movimiento | null>(null);
   const puedeEditarErogaciones = esAdministrador || (puedeEditar && usuario.editarErogaciones !== false);
 
-  const mesActual = hoy.slice(0, 7);
   const textoProveedor = proveedor.trim().toLowerCase();
 
   const filtradas = useMemo(
@@ -96,15 +99,10 @@ function PaginaErogaciones() {
       filtrarPorCompania(erogaciones, companiaActiva).filter((e) => {
         if (moneda !== "todas" && e.moneda !== moneda) return false;
         if (textoProveedor && !e.proveedor.toLowerCase().includes(textoProveedor)) return false;
-        const fecha = e.fecha.slice(0, 10);
-        if (periodo === "mes" && fecha.slice(0, 7) !== mesActual) return false;
-        if (periodo === "rango") {
-          if (fechaInicio && fecha < fechaInicio) return false;
-          if (fechaFin && fecha > fechaFin) return false;
-        }
+        if (!fechaEnPeriodo(e.fecha, periodo, hoy, fechaInicio, fechaFin)) return false;
         return true;
       }),
-    [erogaciones, companiaActiva, moneda, textoProveedor, periodo, fechaInicio, fechaFin, mesActual],
+    [erogaciones, companiaActiva, moneda, textoProveedor, periodo, fechaInicio, fechaFin, hoy],
   );
 
 
@@ -168,22 +166,7 @@ function PaginaErogaciones() {
             onChange={(e) => setProveedor(e.target.value)}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label>Periodo</Label>
-          <Select
-            value={periodo}
-            onValueChange={(v) => setPeriodo(v as "mes" | "todos" | "rango")}
-          >
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mes">Este mes</SelectItem>
-              <SelectItem value="todos">Todos los registros</SelectItem>
-              <SelectItem value="rango">Rango de fechas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <FiltroFechas id="e-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
         <div className="flex h-9 items-center gap-2 self-end">
           <Checkbox
             id="f-pagados"
@@ -194,30 +177,7 @@ function PaginaErogaciones() {
             Mostrar facturas en estado pagado
           </Label>
         </div>
-        {periodo === "rango" ? (
-          <>
-            <div className="space-y-1.5">
-              <Label htmlFor="f-ini">Fecha inicio</Label>
-              <Input
-                id="f-ini"
-                type="date"
-                className="w-44"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="f-fin">Fecha fin</Label>
-              <Input
-                id="f-fin"
-                type="date"
-                className="w-44"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-              />
-            </div>
-          </>
-        ) : null}
+
         <div className="ml-auto flex gap-6 text-right">
           <div>
             <p className="text-xs text-muted-foreground">Total USD</p>
