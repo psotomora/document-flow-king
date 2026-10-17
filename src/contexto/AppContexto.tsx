@@ -279,7 +279,6 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [sesionCerrada, setSesionCerrada] = useState(false);
   const [usuario, setUsuario] = useState<Usuario>(semilla.usuarios[0]!);
   const [usuarios, setUsuarios] = useState<Usuario[]>(semilla.usuarios);
-  const [companiaActiva, setCompaniaActiva] = useState<string | "todas">("todas");
   const [companias, setCompanias] = useState<Compania[]>(semilla.companias);
   const [bancos, setBancos] = useState<Banco[]>(semilla.bancos);
   const [facturas, setFacturas] = useState<Factura[]>(semilla.facturas);
@@ -301,6 +300,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [bitacora, setBitacora] = useState<RegistroBitacora[]>(semilla.bitacoraInicial);
   const [parametros, setParametros] = useState<Record<string, string>>({ ...PARAMETROS_DEFECTO });
   const [preferencias, setPreferencias] = useState<Record<string, string>>({});
+  const companiaGuardada = preferencias["filtro_global_compania"] ?? "todas";
+  const companiaActiva = companiaGuardada === "todas" || companias.some((c) => c.id === companiaGuardada) ? companiaGuardada : "todas";
   const preferenciasActuales = useRef(preferencias);
   preferenciasActuales.current = preferencias;
   const guardadosPendientes = useRef(new Map<string, Promise<unknown>>());
@@ -894,6 +895,37 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
 
   ]);
 
+  const actualizarPreferencia = useCallback((clave: string, nuevoValor: string) => {
+        const siguientes = { ...preferenciasActuales.current, [clave]: nuevoValor };
+        preferenciasActuales.current = siguientes;
+        setPreferencias((prev) => ({ ...prev, [clave]: nuevoValor }));
+        if (!modoApi) {
+          try {
+            window.localStorage.setItem(clavePreferenciasDemo(usuario.id), JSON.stringify(siguientes));
+          } catch {
+            toast.error("No fue posible recordar la selección en este navegador.");
+          }
+        } else {
+          const cola = `${usuario.id}:${clave}`;
+          const guardar = () => api(`/preferencias/${encodeURIComponent(clave)}`, {
+            metodo: "PUT",
+            cuerpo: { valor: nuevoValor },
+          });
+          // El primer envío es inmediato; cambios posteriores del mismo campo se ordenan.
+          const anterior = guardadosPendientes.current.get(cola);
+          const pendiente = (anterior ? anterior.then(guardar, guardar) : guardar()).catch((error: unknown) => {
+            const detalle = error instanceof Error ? error.message : "";
+            toast.error("No fue posible guardar la preferencia", {
+              description: detalle || "El cambio se perderá al recargar la página.",
+            });
+          });
+          guardadosPendientes.current.set(cola, pendiente);
+          void pendiente.finally(() => {
+            if (guardadosPendientes.current.get(cola) === pendiente) guardadosPendientes.current.delete(cola);
+          });
+        }
+        }, [modoApi, usuario.id]);
+
   const valor = useMemo<EstadoApp>(() => {
     const puedeEditar = usuario.perfil !== "consulta";
     const esAdministrador = usuario.perfil === "administrador";
@@ -925,36 +957,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       bitacora,
       parametros,
       preferencias,
-      actualizarPreferencia: (clave, nuevoValor) => {
-        const siguientes = { ...preferenciasActuales.current, [clave]: nuevoValor };
-        preferenciasActuales.current = siguientes;
-        setPreferencias((prev) => ({ ...prev, [clave]: nuevoValor }));
-        if (!modoApi) {
-          try {
-            window.localStorage.setItem(clavePreferenciasDemo(usuario.id), JSON.stringify(siguientes));
-          } catch {
-            toast.error("No fue posible recordar la selección en este navegador.");
-          }
-        } else {
-          const cola = `${usuario.id}:${clave}`;
-          const guardar = () => api(`/preferencias/${encodeURIComponent(clave)}`, {
-            metodo: "PUT",
-            cuerpo: { valor: nuevoValor },
-          });
-          // El primer envío es inmediato; cambios posteriores del mismo campo se ordenan.
-          const anterior = guardadosPendientes.current.get(cola);
-          const pendiente = (anterior ? anterior.then(guardar, guardar) : guardar()).catch((error: unknown) => {
-            const detalle = error instanceof Error ? error.message : "";
-            toast.error("No fue posible guardar la preferencia", {
-              description: detalle || "El cambio se perderá al recargar la página.",
-            });
-          });
-          guardadosPendientes.current.set(cola, pendiente);
-          void pendiente.finally(() => {
-            if (guardadosPendientes.current.get(cola) === pendiente) guardadosPendientes.current.delete(cola);
-          });
-        }
-      },
+      actualizarPreferencia,
       contratosDelMes,
       contratosMesHistorico,
       contratosMesPagados,
@@ -1000,6 +1003,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setAutenticado(true);
       },
       cerrarSesion: () => {
+        const pendientes = [...guardadosPendientes.current.values()];
+        const terminar = () => {
         const eraDemo = !hayApi();
         guardarToken(null);
         setModoApi(hayApi());
@@ -1007,6 +1012,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         // En modo demostración no se muestra la pantalla de despedida:
         // el botón Salir regresa directo a la pantalla de ingreso.
         setSesionCerrada(!eraDemo);
+        };
+        if (pendientes.length) void Promise.allSettled(pendientes).then(terminar);
+        else terminar();
       },
       volverAlLogin: () => setSesionCerrada(false),
 
@@ -1130,7 +1138,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         setUsuarios((prev) => prev.filter((x) => x.id !== id));
         anotar("Seguridad", u.nombreUsuario ?? u.nombre, "Eliminación");
       },
-      setCompaniaActiva,
+      setCompaniaActiva: (id) => actualizarPreferencia("filtro_global_compania", id),
       agregarFactura: (f) =>
         mutar("/facturas", "POST", f, () => {
           setFacturas((prev) => [{ ...f, id: nuevoId("f") }, ...prev]);
@@ -1376,6 +1384,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       },
     };
   }, [
+    actualizarPreferencia,
     anotar,
     autenticar,
     autenticado,
