@@ -28,3 +28,4 @@
 - [x] Unificar la coincidencia de contratos del mes con facturas equivalentes y evitar doble conteo.
 - [x] Verificar 18 pruebas y recorrido de contratos, Tablero y Saldo consolidado en demostración; aumentar a 1.38.15. API productiva no accesible para comprobar datos reales.
 - [x] Conservar la contraseña actual cuando falle el correo de recuperación; versión 1.38.16. Tres pruebas HTTP aisladas verifican rechazo, excepción y envío exitoso con inicio de sesión; pendiente desplegar la API en IIS para usar la corrección en producción.
+- [x] Comparar NotifyHub y License Hub y agregar alternativa ICO; versión 1.38.17. Página e imágenes verificadas localmente (HTTP 200); queda comprobar Safari en el dispositivo después de desplegar en IIS.
