@@ -20,6 +20,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 const appCssHref = `${import.meta.env.BASE_URL}assets/app.css`;
 const faviconHref = `${import.meta.env.BASE_URL}favicon.png`;
+const faviconIcoHref = `${import.meta.env.BASE_URL}favicon.ico`;
 const appleTouchIconHref = `${import.meta.env.BASE_URL}apple-touch-icon.png`;
 
 function NotFoundComponent() {
@@ -112,8 +113,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       // Sin atributo sizes: un sizes restrictivo hace que Safari oculte el
       // ícono en pestañas.
+      { rel: "icon", href: faviconIcoHref, type: "image/x-icon" },
       { rel: "icon", href: faviconHref, type: "image/png" },
-      { rel: "shortcut icon", href: faviconHref, type: "image/png" },
+      { rel: "shortcut icon", href: faviconIcoHref, type: "image/x-icon" },
       { rel: "apple-touch-icon", href: appleTouchIconHref },
     ],
   }),
