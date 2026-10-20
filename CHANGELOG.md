@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.19 — 2026-10-20
+- Corrige el desbordamiento de los campos en ventanas emergentes cuando el nombre del cliente es largo.
+
 ## 1.38.18 — 2026-10-20
 - Diálogos de líneas de Pedidos pendientes, Facturas por cobrar y Contratos redimensionables desde la esquina inferior derecha, con límites de pantalla y tablas desplazables.
 - Las descripciones truncadas muestran el texto completo al señalarlo o enfocarlo con el teclado.

@@ -15,6 +15,11 @@ export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
     version: "1.38.19",
     fecha: "2026-10-20",
+    cambios: ["Las ventanas emergentes ya no se desbordan con nombres de cliente largos (p. ej. Envío de estados de cuenta)."],
+  },
+  {
+    version: "1.38.18",
+    fecha: "2026-10-20",
     cambios: ["Los diálogos de líneas de pedidos, facturas y contratos permiten cambiar su tamaño y muestran la descripción completa al señalarla."],
   },
   {
