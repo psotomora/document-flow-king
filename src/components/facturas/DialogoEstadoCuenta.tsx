@@ -173,7 +173,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
           <div className="space-y-1.5">
             <Label>Cliente</Label>
             <Select value={cliente} onValueChange={setCliente}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full min-w-0 [&>span]:truncate" title={cliente || undefined}>
                 <SelectValue placeholder="Seleccione el cliente" />
               </SelectTrigger>
               <SelectContent>
