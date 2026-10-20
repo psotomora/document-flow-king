@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ListTree, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DescripcionTabla } from "@/components/comunes/DescripcionTabla";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +47,7 @@ export function DialogoLineasPedido({ pedido }: { pedido: Pedido }) {
           <ListTree className="size-4 text-muted-foreground" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent redimensionable className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             Pedido {pedido.numero} · {pedido.cliente}
@@ -64,7 +65,7 @@ export function DialogoLineasPedido({ pedido }: { pedido: Pedido }) {
             <Loader2 className="size-4 animate-spin" /> Consultando SoftlandERP…
           </div>
         ) : (
-          <div className="max-h-[60vh] overflow-auto rounded-md border border-border">
+          <div className="min-h-0 flex-1 overflow-auto rounded-md border border-border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -82,8 +83,8 @@ export function DialogoLineasPedido({ pedido }: { pedido: Pedido }) {
                   <TableRow key={l.linea}>
                     <TableCell className="text-xs text-muted-foreground">{l.linea}</TableCell>
                     <TableCell className="font-medium">{l.articulo}</TableCell>
-                    <TableCell className="max-w-64 truncate" title={l.descripcion ?? ""}>
-                      {l.descripcion ?? ""}
+                    <TableCell className="max-w-64">
+                      <DescripcionTabla texto={l.descripcion} />
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatearNumero(l.cantidad)}
