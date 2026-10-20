@@ -141,6 +141,11 @@ export async function generarEstadoCuenta(
   doc.text("CR90011610300077745376", 220, y);
   y += 18;
 
+  doc.setFontSize(9);
+  doc.setTextColor(110);
+  doc.text(`Documentos incluidos: ${facturas.length}`, 40, y);
+  y += 14;
+
   doc.setFontSize(8);
   doc.setTextColor(130);
   const fechaHora = `${hoy.toLocaleDateString("es-CR")} ${hoy.toLocaleTimeString("es-CR", {
