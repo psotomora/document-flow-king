@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.21 — 2026-10-20
+- Nueva opción «Al día de hoy» en los filtros de fecha de todas las pantallas, antes de Rango de fechas: abarca desde el 1 de enero del año en curso hasta la fecha actual.
+
 ## 1.38.20 — 2026-10-20
 - Estado de cuenta en PDF: «Documentos incluidos» se movió al final del informe para que no se superponga con el nombre del cliente cuando es largo.
 
