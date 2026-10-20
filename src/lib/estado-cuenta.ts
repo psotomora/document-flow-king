@@ -74,9 +74,6 @@ export async function generarEstadoCuenta(
   doc.setFontSize(11);
   doc.setTextColor(30, 41, 59);
   doc.text(`Cliente: ${cliente}`, 40, 116);
-  doc.setFontSize(9);
-  doc.setTextColor(110);
-  doc.text(`Documentos incluidos: ${facturas.length}`, ancho - 40, 116, { align: "right" });
 
   autoTable(doc, {
     head: [["Factura", "Emisión", "Vencimiento", "Días", "Moneda", "Facturado", "Pagado", "Saldo", "Estado"]],
@@ -143,6 +140,11 @@ export async function generarEstadoCuenta(
   doc.text("30000007774537", 120, y);
   doc.text("CR90011610300077745376", 220, y);
   y += 18;
+
+  doc.setFontSize(9);
+  doc.setTextColor(110);
+  doc.text(`Documentos incluidos: ${facturas.length}`, 40, y);
+  y += 14;
 
   doc.setFontSize(8);
   doc.setTextColor(130);

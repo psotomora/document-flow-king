@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.20 — 2026-10-20
+- Estado de cuenta en PDF: «Documentos incluidos» se movió al final del informe para que no se superponga con el nombre del cliente cuando es largo.
+
 ## 1.38.19 — 2026-10-20
 - Corrige el desbordamiento de los campos en ventanas emergentes cuando el nombre del cliente es largo.
 
