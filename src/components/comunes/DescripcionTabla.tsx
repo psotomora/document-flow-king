@@ -1,7 +1,7 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 /** Conserva el texto completo aunque la columna muestre una descripción truncada. */
-export function DescripcionTabla({ texto }: { texto?: string | null }) {
+export function DescripcionTabla({ texto }: { texto?: string | null | undefined }) {
   if (!texto) return null;
 
   return (
