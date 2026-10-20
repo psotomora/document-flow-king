@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.18 — 2026-10-20
+- Diálogos de líneas de Pedidos pendientes, Facturas por cobrar y Contratos redimensionables desde la esquina inferior derecha, con límites de pantalla y tablas desplazables.
+- Las descripciones truncadas muestran el texto completo al señalarlo o enfocarlo con el teclado.
+
 ## 1.38.17 — 2026-10-18
 - Compatibilidad de íconos: favicon.ico con tamaños 16, 32, 48 y 64 px y favicon PNG sin transparencia, derivados del ícono de Aplix existente.
 - Enlaces icon/shortcut icon con la ruta base de la aplicación, sin atributo sizes; se conservan apple-touch-icon y los metadatos iOS.
