@@ -1,3 +1,4 @@
+- [ ] Permitir ajustar el tamaño de los diálogos con tablas y consultar descripciones completas al señalar; verificar y aumentar versión.
 - [x] Agregar privilegio por usuario para editar erogaciones
 - [x] Implementar edición auditada de erogaciones
 - [x] Aumentar versiones y verificar
