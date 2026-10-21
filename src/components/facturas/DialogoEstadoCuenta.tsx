@@ -160,7 +160,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
           <Mail className="size-4" /> Envío de estados de cuenta
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="w-max min-w-[min(32rem,calc(100vw-2rem))] max-w-[min(64rem,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Envío de estados de cuenta</DialogTitle>
           <DialogDescription>
@@ -169,16 +169,16 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4 [&>div]:min-w-0">
           <div className="space-y-1.5">
             <Label>Cliente</Label>
             <Select value={cliente} onValueChange={setCliente}>
-              <SelectTrigger className="w-full min-w-0 [&>span]:truncate" title={cliente || undefined}>
+              <SelectTrigger className="h-auto min-h-9 w-full min-w-0 gap-2 whitespace-normal text-left [&>span]:min-w-0 [&>span]:flex-1 [&>span]:line-clamp-none [&>span]:whitespace-normal [&>span]:[overflow-wrap:anywhere] [&>svg]:shrink-0" title={cliente || undefined} aria-label="Cliente">
                 <SelectValue placeholder="Seleccione el cliente" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)]">
                 {clientes.map((c) => (
-                  <SelectItem key={c.nombre} value={c.nombre}>
+                  <SelectItem key={c.nombre} value={c.nombre} className="min-w-0 whitespace-normal [&>span]:[overflow-wrap:anywhere]">
                     {c.nombre} · {c.lista.length} doc.
                   </SelectItem>
                 ))}
@@ -254,7 +254,7 @@ export function DialogoEstadoCuenta({ facturas }: { facturas: FacturaCalculada[]
           {errorEnvio ? <MensajeCorreo ok={false} mensaje={errorEnvio} /> : null}
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 sm:flex-wrap">
           <Button variant="outline" onClick={descargar} disabled={descargando || !cliente}>
             {descargando ? (
               <Loader2 className="size-4 animate-spin" />
