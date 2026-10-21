@@ -596,8 +596,27 @@ function PaginaParametros() {
                   </TableRow>
                 ))
               )}
-            </TableBody>
+          </TableBody>
           </Table>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card p-4">
+        <h2 className="mb-3 text-sm font-semibold text-foreground">Carga inicial</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-foreground">Importación de datos iniciales</p>
+            <p className="text-xs text-muted-foreground">
+              Cargue compañías, bancos, facturas, pedidos y contratos desde archivos Excel para
+              inicializar el sistema.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="gap-1.5">
+            <Link to="/importar">
+              <Upload className="size-4" />
+              Ir a Carga inicial
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
