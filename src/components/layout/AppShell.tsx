@@ -16,7 +16,6 @@ import {
   Settings2,
   ShoppingCart,
   TrendingUp,
-  Upload,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
@@ -171,10 +170,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
           {secciones.map((seccion) => (
-            <div key={seccion.grupo}>
-              <p className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
-                {seccion.grupo}
-              </p>
+            <div key={seccion.grupo ?? "tablero"}>
+              {seccion.grupo ? (
+                <p className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
+                  {seccion.grupo}
+                </p>
+              ) : null}
               <ul className="space-y-0.5">
                 {seccion.items.filter(rutaVisible).map((item) => {
                   const activo =
