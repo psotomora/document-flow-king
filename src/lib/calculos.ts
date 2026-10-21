@@ -322,12 +322,12 @@ export function calcularSaldoProyectado(
 ): SaldoProyectado {
   const saldoActualUSD = totalizarSaldos(saldosUSD).saldoNeto;
   const saldoActualCRC = totalizarSaldos(saldosCRC).saldoNeto;
-  // Solo facturas pendientes de pago: se excluyen las ya cobradas en el sistema de origen.
-  const porPagar = facturas.filter((f) => f.cobrada !== true);
-  const porCobrarUSD = porPagar
+  // El saldo pendiente calculado manda, igual que en Facturas por cobrar.
+  // La marca Cobrada del ERP no sustituye un saldo positivo de cuentas por cobrar.
+  const porCobrarUSD = facturas
     .filter((f) => f.moneda === "USD")
     .reduce((s, f) => s + Math.max(f.saldoPendiente, 0), 0);
-  const porCobrarCRC = porPagar
+  const porCobrarCRC = facturas
     .filter((f) => f.moneda === "CRC")
     .reduce((s, f) => s + Math.max(f.saldoPendiente, 0), 0);
   const proyectadoUSD = saldoActualUSD + porCobrarUSD;

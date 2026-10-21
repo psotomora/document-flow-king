@@ -133,7 +133,7 @@ function PaginaConsolidado() {
     {
       concepto: "Facturas pendientes de cobro",
       valor: facturasPendientesEnUsd,
-      nota: "Solo el saldo sin pagar de cada factura: las ya cobradas aportan cero porque su dinero ya está en el banco.",
+      nota: "Saldo pendiente de Facturas por cobrar; los saldos cero o negativos no aportan al proyectado.",
     },
     {
       concepto: "Pedidos pendientes",
@@ -252,8 +252,8 @@ function PaginaConsolidado() {
       <div className="rounded-lg border border-border bg-card p-5">
         <p className="text-sm font-medium">Cómo se compone el saldo proyectado</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Todos los montos están expresados en dólares. No hay doble conteo: lo ya cobrado se
-          refleja en el banco y desaparece de las cuentas por cobrar.
+          Todos los montos están expresados en dólares. Las facturas aportan únicamente su saldo
+          pendiente; los contratos ya documentados no se suman otra vez.
         </p>
         <div className="mt-4 divide-y divide-border">
           {desglose.map((d) => (

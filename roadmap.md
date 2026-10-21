@@ -1,3 +1,4 @@
+- [x] Alinear Saldo consolidado con el saldo pendiente de Facturas por cobrar; versión 1.38.23. Regresión 19K frente a 9K y 12 pruebas verificadas; pantalla comprobada en demostración, sin acceso al ERP productivo.
 - [x] Diálogos de líneas de pedidos, facturas y contratos redimensionables y descripciones completas al señalar; versión 1.38.18. Arrastre y tooltip verificados en las tres pantallas con respuestas controladas, sin conexión a la API productiva.
 - [x] Agregar privilegio por usuario para editar erogaciones
 - [x] Implementar edición auditada de erogaciones

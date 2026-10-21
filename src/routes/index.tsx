@@ -135,7 +135,7 @@ function Tablero() {
     proyeccion.porCobrarUSD +
     (tipoCambio > 0 ? proyeccion.porCobrarCRC / tipoCambio : 0);
   const facturasPendientes = facturas.filter(
-    (f) => f.saldoPendiente > 0.009 && f.cobrada !== true,
+    (f) => f.saldoPendiente > 0.009,
   );
 
   const distribucion = [
