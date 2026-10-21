@@ -1,3 +1,4 @@
+- [ ] Alinear Saldo consolidado con el saldo pendiente de Facturas por cobrar, probar la regresión de 19K USD y actualizar versiones.
 - [x] Diálogos de líneas de pedidos, facturas y contratos redimensionables y descripciones completas al señalar; versión 1.38.18. Arrastre y tooltip verificados en las tres pantallas con respuestas controladas, sin conexión a la API productiva.
 - [x] Agregar privilegio por usuario para editar erogaciones
 - [x] Implementar edición auditada de erogaciones
