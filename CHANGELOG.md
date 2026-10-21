@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.25 — 2026-10-21
+- Menú reorganizado: Tablero queda como opción independiente; Operación agrupa Pedidos pendientes, Contratos, Facturas por cobrar, Pagos recibidos, Documentos por pagar y Erogaciones; Proyección conserva Proyección de cobros; el nuevo grupo Información reúne Saldo por banco, Saldo consolidado y Reporte de documentos.
+- Carga inicial ya no aparece en el menú: se accede desde una tarjeta al final de Parámetros.
+
 ## 1.38.24 — 2026-10-21
 - Envío de estados de cuenta: la ventana crece con el contenido dentro del ancho disponible; los clientes largos se muestran completos en varias líneas sin desbordar los campos.
 - El listado de clientes respeta el ancho disponible y la ventana permite desplazamiento vertical cuando supera la altura de pantalla.

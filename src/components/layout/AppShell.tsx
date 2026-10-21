@@ -16,7 +16,6 @@ import {
   Settings2,
   ShoppingCart,
   TrendingUp,
-  Upload,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
@@ -42,26 +41,33 @@ import {
   type EstadoLicencia,
 } from "@/lib/licencia";
 import logoAplix from "@/assets/aplix-isotipo.png";
+// El grupo null se muestra sin encabezado (opción independiente).
 const navegacion = [
+  {
+    grupo: null,
+    items: [{ to: "/", etiqueta: "Tablero", icono: BarChart3 }],
+  },
   {
     grupo: "Operación",
     items: [
-      { to: "/", etiqueta: "Tablero", icono: BarChart3 },
+      { to: "/pedidos", etiqueta: "Pedidos pendientes", icono: ShoppingCart },
+      { to: "/contratos", etiqueta: "Contratos", icono: CalendarClock },
       { to: "/facturas", etiqueta: "Facturas por cobrar", icono: FileText },
       { to: "/pagos", etiqueta: "Pagos recibidos", icono: Receipt },
-      { to: "/erogaciones", etiqueta: "Erogaciones", icono: Banknote },
       { to: "/documentos-pagar", etiqueta: "Documentos por pagar", icono: Receipt },
-      { to: "/documentos-cobrar", etiqueta: "Reporte de documentos", icono: FileText },
-      { to: "/bancos", etiqueta: "Saldo por banco", icono: Landmark },
+      { to: "/erogaciones", etiqueta: "Erogaciones", icono: Banknote },
     ],
   },
   {
     grupo: "Proyección",
+    items: [{ to: "/proyeccion", etiqueta: "Proyección de cobros", icono: TrendingUp }],
+  },
+  {
+    grupo: "Información",
     items: [
-      { to: "/proyeccion", etiqueta: "Proyección de cobros", icono: TrendingUp },
-      { to: "/contratos", etiqueta: "Contratos", icono: CalendarClock },
-      { to: "/pedidos", etiqueta: "Pedidos pendientes", icono: ShoppingCart },
+      { to: "/bancos", etiqueta: "Saldo por banco", icono: Landmark },
       { to: "/consolidado", etiqueta: "Saldo consolidado", icono: PiggyBank },
+      { to: "/documentos-cobrar", etiqueta: "Reporte de documentos", icono: FileText },
     ],
   },
   {
@@ -70,7 +76,6 @@ const navegacion = [
       { to: "/catalogos", etiqueta: "Catálogos", icono: Building2 },
       { to: "/parametros", etiqueta: "Parámetros", icono: Settings2 },
       { to: "/bitacora", etiqueta: "Bitácora", icono: BookLock },
-      { to: "/importar", etiqueta: "Carga inicial", icono: Upload },
       { to: "/acceso", etiqueta: "Usuarios y perfiles", icono: FileSpreadsheet },
     ],
   },
@@ -165,10 +170,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4">
           {secciones.map((seccion) => (
-            <div key={seccion.grupo}>
-              <p className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
-                {seccion.grupo}
-              </p>
+            <div key={seccion.grupo ?? "tablero"}>
+              {seccion.grupo ? (
+                <p className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
+                  {seccion.grupo}
+                </p>
+              ) : null}
               <ul className="space-y-0.5">
                 {seccion.items.filter(rutaVisible).map((item) => {
                   const activo =
