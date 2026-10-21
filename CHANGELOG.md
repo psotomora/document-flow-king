@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.24 — 2026-10-21
+- Envío de estados de cuenta: la ventana crece con el contenido dentro del ancho disponible; los clientes largos se muestran completos en varias líneas sin desbordar los campos.
+- El listado de clientes respeta el ancho disponible y la ventana permite desplazamiento vertical cuando supera la altura de pantalla.
+
 ## 1.38.23 — 2026-10-21
 - Saldo consolidado usa el saldo pendiente de Facturas por cobrar por moneda, sin descartar facturas por la marca Cobrada del ERP.
 - Los saldos cero o negativos no aportan al proyectado; se mantienen los pagos locales, la conversión de colones y las reglas de pedidos y contratos.

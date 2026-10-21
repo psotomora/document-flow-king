@@ -14,4 +14,5 @@ Monthly contract document matching lives in contratosPorFacturarDelMes; totals, 
 Password recovery must persist the temporary password only after SMTP accepts the email, preserving existing credentials on send failures; the isolated API regression harness links the production endpoint to test doubles without touching real accounts.
 Browser and iOS icons are served from public assets with BASE_URL-prefixed head links, including a multi-resolution ICO fallback, so subfolder deployments never select another application's root-domain icon.
 Table detail dialogs opt into the shared DialogContent resize control and use DescripcionTabla for full-text tooltips, keeping sizing and description behavior consistent without changing form dialogs.
+The account-statement form dialog uses content-driven width capped by the viewport and wrapping client labels, so long names cannot push fields outside the window.
 Receivable projections use calcularSaldoProyectado with the same calculated invoice balances as invoice listings; keep aggregation in the shared calculation module so dashboard, consolidated detail and exports cannot diverge.
