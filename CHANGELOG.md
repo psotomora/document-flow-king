@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.22 - 2026-10-21
+- Comparativo anual: un rango de fechas incompleto se completa con 1 de enero a hoy, evitando comparar el mismo periodo dos veces.
+
 ## 1.38.21 — 2026-10-20
 - Nueva opción «Al día de hoy» en los filtros de fecha de todas las pantallas, antes de Rango de fechas: abarca desde el 1 de enero del año en curso hasta la fecha actual.
 

@@ -72,7 +72,12 @@ const restarAnio = (iso: string) => {
 };
 
 function calcularRangos(periodo: Periodo, hoyIso: string, desde: string, hasta: string) {
-  const actual = rangoPeriodo(periodo, hoyIso, desde, hasta);
+  const r = rangoPeriodo(periodo, hoyIso, desde, hasta);
+  // Un rango incompleto se completa con "1 de enero a hoy" para no traslapar ambos años.
+  const actual = {
+    desde: r.desde || `${hoyIso.slice(0, 4)}-01-01`,
+    hasta: r.hasta || hoyIso.slice(0, 10),
+  };
   return {
     actual,
     anterior: { desde: restarAnio(actual.desde), hasta: restarAnio(actual.hasta) },
