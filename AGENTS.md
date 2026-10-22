@@ -16,3 +16,4 @@ Browser and iOS icons are served from public assets with BASE_URL-prefixed head 
 Table detail dialogs opt into the shared DialogContent resize control and use DescripcionTabla for full-text tooltips, keeping sizing and description behavior consistent without changing form dialogs.
 The account-statement form dialog uses content-driven width capped by the viewport and wrapping client labels, so long names cannot push fields outside the window.
 Receivable projections use calcularSaldoProyectado with the same calculated invoice balances as invoice listings; keep aggregation in the shared calculation module so dashboard, consolidated detail and exports cannot diverge.
+- Column visibility/order is handled centrally in src/components/ui/table.tsx (header labels identify columns, rows reorder children); new grids get it automatically, keep one header cell per body cell.
