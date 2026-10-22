@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.26 — 2026-10-22
+- Todas las tablas incluyen el botón «Columnas» para mostrar u ocultar columnas y cambiar su orden; se guarda como preferencia del usuario.
+
 ## 1.38.25 — 2026-10-21
 - Menú reorganizado: Tablero queda como opción independiente; Operación agrupa Pedidos pendientes, Contratos, Facturas por cobrar, Pagos recibidos, Documentos por pagar y Erogaciones; Proyección conserva Proyección de cobros; el nuevo grupo Información reúne Saldo por banco, Saldo consolidado y Reporte de documentos.
 - Carga inicial ya no aparece en el menú: se accede desde una tarjeta al final de Parámetros.
