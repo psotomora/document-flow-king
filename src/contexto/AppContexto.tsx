@@ -1461,3 +1461,8 @@ export function filtrarPorCompania<T extends { companiaId: string }>(
 }
 
 export const usuariosDemo = semilla.usuarios;
+
+/** Acceso opcional al estado: devuelve null fuera de ProveedorApp. */
+export function useAppOpcional(): EstadoApp | null {
+  return useContext(Contexto);
+}
