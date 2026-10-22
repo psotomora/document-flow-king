@@ -14,12 +14,12 @@ export function SelectorColumnas({
   onCambio: (c: ConfigColumnas | null) => void;
 }) {
   const ocultas = config?.ocultas ?? [];
-  const orden = permutacionColumnas(etiquetas, { orden: config?.orden ?? [], ocultas: [] }).map((i) => etiquetas[i]);
+  const orden = permutacionColumnas(etiquetas, { orden: config?.orden ?? [], ocultas: [] }).map((i) => etiquetas[i] ?? "");
   const mover = (i: number, d: number) => {
     const n = [...orden];
     const j = i + d;
     if (j < 0 || j >= n.length) return;
-    [n[i], n[j]] = [n[j], n[i]];
+    const t = n[i]!; n[i] = n[j]!; n[j] = t;
     onCambio({ orden: n, ocultas });
   };
   const alternar = (e: string, visible: boolean) => {

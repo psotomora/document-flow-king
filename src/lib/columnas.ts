@@ -43,10 +43,10 @@ export function permutacionColumnas(etiquetas: string[], cfg: ConfigColumnas | n
   const idx = etiquetas.map((_, i) => i);
   if (!cfg) return idx;
   const pos = (i: number) => {
-    const p = cfg.orden.indexOf(etiquetas[i]);
+    const p = cfg.orden.indexOf(etiquetas[i] ?? "");
     return p === -1 ? cfg.orden.length + i : p;
   };
-  const visibles = idx.filter((i) => !cfg.ocultas.includes(etiquetas[i]));
+  const visibles = idx.filter((i) => !cfg.ocultas.includes(etiquetas[i] ?? ""));
   const res = (visibles.length ? visibles : idx).sort((a, b) => pos(a) - pos(b));
   return res;
 }
