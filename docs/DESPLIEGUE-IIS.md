@@ -345,7 +345,11 @@ antiguas guardadas en `flujo.apiUrl`.
 
 1. Abra la aplicación (`http://SRV-APP` o `https://apps.aplix.cr/cashflow`).
 2. Abra `https://apps.aplix.cr/api/salud` y confirme `estado: "ok"`.
-   Los controles de dirección solo existen en desarrollo; producción no los muestra.
+   El ingreso no muestra controles de dirección en ningún modo. Desde 1.38.33,
+   desarrollo también usa `/api` automáticamente; si ejecuta la web en localhost
+   y la API en otro puerto, configure `VITE_API_URL=http://localhost:5080/api`
+   en `.env.local` antes de iniciar la web. La API debe estar encendida y permitir
+   el origen local. La demostración se elige con el interruptor del ingreso.
 3. Inicie sesión con el usuario administrador creado por
    `02_datos_iniciales.sql` / `04_seguridad.sql` y cambie su contraseña.
 4. Verifique: Tablero, Bancos, Parámetros (tipo de cambio) y creación de un

@@ -68,8 +68,8 @@ export function ConexionApi() {
         <DialogHeader>
           <DialogTitle>Origen de datos</DialogTitle>
           <DialogDescription>
-            Sin URL configurada la aplicación usa datos de prueba en memoria. Indique la URL de
-            la API .NET para trabajar contra SQL Server.
+            La conexión usa /api del mismo dominio por defecto. Puede indicar una dirección
+            alternativa para su entorno de desarrollo.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
@@ -94,7 +94,7 @@ export function ConexionApi() {
               window.location.reload();
             }}
           >
-            Usar datos de prueba
+            Usar conexión automática
           </Button>
           <Button onClick={guardar} disabled={!url.trim() || probando}>
             {probando && <Loader2 className="size-4 animate-spin" aria-hidden />}

@@ -5,7 +5,8 @@
  * (por ejemplo `https://flujo.miempresa.local/api`). En producción, sin esa
  * variable, usa /api del mismo dominio e ignora direcciones antiguas del navegador.
  *
- * Solo en desarrollo se admite una URL local o, sin configuración, modo demo.
+ * Desarrollo también usa /api por defecto y admite una URL local alternativa.
+ * La demostración se elige explícitamente en el ingreso.
  */
 
 import { resolverUrlApi } from "./configuracion-api";

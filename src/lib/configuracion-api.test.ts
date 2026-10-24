@@ -11,8 +11,14 @@ test("limpiar el navegador no cambia la dirección de producción", () => {
 test("la configuración del despliegue tiene prioridad sobre la del navegador", () => {
   assert.equal(resolverUrlApi({ desarrollo: false, origen: "https://apps.aplix.cr", configurada: "https://api.ejemplo.com/api/", local: "http://localhost:5080/api" }), "https://api.ejemplo.com/api");
 });
-test("desarrollo sin configuración conserva la demostración", () => {
-  assert.equal(resolverUrlApi({ desarrollo: true, origen: "http://localhost:8080" }), "");
+test("desarrollo sin configuración también resuelve /api automáticamente", () => {
+  assert.equal(resolverUrlApi({ desarrollo: true, origen: "http://localhost:8080" }), "http://localhost:8080/api");
+});
+test("apps.aplix.cr resuelve la API incluso cuando se ejecuta en modo desarrollo", () => {
+  assert.equal(resolverUrlApi({ desarrollo: true, origen: "https://apps.aplix.cr" }), "https://apps.aplix.cr/api");
+});
+test("sin origen durante renderizado resuelve una ruta estable", () => {
+  assert.equal(resolverUrlApi({ desarrollo: true }), "/api");
 });
 test("desarrollo permite una dirección local y prioriza VITE_API_URL", () => {
   assert.equal(resolverUrlApi({ desarrollo: true, origen: "http://localhost:8080", local: "api/" }), "http://localhost:8080/api");

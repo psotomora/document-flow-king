@@ -4,20 +4,18 @@ import {
   FileText,
   Loader2,
   LockKeyhole,
-  ServerCog,
   ShieldCheck,
   Tag,
   TrendingUp,
 } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
-import { configurarUrlApi, probarConexionApi, recuperarContrasena, urlApi } from "@/lib/api";
+import { recuperarContrasena, urlApi } from "@/lib/api";
 import { APP_FECHA_VERSION, APP_VERSION } from "@/lib/version";
 import { Button } from "@/components/ui/button";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import logoAplix from "@/assets/aplix-isotipo.png";
 import isotipoBlanco from "@/assets/isotipo-blanco.png.asset.json";
 
 // IIS no sirve /__l5e/assets-v1: resolver el puntero desde su origen público.
@@ -38,9 +36,6 @@ export function PantallaLogin() {
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
-  const [servidor, setServidor] = useState(urlApi());
-  const [editandoServidor, setEditandoServidor] = useState(false);
-  const [probandoServidor, setProbandoServidor] = useState(false);
   const [demostracion, setDemostracion] = useState(false);
   const [versionApi, setVersionApi] = useState<string | null>(null);
   const [recuperando, setRecuperando] = useState(false);
@@ -160,11 +155,6 @@ export function PantallaLogin() {
         </div>
       </aside>
       <section aria-label="Ingreso a Flujo de Efectivo" className="flex min-w-0 flex-col items-center justify-center px-4 py-10 sm:px-8">
-      <img
-        src={logoAplix}
-        alt="Aplix"
-        className="mb-4 h-16 w-auto object-contain"
-      />
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="mb-2 flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -292,57 +282,6 @@ export function PantallaLogin() {
             )}
           </form>
 
-
-          {import.meta.env.DEV && <div className="mt-6 border-t pt-4">
-            <Button
-              type="button"
-              variant="ghost"
-              className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-              onClick={() => setEditandoServidor((v) => !v)}
-            >
-              <ServerCog className="size-3.5" aria-hidden />
-              Servidor: {urlApi() || "no configurado"}
-            </Button>
-            {editandoServidor && (
-              <div className="mt-3 space-y-2">
-                <Label htmlFor="servidor" className="text-xs">
-                  URL de la API (por ejemplo http://localhost:5080/api)
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="servidor"
-                    value={servidor}
-                    onChange={(e) => setServidor(e.target.value)}
-                    placeholder="http://localhost:5080/api"
-                  />
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={!servidor.trim() || probandoServidor}
-                    onClick={async () => {
-                      setError(null);
-                      setProbandoServidor(true);
-                      try {
-                        const urlValidada = await probarConexionApi(servidor);
-                        configurarUrlApi(urlValidada);
-                        window.location.reload();
-                      } catch (err) {
-                        setError(
-                          err instanceof Error ? err.message : "No fue posible validar el servidor",
-                        );
-                        setProbandoServidor(false);
-                      }
-                    }}
-                  >
-                    {probandoServidor && (
-                      <Loader2 className="size-4 animate-spin" aria-hidden />
-                    )}
-                    {probandoServidor ? "Probando" : "Guardar"}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>}
 
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
             <Tag className="size-3.5" aria-hidden />
