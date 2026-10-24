@@ -1,5 +1,8 @@
 # Historial de cambios
 
+
+## 1.38.31 — 2026-10-24
+- El ingreso muestra los dos paneles lado a lado desde 640 px de ancho; solo se apilan en celulares.
 ## 1.38.30 — 2026-10-24
 - La pantalla de ingreso muestra el panel azul a la izquierda y el formulario a la derecha desde 768 px de ancho (iPad y laptops con zoom o escala), en lugar de apilarlos.
 
