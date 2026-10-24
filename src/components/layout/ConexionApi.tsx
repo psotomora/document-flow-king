@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 /**
  * Indicador del origen de datos (modo demo en memoria vs API .NET + SQL Server)
- * con un diálogo para configurar la URL de la API en tiempo de ejecución.
+ * con configuración técnica disponible únicamente en desarrollo.
  */
 export function ConexionApi() {
   const { modoApi } = useApp();
@@ -42,6 +42,8 @@ export function ConexionApi() {
       setProbando(false);
     }
   };
+
+  if (!import.meta.env.DEV) return null;
 
   return (
     <Dialog open={abierto} onOpenChange={setAbierto}>
