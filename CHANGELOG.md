@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.34 — 2026-10-24
+- En el ingreso, el estado de la API se muestra en verde con su versión cuando está conectada y en rojo «API no conectada» cuando no responde. Sin cambios en API ni SQL.
+
 ## 1.38.33 — 2026-10-24
 - Corregido el caso sin configuración en desarrollo: también se usa `/api` del mismo dominio, en vez de impedir el ingreso por falta de VITE_API_URL.
 - Retirados el logo encima de la tarjeta y el editor de servidor del ingreso; se conserva la identidad del panel azul.

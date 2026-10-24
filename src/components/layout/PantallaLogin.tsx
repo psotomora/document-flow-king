@@ -289,8 +289,11 @@ export function PantallaLogin() {
               Versión app {APP_VERSION} — {APP_FECHA_VERSION}
             </span>
             <span aria-hidden>·</span>
-            <span>
-              {versionApi ? `Versión API ${versionApi}` : "API no detectada"}
+            <span
+              role="status"
+              className={versionApi ? "font-medium text-exito" : "font-semibold text-destructive"}
+            >
+              {versionApi ? `API conectada · versión ${versionApi}` : "API no conectada"}
             </span>
           </div>
         </CardContent>
