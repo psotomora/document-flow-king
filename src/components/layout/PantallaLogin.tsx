@@ -1,5 +1,14 @@
 import { useEffect, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Loader2, LockKeyhole, ServerCog, Tag } from "lucide-react";
+import {
+  ClipboardList,
+  FileText,
+  Loader2,
+  LockKeyhole,
+  ServerCog,
+  ShieldCheck,
+  Tag,
+  TrendingUp,
+} from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
 import { configurarUrlApi, probarConexionApi, recuperarContrasena, urlApi } from "@/lib/api";
 import { APP_FECHA_VERSION, APP_VERSION } from "@/lib/version";
@@ -92,14 +101,59 @@ export function PantallaLogin() {
 
   return (
     <main className="grid min-h-screen bg-muted/40 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-      <aside className="relative flex items-center justify-center overflow-hidden bg-sidebar px-6 py-10 lg:sticky lg:top-0 lg:h-screen lg:py-16">
-        <div className="relative z-10 flex min-w-0 flex-col items-center text-center">
+      <aside className="relative flex flex-col overflow-hidden bg-sidebar px-6 py-6 text-sidebar-foreground lg:sticky lg:top-0 lg:h-screen lg:py-8">
+        {/* Aro decorativo en la esquina superior derecha. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-24 -top-36 z-0 size-96 rounded-full border-[30px] border-sidebar-accent/60"
+        />
+
+        {/* Marca de la aplicación con su versión, en la esquina superior izquierda. */}
+        <div className="relative z-10 flex items-center gap-2.5">
+          <img src={isotipoBlanco.url} alt="" className="h-8 w-8 shrink-0 object-contain" />
+          <div className="min-w-0 leading-tight">
+            <p className="text-sm text-sidebar-foreground/80">
+              Aplix <span className="font-semibold text-sidebar-foreground">Cash Flow Insights</span>
+            </p>
+            <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/70">
+              Flujo de efectivo
+            </p>
+            <p className="mt-1 flex items-center gap-1 text-[10px] text-sidebar-foreground/60">
+              <ClipboardList className="size-3" aria-hidden />
+              v{APP_VERSION}
+            </p>
+          </div>
+        </div>
+
+        {/* Isotipo y textos de la suite, centrados en el panel. */}
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-12 text-center">
           <div className="relative flex h-40 w-40 items-center justify-center">
             <div aria-hidden className="absolute inset-0 rounded-full bg-sidebar-primary/30 blur-3xl" />
             <img src={isotipoBlanco.url} alt="" className="relative h-28 w-28 object-contain" />
           </div>
           <p className="mt-4 font-display text-4xl font-bold text-sidebar-foreground">Aplix Apps</p>
           <p className="mt-1 text-sm font-medium uppercase text-sidebar-foreground">Suite de Productividad</p>
+        </div>
+
+        {/* Bajada con los puntos fuertes de la aplicación, al pie del panel. */}
+        <div className="relative z-10 max-w-sm pb-2 lg:pb-4">
+          <p className="font-display text-[26px] font-bold leading-tight">
+            Cada cobro, pago y contrato, proyectados en un solo lugar.
+          </p>
+          <ul className="mt-4 space-y-2.5">
+            <li className="flex items-start gap-2.5 text-sm text-sidebar-foreground/90">
+              <FileText className="mt-0.5 size-4 shrink-0 text-sidebar-foreground/70" aria-hidden />
+              <span>Lee facturas, pedidos y contratos del ERP Softland</span>
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-sidebar-foreground/90">
+              <TrendingUp className="mt-0.5 size-4 shrink-0 text-sidebar-foreground/70" aria-hidden />
+              <span>Proyecta el saldo por cobrar y el flujo del mes</span>
+            </li>
+            <li className="flex items-start gap-2.5 text-sm text-sidebar-foreground/90">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-sidebar-foreground/70" aria-hidden />
+              <span>Concilia estados de cuenta y deja bitácora de todo</span>
+            </li>
+          </ul>
         </div>
       </aside>
       <section aria-label="Ingreso a Flujo de Efectivo" className="flex min-w-0 flex-col items-center justify-center px-4 py-10 sm:px-8">
