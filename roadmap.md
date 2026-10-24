@@ -1,3 +1,4 @@
+- [ ] Agregar identidad Aplix al ingreso y verificar imagen, formulario y disposición; versión 1.38.27.
 - [x] Ampliar automáticamente la ventana de estados de cuenta; versión 1.38.24. Nombre de cliente de la imagen, campos, descarga PDF y cierre comprobados en demostración a 1280, 777 y 390 px; falta actualizar IIS.
 - [x] Alinear Saldo consolidado con el saldo pendiente de Facturas por cobrar; versión 1.38.23. Regresión 19K frente a 9K y 12 pruebas verificadas; pantalla comprobada en demostración, sin acceso al ERP productivo.
 - [x] Diálogos de líneas de pedidos, facturas y contratos redimensionables y descripciones completas al señalar; versión 1.38.18. Arrastre y tooltip verificados en las tres pantallas con respuestas controladas, sin conexión a la API productiva.

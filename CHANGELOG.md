@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.27 — 2026-10-24
+- Pantalla de ingreso con panel azul izquierdo, isotipo blanco con halo y textos «Aplix Apps» y «Suite de Productividad»; en pantallas estrechas se muestra encima del formulario.
+- Se conservan los campos, modo demostración, recuperación de contraseña, servidor e íconos de Safari/iOS.
+
 ## 1.38.26 — 2026-10-22
 - Todas las tablas incluyen el botón «Columnas» para mostrar u ocultar columnas y cambiar su orden; se guarda como preferencia del usuario.
 

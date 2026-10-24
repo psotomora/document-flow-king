@@ -67,6 +67,7 @@
   --color-advertencia-suave: var(--advertencia-suave);
   --color-destructive-suave: var(--destructive-suave);
   --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 

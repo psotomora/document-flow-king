@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import logoAplix from "@/assets/aplix-isotipo.png";
+import isotipoBlanco from "@/assets/isotipo-blanco.png.asset.json";
 
 import {
   Card,
@@ -90,7 +91,18 @@ export function PantallaLogin() {
 
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-muted/40 px-4 py-10">
+    <main className="grid min-h-screen bg-muted/40 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <aside className="relative flex items-center justify-center overflow-hidden bg-sidebar px-6 py-10 lg:sticky lg:top-0 lg:h-screen lg:py-16">
+        <div className="relative z-10 flex min-w-0 flex-col items-center text-center">
+          <div className="relative flex h-40 w-40 items-center justify-center">
+            <div aria-hidden className="absolute inset-0 rounded-full bg-sidebar-primary/30 blur-3xl" />
+            <img src={isotipoBlanco.url} alt="" className="relative h-28 w-28 object-contain" />
+          </div>
+          <p className="mt-4 font-display text-4xl font-bold text-sidebar-foreground">Aplix Apps</p>
+          <p className="mt-1 text-sm font-medium uppercase text-sidebar-foreground">Suite de Productividad</p>
+        </div>
+      </aside>
+      <section aria-label="Ingreso a Flujo de Efectivo" className="flex min-w-0 flex-col items-center justify-center px-4 py-10 sm:px-8">
       <img
         src={logoAplix}
         alt="Aplix"
@@ -286,6 +298,7 @@ export function PantallaLogin() {
           </div>
         </CardContent>
       </Card>
+      </section>
     </main>
   );
 }
