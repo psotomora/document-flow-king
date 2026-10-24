@@ -35,6 +35,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 import { VersionApp } from "@/components/layout/VersionApp";
+import { ConexionApi } from "@/components/layout/ConexionApi";
 import {
   estadoLicencia,
   licenciaDisponible,
@@ -288,6 +289,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <ConexionApi />
             {modoApi ? (
               <div className="flex flex-col items-end leading-tight">
                 <span className="text-xs font-medium text-foreground">{usuario.nombre}</span>

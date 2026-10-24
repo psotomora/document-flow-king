@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.35 — 2026-10-24
+- Solo en desarrollo (`npm run dev`): botón discreto en el ingreso y en el encabezado para cambiar y probar la dirección de la API local. No aparece en la compilación de producción. Sin cambios en API ni SQL.
+
 ## 1.38.34 — 2026-10-24
 - En el ingreso, el estado de la API se muestra en verde con su versión cuando está conectada y en rojo «API no conectada» cuando no responde. Sin cambios en API ni SQL.
 
