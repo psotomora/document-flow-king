@@ -20,6 +20,9 @@ import { Switch } from "@/components/ui/switch";
 import logoAplix from "@/assets/aplix-isotipo.png";
 import isotipoBlanco from "@/assets/isotipo-blanco.png.asset.json";
 
+// IIS no sirve /__l5e/assets-v1: resolver el puntero desde su origen público.
+const isotipoBlancoUrl = new URL(isotipoBlanco.url, "https://document-flow-king.lovable.app").href;
+
 import {
   Card,
   CardContent,
@@ -110,7 +113,7 @@ export function PantallaLogin() {
 
         {/* Marca de la aplicación con su versión, en la esquina superior izquierda. */}
         <div className="relative z-10 flex items-center gap-2.5">
-          <img src={isotipoBlanco.url} alt="" className="h-8 w-8 shrink-0 object-contain" />
+          <img src={isotipoBlancoUrl} alt="" className="h-8 w-8 shrink-0 object-contain" />
           <div className="min-w-0 leading-tight">
             <p className="text-sm text-sidebar-foreground/80">
               Aplix <span className="font-semibold text-sidebar-foreground">Cash Flow Insights</span>
@@ -129,7 +132,7 @@ export function PantallaLogin() {
         <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-12 text-center">
           <div className="relative flex h-40 w-40 items-center justify-center">
             <div aria-hidden className="absolute inset-0 rounded-full bg-sidebar-primary/30 blur-3xl" />
-            <img src={isotipoBlanco.url} alt="" className="relative h-28 w-28 object-contain" />
+            <img src={isotipoBlancoUrl} alt="" className="relative h-28 w-28 object-contain" />
           </div>
           <p className="mt-4 font-display text-4xl font-bold text-sidebar-foreground">Aplix Apps</p>
           <p className="mt-1 text-sm font-medium uppercase text-sidebar-foreground">Suite de Productividad</p>
