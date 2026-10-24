@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.29 — 2026-10-24
+- El isotipo blanco del ingreso usa la dirección absoluta del recurso público, evitando solicitar la ruta de assets de Lovable al servidor IIS donde devolvía 404.
+- Se conserva el diseño del ingreso y el logotipo azul empaquetado con la aplicación; no hay cambios funcionales en la API.
+
 ## 1.38.28 — 2026-10-24
 - Panel azul del ingreso igual al de las demás aplicaciones de la suite: marca «Aplix Cash Flow Insights / Flujo de efectivo» con la versión arriba a la izquierda, isotipo con halo y textos «Aplix Apps / Suite de Productividad» centrados, aro decorativo en la esquina y bajada con tres puntos fuertes al pie.
 - El formulario de ingreso y el resto de la pantalla no cambian.

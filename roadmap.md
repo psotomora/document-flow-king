@@ -1,3 +1,4 @@
+- [ ] Corregir imágenes del ingreso en IIS y verificar su carga; versión 1.38.29.
 - [x] Agregar identidad Aplix al ingreso; versión 1.38.27. Isotipo cargado, ingreso en demostración y disposición a 1280 y 390 px comprobados, sin errores ni desborde; falta actualizar IIS.
 - [x] Ampliar automáticamente la ventana de estados de cuenta; versión 1.38.24. Nombre de cliente de la imagen, campos, descarga PDF y cierre comprobados en demostración a 1280, 777 y 390 px; falta actualizar IIS.
 - [x] Alinear Saldo consolidado con el saldo pendiente de Facturas por cobrar; versión 1.38.23. Regresión 19K frente a 9K y 12 pruebas verificadas; pantalla comprobada en demostración, sin acceso al ERP productivo.
