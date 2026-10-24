@@ -2,12 +2,13 @@
  * Cliente HTTP hacia la API .NET (ASP.NET Core) que se conecta a SQL Server.
  *
  * La URL base se toma de la variable de entorno `VITE_API_URL`
- * (por ejemplo `https://flujo.miempresa.local/api`) y puede sobrescribirse en
- * tiempo de ejecución guardando `flujo.apiUrl` en el almacenamiento local.
+ * (por ejemplo `https://flujo.miempresa.local/api`). En producción, sin esa
+ * variable, usa /api del mismo dominio e ignora direcciones antiguas del navegador.
  *
- * Si no hay URL configurada, la aplicación funciona en MODO DEMO con los datos
- * en memoria (útil para la vista previa y para capacitación).
+ * Solo en desarrollo se admite una URL local o, sin configuración, modo demo.
  */
+
+import { resolverUrlApi } from "./configuracion-api";
 
 const ENV_API_URL = (import.meta.env["VITE_API_URL"] as string | undefined) ?? "";
 
@@ -39,21 +40,16 @@ function mensajeServidorNoDisponible(estado: number): string {
 }
 
 export function urlApi(): string {
-  const local = esNavegador() ? (window.localStorage.getItem(CLAVE_URL) ?? "") : "";
-  const original = local || ENV_API_URL;
-  const normalizada = normalizarUrlApi(original);
-
-  // Corrige automáticamente valores antiguos como "api", que el navegador
-  // resolvía de forma relativa a /usuarios y producía /usuarios/api/usuarios.
-  if (esNavegador() && local && normalizada !== local) {
-    window.localStorage.setItem(CLAVE_URL, normalizada);
-  }
-
-  return normalizada;
+  return resolverUrlApi({
+    configurada: ENV_API_URL,
+    desarrollo: import.meta.env.DEV,
+    local: import.meta.env.DEV && esNavegador() ? (window.localStorage.getItem(CLAVE_URL) ?? "") : "",
+    origen: esNavegador() ? window.location.origin : "",
+  });
 }
 
 export function configurarUrlApi(url: string) {
-  if (!esNavegador()) return;
+  if (!import.meta.env.DEV || !esNavegador()) return;
   const limpia = normalizarUrlApi(url);
   if (limpia) window.localStorage.setItem(CLAVE_URL, limpia);
   else window.localStorage.removeItem(CLAVE_URL);

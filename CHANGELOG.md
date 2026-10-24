@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.32 — 2026-10-24
+- Producción usa automáticamente `/api` del mismo dominio, ignorando direcciones antiguas del navegador. Limpiar datos del sitio o recargar no requiere configurar la conexión.
+- `VITE_API_URL`, si se define al compilar, tiene prioridad. Los controles técnicos de conexión solo se muestran en desarrollo.
+- Se conserva la demostración y configuración local en desarrollo. Sin cambios en API ni SQL.
+
 ## 1.38.31 — 2026-10-24
 - El ingreso muestra los dos paneles lado a lado desde 640 px de ancho; solo se apilan en celulares.
 

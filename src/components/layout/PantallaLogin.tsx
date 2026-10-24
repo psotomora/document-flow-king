@@ -293,15 +293,16 @@ export function PantallaLogin() {
           </form>
 
 
-          <div className="mt-6 border-t pt-4">
-            <button
+          {import.meta.env.DEV && <div className="mt-6 border-t pt-4">
+            <Button
               type="button"
+              variant="ghost"
               className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
               onClick={() => setEditandoServidor((v) => !v)}
             >
               <ServerCog className="size-3.5" aria-hidden />
               Servidor: {urlApi() || "no configurado"}
-            </button>
+            </Button>
             {editandoServidor && (
               <div className="mt-3 space-y-2">
                 <Label htmlFor="servidor" className="text-xs">
@@ -341,7 +342,7 @@ export function PantallaLogin() {
                 </div>
               </div>
             )}
-          </div>
+          </div>}
 
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
             <Tag className="size-3.5" aria-hidden />
