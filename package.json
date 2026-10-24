@@ -5,7 +5,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -n web,api -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
+    "dev": "concurrently -n web,api -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
     "build": "vite build",
     "build:node": "vite build && node scripts/verificar-build-node.mjs",
     "verificar:node": "node scripts/verificar-build-node.mjs",
