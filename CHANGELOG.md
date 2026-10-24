@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.36 — 2026-10-24
+- `npm run dev` levanta en una sola consola la aplicación web (8080) y la API .NET local (5080); Ctrl+C detiene ambas. Si no hay SDK de .NET, solo arranca la web.
+- Nuevos comandos: `dev:web`, `dev:api`, `build:api` (publica la API en `publicar/api`) y `build:all`.
+- La publicación en producción no cambia. Sin cambios en API ni SQL.
+
 ## 1.38.35 — 2026-10-24
 - Solo en desarrollo (`npm run dev`): botón discreto en el ingreso y en el encabezado para cambiar y probar la dirección de la API local. No aparece en la compilación de producción. Sin cambios en API ni SQL.
 

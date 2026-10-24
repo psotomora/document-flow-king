@@ -1,18 +1,22 @@
 {
   "name": "tanstack_start_ts",
-  "version": "1.38.35",
+  "version": "1.38.36",
   "private": true,
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "concurrently -n web,api -c cyan,magenta \"npm:dev:web\" \"npm:dev:api\"",
     "build": "vite build",
     "build:node": "vite build && node scripts/verificar-build-node.mjs",
     "verificar:node": "node scripts/verificar-build-node.mjs",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "dev:web": "vite dev",
+    "dev:api": "node scripts/dev-api.mjs",
+    "build:api": "dotnet publish api/FlujoEfectivo.Api -c Release -o publicar/api",
+    "build:all": "npm run build:node && npm run build:api"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -81,6 +85,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "concurrently": "^10.0.6",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",
