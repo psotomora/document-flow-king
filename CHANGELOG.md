@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.33 — 2026-10-24
+- Corregido el caso sin configuración en desarrollo: también se usa `/api` del mismo dominio, en vez de impedir el ingreso por falta de VITE_API_URL.
+- Retirados el logo encima de la tarjeta y el editor de servidor del ingreso; se conserva la identidad del panel azul.
+- La demostración sigue disponible con su interruptor. Sin cambios en API ni SQL.
+
 ## 1.38.32 — 2026-10-24
 - Producción usa automáticamente `/api` del mismo dominio, ignorando direcciones antiguas del navegador. Limpiar datos del sitio o recargar no requiere configurar la conexión.
 - `VITE_API_URL`, si se define al compilar, tiene prioridad. Los controles técnicos de conexión solo se muestran en desarrollo.
