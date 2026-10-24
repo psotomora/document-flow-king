@@ -251,13 +251,12 @@ npm run build:node
 >      esta aplicación usa otro). **No** agregue reglas generales ni la regla
 >      `ApiReverseProxy` a ese sitio compartido: capturarían `/api` de las
 >      demás aplicaciones.
->   3. La API .NET NO se publica dentro de `apps.aplix.cr`; los usuarios la
->      apuntan desde la pantalla de inicio de sesión (campo *Servidor*, por
->      ejemplo `http://flujoefectivo.local/api`). Esa dirección queda guardada
->      en el navegador de cada usuario.
->   4. En `appsettings.Production.json` de la API agregue
->      `https://apps.aplix.cr` a `Cors:Origenes` y reinicie el grupo de
->      aplicaciones de la API; sin esto el navegador bloquea las llamadas.
+>   3. La API .NET está publicada en `https://apps.aplix.cr/api`. La aplicación
+>      detecta `/api` del mismo dominio automáticamente; no se configura en
+>      cada navegador y limpiar los datos del sitio no altera la conexión.
+>   4. Mantenga `/api` fuera del proxy de la aplicación web. Para una API en
+>      otro dominio, configure `VITE_API_URL` al compilar y permita el origen
+>      web en `Cors:Origenes` de la API.
 >
 > **MUY IMPORTANTE — archivos en subcarpeta.** Desde la versión 1.36.16, la
 > compilación configura la misma ruta `/cashflow` tanto para Vite como para
@@ -336,19 +335,17 @@ Abra `http://SRV-APP` desde otro equipo: debe cargar la pantalla de inicio de se
 
 ---
 
-## 4. Registrar la URL de la API y verificar
+## 4. Conexión automática con la API y verificación
 
-La aplicación web y la API son dos sitios distintos: cada navegador debe saber
-dónde está la API. La dirección se registra una sola vez por navegador.
+Desde 1.38.32, producción usa `/api` del mismo dominio automáticamente.
+En `https://apps.aplix.cr/cashflow` conecta con `https://apps.aplix.cr/api`.
+No se guarda la dirección en el navegador; Ctrl+F5, modo privado o limpiar
+los datos del sitio no requieren volver a digitarla. Se ignoran direcciones
+antiguas guardadas en `flujo.apiUrl`.
 
 1. Abra la aplicación (`http://SRV-APP` o `https://apps.aplix.cr/cashflow`).
-2. En la pantalla de inicio de sesión, al pie, donde dice **Servidor**, escriba
-   la dirección de la API y presione **Guardar**. La aplicación prueba
-   `/salud` antes de aceptarla.
-   - Debe terminar en **`/api`**, por ejemplo `https://apps.aplix.cr/api` o
-     `http://SRV-APP:5080/api`.
-   - Debe ser una dirección **alcanzable desde el equipo del usuario**, nunca
-     `localhost`.
+2. Abra `https://apps.aplix.cr/api/salud` y confirme `estado: "ok"`.
+   Los controles de dirección solo existen en desarrollo; producción no los muestra.
 3. Inicie sesión con el usuario administrador creado por
    `02_datos_iniciales.sql` / `04_seguridad.sql` y cambie su contraseña.
 4. Verifique: Tablero, Bancos, Parámetros (tipo de cambio) y creación de un
@@ -358,9 +355,17 @@ dónde está la API. La dirección se registra una sola vez por navegador.
 
 ### 4.1 Reglas que debe cumplir la dirección
 
-| Situación | Dirección a registrar | Requisito |
+Si la API está en otro dominio o puerto, defina `VITE_API_URL` en `.env.production`
+de la máquina de compilación (por ejemplo `VITE_API_URL=https://api.suempresa.com/api`)
+y vuelva a ejecutar `npm run build:node`. Vite incorpora ese valor al compilar:
+no es una variable que se pueda cambiar solo reiniciando NSSM. Para el despliegue
+habitual en apps.aplix.cr, deje la variable sin definir (quite cualquier valor
+antiguo de `.env` o `.env.production`). Esta dirección es pública, no una credencial.
+Esto resuelve la conexión, pero no implementa aislamiento multitenant.
+
+| Situación | Dirección del despliegue | Requisito |
 | --- | --- | --- |
-| API en su propio puerto | `http://SRV-APP:5080/api` | Puerto abierto en el firewall |
+| API en su propio puerto | `VITE_API_URL=http://SRV-APP:5080/api` | Configurar al compilar y abrir el puerto |
 | API como aplicación virtual del mismo sitio | `https://apps.aplix.cr/api` | Regla `Api` con `<action type="None" />` antes del proxy |
 | Aplicación publicada en HTTPS | **La API también debe ser HTTPS** | El navegador bloquea llamadas HTTP desde una página HTTPS |
 
@@ -369,8 +374,7 @@ dónde está la API. La dirección se registra una sola vez por navegador.
   (por ejemplo `https://apps.aplix.cr`), sin barra final. Reinicie el grupo de
   aplicaciones de la API tras cambiarla.
 - **Comprobación**: abra `https://apps.aplix.cr/api/salud` en el navegador; debe
-  devolver un JSON con `"estado": "ok"`. Si eso responde, el campo *Servidor*
-  aceptará la misma dirección.
+  devolver un JSON con `"estado": "ok"`. La aplicación usará esa dirección automáticamente.
 
 > Si publica la API como aplicación virtual `/api` dentro del sitio web
 > (IIS Manager → clic derecho en el sitio → *Agregar aplicación*, alias `api`,
@@ -387,7 +391,7 @@ dónde está la API. La dirección se registra una sola vez por navegador.
 1. IIS Manager → nodo del servidor → *Certificados de servidor* → importar el certificado (.pfx) o solicitar uno.
 2. En cada sitio → *Enlaces* → agregar `https` con el certificado.
 3. Actualice `Cors:Origenes` en `appsettings.Production.json` con la URL `https://...` y reinicie el grupo de aplicaciones de la API.
-4. Use la URL `https` de la API en la pantalla de conexión.
+4. Si la API está en otro origen, use su URL `https` en `VITE_API_URL` al compilar.
 
 ---
 
@@ -429,8 +433,8 @@ Los usuarios deben refrescar con **Ctrl+F5**.
 | Web: 502.3 / 404 al abrir | Servicio Node detenido o proxy ARR no habilitado | `nssm status FlujoEfectivoWeb`, paso 0.4 |
 | Web: refrescar `/facturas` da 404 | `web.config` no está en la raíz del sitio | Copiar `public\web.config` |
 | Web: sin estilos y 404 en `/cashflow/assets/*` | Se compiló sin la ruta base | Compilar con `ruta-base.txt` = `/cashflow` (debe leerse `[vite] Ruta base de la aplicación: /cashflow`), copiar toda `.output` y reiniciar el servicio |
-| Web: "Mixed Content" o la API no responde en HTTPS | Sitio en `https` llamando una API en `http` | Publicar la API por HTTPS y registrar `https://.../api` en el campo *Servidor* |
-| Web: campo *Servidor* rechaza la dirección | Falta el sufijo `/api` o `/salud` no responde | Probar `.../api/salud` en el navegador antes de guardar |
+| Web: "Mixed Content" o la API no responde en HTTPS | `VITE_API_URL` apunta a HTTP desde HTTPS | Corregir la variable a HTTPS al compilar o quitarla para usar `/api` del mismo origen |
+| Web: API no detectada | `/api/salud` no responde o el proxy captura `/api` | Verificar `/api/salud` y que IIS no lo reenvíe a Node |
 
 ## Licenciamiento (1.36.0)
 
