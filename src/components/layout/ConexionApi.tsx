@@ -55,7 +55,7 @@ export function ConexionApi() {
           title="Configurar conexión a SQL Server"
         >
           {modoApi ? (
-            <Database className="size-4 text-success" />
+            <Database className="size-4 text-exito" />
           ) : (
             <HardDrive className="size-4 text-muted-foreground" />
           )}

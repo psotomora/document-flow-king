@@ -9,6 +9,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useApp } from "@/contexto/AppContexto";
+import { ConexionApi } from "@/components/layout/ConexionApi";
 import { recuperarContrasena, urlApi } from "@/lib/api";
 import { APP_FECHA_VERSION, APP_VERSION } from "@/lib/version";
 import { Button } from "@/components/ui/button";
@@ -295,6 +296,7 @@ export function PantallaLogin() {
             >
               {versionApi ? `API conectada · versión ${versionApi}` : "API no conectada"}
             </span>
+            <ConexionApi />
           </div>
         </CardContent>
       </Card>
