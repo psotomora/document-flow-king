@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.30 — 2026-10-24
+- La pantalla de ingreso muestra el panel azul a la izquierda y el formulario a la derecha desde 768 px de ancho (iPad y laptops con zoom o escala), en lugar de apilarlos.
+
 ## 1.38.29 — 2026-10-24
 - El isotipo blanco del ingreso usa la dirección absoluta del recurso público, evitando solicitar la ruta de assets de Lovable al servidor IIS donde devolvía 404.
 - Se conserva el diseño del ingreso y el logotipo azul empaquetado con la aplicación; no hay cambios funcionales en la API.

@@ -103,8 +103,8 @@ export function PantallaLogin() {
 
 
   return (
-    <main className="grid min-h-screen bg-muted/40 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-      <aside className="relative flex flex-col overflow-hidden bg-sidebar px-6 py-6 text-sidebar-foreground lg:sticky lg:top-0 lg:h-screen lg:py-8">
+    <main className="grid min-h-screen bg-muted/40 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <aside className="relative flex flex-col overflow-hidden bg-sidebar px-6 py-6 text-sidebar-foreground md:sticky md:top-0 md:h-screen md:py-8">
         {/* Aro decorativo en la esquina superior derecha. */}
         <div
           aria-hidden
