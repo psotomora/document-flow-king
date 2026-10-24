@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.28 — 2026-10-24
+- Panel azul del ingreso igual al de las demás aplicaciones de la suite: marca «Aplix Cash Flow Insights / Flujo de efectivo» con la versión arriba a la izquierda, isotipo con halo y textos «Aplix Apps / Suite de Productividad» centrados, aro decorativo en la esquina y bajada con tres puntos fuertes al pie.
+- El formulario de ingreso y el resto de la pantalla no cambian.
+
 ## 1.38.27 — 2026-10-24
 - Pantalla de ingreso con panel azul izquierdo, isotipo blanco con halo y textos «Aplix Apps» y «Suite de Productividad»; en pantallas estrechas se muestra encima del formulario.
 - Se conservan los campos, modo demostración, recuperación de contraseña, servidor e íconos de Safari/iOS.
