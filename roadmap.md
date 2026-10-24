@@ -1,4 +1,4 @@
-- [ ] Resolver automáticamente la API en producción, ocultar controles técnicos, documentar y verificar; versión 1.38.32, sin cambios en API ni SQL.
+- [x] Resolver automáticamente la API en producción y ocultar controles técnicos; versión 1.38.32. Cinco pruebas y navegador verifican resolución y limpieza con salud controlada; ingreso demo conservado. Documentación actualizada, sin cambios en API ni SQL; falta desplegar y verificar el ingreso real en IIS.
 - [x] Corregir imágenes del ingreso en IIS; versión 1.38.29. Tres logos cargan en el navegador y el recurso público responde HTTP 200; falta desplegar la aplicación web en IIS.
 - [x] Agregar identidad Aplix al ingreso; versión 1.38.27. Isotipo cargado, ingreso en demostración y disposición a 1280 y 390 px comprobados, sin errores ni desborde; falta actualizar IIS.
 - [x] Ampliar automáticamente la ventana de estados de cuenta; versión 1.38.24. Nombre de cliente de la imagen, campos, descarga PDF y cierre comprobados en demostración a 1280, 777 y 390 px; falta actualizar IIS.
