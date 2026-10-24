@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.37 — 2026-10-24
+- El enlace al archivo de estilos incluye la versión de la aplicación (`assets/app.css?v=…`): cada publicación obliga al navegador y a IIS a descargar el diseño nuevo, sin depender de Ctrl+F5. Corrige el caso en que producción mostraba el ingreso apilado por servir el CSS anterior desde caché. Sin cambios en API ni SQL.
+
 ## 1.38.36 — 2026-10-24
 - `npm run dev` levanta en una sola consola la aplicación web (8080) y la API .NET local (5080); Ctrl+C detiene ambas. Si no hay SDK de .NET, solo arranca la web.
 - Nuevos comandos: `dev:web`, `dev:api`, `build:api` (publica la API en `publicar/api`) y `build:all`.

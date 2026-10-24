@@ -17,8 +17,11 @@ import { AppShell } from "@/components/layout/AppShell";
 import { PantallaLogin } from "@/components/layout/PantallaLogin";
 import { PantallaSesionCerrada } from "@/components/layout/PantallaSesionCerrada";
 import { Toaster } from "@/components/ui/sonner";
+import { APP_VERSION } from "@/lib/version";
 
-const appCssHref = `${import.meta.env.BASE_URL}assets/app.css`;
+// El ?v= obliga al navegador y a IIS a descargar el CSS nuevo en cada versión,
+// sin depender de Ctrl+F5.
+const appCssHref = `${import.meta.env.BASE_URL}assets/app.css?v=${APP_VERSION}`;
 const faviconHref = `${import.meta.env.BASE_URL}favicon.png`;
 const faviconIcoHref = `${import.meta.env.BASE_URL}favicon.ico`;
 const appleTouchIconHref = `${import.meta.env.BASE_URL}apple-touch-icon.png`;
