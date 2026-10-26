@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.38 — 2026-10-26
+- Ingreso en móvil igual a NotifyHub: en pantallas menores a 1024 px se oculta el panel azul y aparece arriba del formulario la marca compacta (isotipo, nombre y versión). Sin cambios en API ni SQL.
+
 ## 1.38.37 — 2026-10-24
 - El enlace al archivo de estilos incluye la versión de la aplicación (`assets/app.css?v=…`): cada publicación obliga al navegador y a IIS a descargar el diseño nuevo, sin depender de Ctrl+F5. Corrige el caso en que producción mostraba el ingreso apilado por servir el CSS anterior desde caché. Sin cambios en API ni SQL.
 
