@@ -99,8 +99,8 @@ export function PantallaLogin() {
 
 
   return (
-    <main className="grid min-h-screen bg-muted/40 sm:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-      <aside className="relative flex flex-col overflow-hidden bg-sidebar px-6 py-6 text-sidebar-foreground sm:sticky sm:top-0 sm:h-screen sm:py-8">
+    <main className="grid min-h-[100dvh] bg-muted/40 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+      <aside className="relative hidden flex-col overflow-hidden bg-sidebar px-6 py-8 text-sidebar-foreground lg:sticky lg:top-0 lg:flex lg:h-screen">
         {/* Aro decorativo en la esquina superior derecha. */}
         <div
           aria-hidden
@@ -155,7 +155,20 @@ export function PantallaLogin() {
           </ul>
         </div>
       </aside>
-      <section aria-label="Ingreso a Flujo de Efectivo" className="flex min-w-0 flex-col items-center justify-center px-4 py-10 sm:px-8">
+      <section aria-label="Ingreso a Flujo de Efectivo" className="flex min-w-0 flex-col items-center justify-center gap-8 px-4 py-10 sm:px-8">
+      {/* Marca compacta en móvil y tableta (igual que NotifyHub). */}
+      <div className="flex items-center gap-2.5 lg:hidden">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-sidebar">
+          <img src={isotipoBlancoUrl} alt="Aplix" className="h-7 w-7 object-contain" />
+        </div>
+        <div className="leading-tight">
+          <p className="font-display text-base font-bold tracking-tight">
+            Aplix <span className="text-primary">Cash Flow Insights</span>
+          </p>
+          <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Flujo de efectivo</p>
+          <p className="text-[10px] tracking-wide text-muted-foreground/70">v{APP_VERSION}</p>
+        </div>
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="mb-2 flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary">
