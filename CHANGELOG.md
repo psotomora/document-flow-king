@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.39 — 2026-11-02
+- Nuevo `npm run package:node`, siguiendo NotifyHub: compila y verifica la aplicación web y crea `cashflow-deploy-1.38.39.zip` en la raíz del proyecto.
+- Contiene directamente `server/`, `public/` y `web.config`, con dependencias de servidor e íconos Safari/iOS; excluye archivos privados `.env` y metadatos Git.
+- Se conserva la publicación y el servicio NSSM existentes. Actualizar solo la aplicación web; sin cambios en API ni SQL.
+
 ## 1.38.38 — 2026-10-26
 - Ingreso en móvil igual a NotifyHub: en pantallas menores a 1024 px se oculta el panel azul y aparece arriba del formulario la marca compacta (isotipo, nombre y versión). Sin cambios en API ni SQL.
 

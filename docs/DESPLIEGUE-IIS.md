@@ -297,6 +297,48 @@ La salida queda en la carpeta `.output\`:
 
 ### 3.2 Copiar al servidor
 
+**Alternativa con paquete ZIP (como NotifyHub, desde 1.38.39):**
+
+Ejecute desde la raíz del proyecto en su computadora de desarrollo:
+
+```powershell
+cd C:\document-flow-king
+npm install
+npm run package:node
+```
+
+El comando ejecuta `build:node`, verifica el resultado y crea
+`cashflow-deploy-<version>.zip` en la raíz (ejemplo: `cashflow-deploy-1.38.39.zip`).
+No necesita compilar por separado. En Windows utiliza PowerShell; Linux/macOS
+requiere la utilidad `zip`. Conserva `/cashflow` y las opciones del apartado 3.1.
+
+El ZIP contiene directamente `server/`, `public/` y la plantilla `web.config`:
+no incluye una carpeta `.output` exterior, la API, scripts SQL ni archivos
+privados `.env`. Incluye las dependencias compiladas del servidor; no necesita
+instalarlas en la carpeta de destino. El ZIP generado no debe guardarse como
+código fuente en el repositorio.
+
+Para actualizar su servidor existente, detenga **solo** `FlujoEfectivoWeb`,
+extraiga a una carpeta temporal nueva por versión y copie `server/` y `public/`:
+
+```powershell
+nssm stop FlujoEfectivoWeb
+Expand-Archive -Path C:\transferencias\cashflow-deploy-1.38.39.zip -DestinationPath C:\transferencias\cashflow-1.38.39 -Force
+xcopy C:\transferencias\cashflow-1.38.39\server C:\inetpub\FlujoEfectivoWeb\server /E /I /Y
+xcopy C:\transferencias\cashflow-1.38.39\public C:\inetpub\FlujoEfectivoWeb\public /E /I /Y
+nssm start FlujoEfectivoWeb
+```
+
+**No sobrescriba el `web.config` existente ni la configuración NSSM** de su
+servidor ya publicado. La plantilla del ZIP es para instalaciones nuevas y
+debe adaptarse a las reglas del sitio: en `apps.aplix.cr`, conserve la regla
+`CashflowSubcarpeta` y la API existente; no instale las reglas generales de la
+plantilla sobre el sitio compartido. Verifique la versión en `/cashflow`.
+Este paquete actualiza solo la aplicación web; API y SQL se publican por separado
+cuando una entrega los requiera.
+
+**Alternativa manual anterior (sin ZIP, sigue disponible):**
+
 ```powershell
 mkdir C:\inetpub\FlujoEfectivoWeb
 xcopy .output C:\inetpub\FlujoEfectivoWeb /E /I /Y
