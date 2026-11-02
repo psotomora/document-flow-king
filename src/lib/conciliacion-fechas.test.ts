@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { test } from "node:test";
+import { strict as assert } from "node:assert";
 import { filtrarPorFecha } from "./conciliacion-fechas";
 
 const docs = [
@@ -7,14 +8,10 @@ const docs = [
   { id: "sep", f: "2026-09-10" },
 ];
 
-describe("conciliación cronológica", () => {
-  it("no sugiere documentos emitidos después del pago", () => {
-    expect(filtrarPorFecha(docs, (d) => d.f, "2026-10-28").map((d) => d.id)).not.toContain("nov");
-  });
-  it("prioriza el documento más cercano a la fecha del pago", () => {
-    expect(filtrarPorFecha(docs, (d) => d.f, "2026-10-28").map((d) => d.id)).toEqual(["oct", "sep"]);
-  });
-  it("acepta documentos emitidos el mismo día del pago", () => {
-    expect(filtrarPorFecha(docs, (d) => d.f, "2026-11-02T00:00").map((d) => d.id)[0]).toBe("nov");
-  });
+test("no sugiere documentos emitidos después del pago y prioriza el más cercano", () => {
+  assert.deepEqual(filtrarPorFecha(docs, (d) => d.f, "2026-10-28").map((d) => d.id), ["oct", "sep"]);
+});
+
+test("acepta documentos emitidos el mismo día del pago", () => {
+  assert.equal(filtrarPorFecha(docs, (d) => d.f, "2026-11-02T00:00").map((d) => d.id)[0], "nov");
 });
