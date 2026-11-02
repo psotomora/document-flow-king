@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { filtrarPorFecha } from "@/lib/conciliacion-fechas";
 import { SelectorBuscable } from "@/components/comunes/SelectorBuscable";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { DocumentoPorPagar, Moneda } from "@/data/tipos";
@@ -127,8 +128,9 @@ export function ConciliacionErogaciones({
   const sugerencias = useMemo(() => {
     const mapa: Record<string, { exactas: DocumentoPorPagar[]; cruzadas: DocumentoPorPagar[] }> = {};
     for (const m of movimientos) {
-      const exactas = pendientes.filter((d) => d.moneda === moneda && Math.abs(d.saldo - m.monto) < 0.01);
-      const cruzadas = pendientes
+      const candidatas = filtrarPorFecha(pendientes, (d) => d.fecha, m.fecha);
+      const exactas = candidatas.filter((d) => d.moneda === moneda && Math.abs(d.saldo - m.monto) < 0.01);
+      const cruzadas = candidatas
         .filter((d) => d.moneda !== moneda)
         .filter((d) => {
           const eq = saldoEnMoneda(d, moneda, tipoCambio);
@@ -362,8 +364,8 @@ export function ConciliacionErogaciones({
                             { valor: SIN_DOCUMENTO, etiqueta: "Sin documento (erogación general)" },
                             ...opciones.map((d) => ({
                               valor: d.id,
-                              etiqueta: `${d.numero} · ${d.proveedor} · ${formatearMoneda(d.saldo, d.moneda)}`,
-                              busqueda: `${d.numero} ${d.proveedor}`,
+                              etiqueta: `${d.numero} · ${d.proveedor} · ${(d.fecha || "").slice(0, 10)} · ${formatearMoneda(d.saldo, d.moneda)}`,
+                              busqueda: `${d.numero} ${d.proveedor} ${(d.fecha || "").slice(0, 10)}`,
                               destacada: sugeridas.has(d.id),
                             })),
                           ]}

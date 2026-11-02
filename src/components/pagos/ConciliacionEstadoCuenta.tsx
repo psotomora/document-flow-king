@@ -21,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { filtrarPorFecha } from "@/lib/conciliacion-fechas";
 import { SelectorBuscable } from "@/components/comunes/SelectorBuscable";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { Moneda } from "@/data/tipos";
@@ -128,10 +129,11 @@ export function ConciliacionEstadoCuenta() {
   const sugerencias = useMemo(() => {
     const mapa: Record<string, { exactas: FacturaCalculada[]; cruzadas: FacturaCalculada[] }> = {};
     for (const m of movimientos) {
-      const exactas = pendientes.filter(
+      const candidatas = filtrarPorFecha(pendientes, (f) => f.fechaEmision, m.fecha);
+      const exactas = candidatas.filter(
         (f) => f.moneda === moneda && Math.abs(f.saldoPendiente - m.monto) < 0.01,
       );
-      const cruzadas = pendientes
+      const cruzadas = candidatas
         .filter((f) => f.moneda !== moneda)
         .filter((f) => {
           const equivalente = saldoEnMoneda(f, moneda, tipoCambio);
@@ -352,8 +354,8 @@ export function ConciliacionEstadoCuenta() {
                           buscarPlaceholder="Buscar por número o cliente..."
                           opciones={opciones.map((f) => ({
                             valor: f.id,
-                            etiqueta: `${f.numero} · ${f.cliente} · ${formatearMoneda(f.saldoPendiente, f.moneda)}`,
-                            busqueda: `${f.numero} ${f.cliente}`,
+                            etiqueta: `${f.numero} · ${f.cliente} · ${(f.fechaEmision || "").slice(0, 10)} · ${formatearMoneda(f.saldoPendiente, f.moneda)}`,
+                            busqueda: `${f.numero} ${f.cliente} ${(f.fechaEmision || "").slice(0, 10)}`,
                             destacada: sugeridas.has(f.id),
                           }))}
                         />
