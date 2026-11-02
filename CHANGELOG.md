@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.40 — 2026-11-02
+- Conciliación bancaria (pagos recibidos y erogaciones): solo sugiere documentos emitidos hasta la fecha del movimiento, priorizando el más cercano.
+- El selector de documentos muestra y permite buscar por fecha de emisión. Solo aplicación web; sin API ni SQL.
+
 ## 1.38.39 — 2026-11-02
 - Nuevo `npm run package:node`, siguiendo NotifyHub: compila y verifica la aplicación web y crea `cashflow-deploy-1.38.39.zip` en la raíz del proyecto.
 - Contiene directamente `server/`, `public/` y `web.config`, con dependencias de servidor e íconos Safari/iOS; excluye archivos privados `.env` y metadatos Git.
