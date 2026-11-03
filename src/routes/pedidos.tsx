@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { BarraEstadoSincronizacion } from "@/components/comunes/BarraEstadoSincronizacion";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
@@ -137,6 +138,7 @@ function PaginaPedidos() {
 
   return (
     <div className="space-y-6">
+      <BarraEstadoSincronizacion entidad="pedidos" />
       <EncabezadoPagina
         titulo="Pedidos pendientes"
         requerimiento="RF-012"

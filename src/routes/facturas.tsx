@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Database, FileDown, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { BarraEstadoSincronizacion } from "@/components/comunes/BarraEstadoSincronizacion";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
@@ -151,6 +152,7 @@ function PaginaFacturas() {
 
   return (
     <div className="space-y-6">
+      <BarraEstadoSincronizacion entidad="facturas" />
       <EncabezadoPagina
         titulo="Facturas por cobrar"
         requerimiento="RF-002 · RF-003 · RF-004 · RF-014"
