@@ -13,6 +13,11 @@ export interface EntradaVersion {
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
+    version: "1.38.47",
+    fecha: "2026-11-03",
+    cambios: ["Parámetros: la tarjeta «Agente local» se muestra debajo de la tarjeta de Licencia."],
+  },
+  {
     version: "1.38.46",
     fecha: "2026-11-03",
     cambios: ["npm run package:agente compila el agente local autocontenido para Windows y crea un ZIP versionado listo para copiar al servidor del cliente, sin credenciales ni configuraciones privadas."],
