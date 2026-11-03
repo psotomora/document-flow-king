@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.45 — 2026-11-03
+- Agente local: agregado el paquete Microsoft.Extensions.Http para que compile (IHttpClientFactory).
+
 ## 1.38.44 — 2026-11-03
 - Fase 2 SaaS: agente local `agente/AplixCashFlowAgente` (.NET 8, consola o servicio de Windows) que envía latido y diagnóstico de Softland a `/api/public/agente/*` con `x-agent-token`, solo por HTTPS saliente.
 - API: endpoints públicos del agente, `GET /agente/estado` y `POST /agente/token` (administrador, el token se guarda como hash).
