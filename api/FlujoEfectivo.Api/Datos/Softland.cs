@@ -201,7 +201,13 @@ public static partial class Softland
     public static IEnumerable<PedidoDto> Pedidos(ConfigSoftland c, string secreto, string companiaId)
     {
         using var cn = Abrir(c, secreto);
-        var e = c.Esquema;
+        return Pedidos(cn, c.Esquema, companiaId);
+    }
+
+    public static IEnumerable<PedidoDto> Pedidos(IDbConnection cn, string esquema, string companiaId)
+    {
+        ValidarEsquema(esquema);
+        var e = esquema;
         var tieneCondicion = cn.ExecuteScalar<int>(
             "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
             new { t = $"{e}.CONDICION_PAGO" }) == 1;
@@ -246,7 +252,13 @@ public static partial class Softland
     public static IEnumerable<LineaPedidoDto> Lineas(ConfigSoftland c, string secreto, string numero)
     {
         using var cn = Abrir(c, secreto);
-        var e = c.Esquema;
+        return Lineas(cn, c.Esquema, numero);
+    }
+
+    public static IEnumerable<LineaPedidoDto> Lineas(IDbConnection cn, string esquema, string numero)
+    {
+        ValidarEsquema(esquema);
+        var e = esquema;
         // Se leen las filas de forma dinámica y se convierten explícitamente:
         // los tipos de Softland (int, varchar, datetime nulos) no coinciden
         // exactamente con el constructor del record y Dapper no lo puede materializar.
