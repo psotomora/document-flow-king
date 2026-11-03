@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.44 — 2026-11-03
+- Fase 2 SaaS: agente local `agente/AplixCashFlowAgente` (.NET 8, consola o servicio de Windows) que envía latido y diagnóstico de Softland a `/api/public/agente/*` con `x-agent-token`, solo por HTTPS saliente.
+- API: endpoints públicos del agente, `GET /agente/estado` y `POST /agente/token` (administrador, el token se guarda como hash).
+- Web: tarjeta «Agente local» en Parámetros con estado en línea, conexión a Softland y generación de token.
+- Nuevo script SQL `19_agente_estado.sql`. Actualizar API, aplicación web y ejecutar el script.
+
 ## 1.38.43 — 2026-11-03
 - Nuevo `npm run package:api`: compila automáticamente la API en Release en una carpeta temporal limpia y crea `cashflow-api-1.38.43.zip` en la raíz del proyecto.
 - Incluye DLL, dependencias, archivos de ejecución y plantilla IIS directamente en la raíz del ZIP; excluye todos los `appsettings*.json`, archivos `.env`, certificados, licencias, logs, SQL y metadatos Git. Conserve las configuraciones existentes del servidor.
