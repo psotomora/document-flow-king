@@ -400,6 +400,32 @@ catch (Exception ex)
 
 
 var api = app.MapGroup("/api").RequireAuthorization();
+// Aislamiento por empresa (Fase 5, paso 2): ninguna escritura puede apuntar a una
+// compañía o banco de otra empresa, aunque se llame a la API sin usar la pantalla.
+api.AddEndpointFilter(async (contexto, siguiente) =>
+{
+    var http = contexto.HttpContext;
+    var metodo = http.Request.Method;
+    if (http.User.Identity?.IsAuthenticated == true && !HttpMethods.IsGet(metodo))
+    {
+        var candidatos = contexto.Arguments
+            .Where(a => a is not null && a is not HttpContext && a is not string && !a.GetType().IsPrimitive
+                && a.GetType().Namespace?.StartsWith("FlujoEfectivo.Api.Modelos") == true)
+            .ToList();
+        var rutaCompania = http.Request.RouteValues.TryGetValue("compania", out var rc) ? rc?.ToString() : null;
+        if (candidatos.Count > 0 || rutaCompania is not null)
+        {
+            var db = http.RequestServices.GetRequiredService<Db>();
+            using var cn = db.Abrir();
+            var alcance = Saas.AlcanceUsuario(cn, http.User.UsuarioId());
+            if (alcance is not null &&
+                (candidatos.Any(a => !Saas.Permitido(a, alcance)) ||
+                 (int.TryParse(rutaCompania, out var c) && !alcance.Companias.Contains(c))))
+                return Results.Json(new { mensaje = "La compañía o el banco indicado no pertenece a su empresa." }, statusCode: 403);
+        }
+    }
+    return await siguiente(contexto);
+});
 api.MapAuth();
 api.MapEstado();
 api.MapUsuarios();
