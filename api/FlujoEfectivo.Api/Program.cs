@@ -403,6 +403,7 @@ var api = app.MapGroup("/api").RequireAuthorization();
 api.MapAuth();
 api.MapEstado();
 api.MapUsuarios();
+api.MapInquilinos();
 api.MapRegistros();
 api.MapLicencia();
 api.MapSincronizacion();

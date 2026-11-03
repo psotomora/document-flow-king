@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/contexto/AppContexto";
 import type { Perfil } from "@/data/tipos";
 import { cn } from "@/lib/utils";
+import { CupoUsuarios } from "@/components/comunes/CupoUsuarios";
 
 export const Route = createFileRoute("/acceso")({
   head: () => ({
@@ -64,7 +65,8 @@ function PaginaAcceso() {
         requerimiento="RF-015"
         descripcion="Mantenimiento de usuarios: creación, edición, activación y eliminación, con sus perfiles de permisos."
         acciones={
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {modoApi && esAdministrador ? <CupoUsuarios /> : null}
             {esAdministrador ? (
               <Button size="sm" className="gap-1.5" asChild>
                 <Link to="/usuarios/$usuarioId" params={{ usuarioId: "nuevo" }}>
