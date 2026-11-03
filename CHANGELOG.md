@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.51 - 2026-11-03
+- Fase 3: Documentos por pagar (DOCUMENTOS_CP) se replican por el agente en las compañías en modo Agente, con la misma consulta, mapeo e IDs del modo directo; leyenda y «Sincronizar ahora» en Documentos por pagar.
+- Ejecutar SQL `22_replica_documentos_pagar.sql` y actualizar **aplicación web, API y agente**.
+
 ## 1.38.50 - 2026-11-03
 - Fase 3: Facturas (con saldo de cuentas por cobrar) y Contratos se replican por el agente en las compañías en modo Agente, usando la misma consulta y mapeo del modo directo y los mismos IDs, por lo que pagos, conciliación y la coincidencia de contratos del mes no cambian.
 - Detalle replicado: todas las líneas de contratos; líneas de facturas pendientes y de los últimos 12 meses.
