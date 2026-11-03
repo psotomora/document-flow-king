@@ -408,6 +408,8 @@ api.MapLicencia();
 api.MapSincronizacion();
 api.MapAgente();
 app.MapAgentePublico();
+api.MapReplica();
+app.MapReplicaPublica();
 
 
 app.MapGet("/api/salud", (Db db) =>

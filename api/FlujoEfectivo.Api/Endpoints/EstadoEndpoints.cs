@@ -127,13 +127,19 @@ public static class EstadoEndpoints
                 ORDER BY k.ProximaFacturacion
                 """);
             IEnumerable<PedidoDto> pedidos;
+            var conexionesPedidos = ReplicaPedidos.Conexiones(cn);
+            var companiasAgente = conexionesPedidos.Where(x => x.Modo == "agente").Select(x => x.CompaniaId.ToString()).ToHashSet();
             var usaSoftland = parametros.GetValueOrDefault("pedidosFuenteExterna") == "1"
                 && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
                     Softland.Fuente, StringComparison.OrdinalIgnoreCase);
             if (usaSoftland)
             {
                 var cfg = Softland.Leer(cn);
-                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                if (cfg is not null && companiasAgente.Contains(cfg.CompaniaId?.ToString() ?? companias.FirstOrDefault()?.Id ?? "0"))
+                {
+                    pedidos = [];
+                }
+                else if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
                 {
                     pedidos = [];
                     avisoFuente = "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
@@ -145,10 +151,12 @@ public static class EstadoEndpoints
                         var companiaId = cfg.CompaniaId?.ToString()
                             ?? companias.FirstOrDefault()?.Id ?? "0";
                         pedidos = Softland.Pedidos(cfg, secreto, companiaId).ToList();
+                        ReplicaPedidos.RegistrarVerificacion(cn, "pedidos", int.Parse(companiaId), true);
                     }
                     catch (Exception ex)
                     {
                         pedidos = [];
+                        ReplicaPedidos.RegistrarVerificacion(cn, "pedidos", cfg.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0"), false);
                         avisoFuente = "No fue posible leer los pedidos de SoftlandERP: " + Detalle(ex);
                     }
                 }
@@ -165,6 +173,12 @@ public static class EstadoEndpoints
                 INNER JOIN flujo.Cliente c ON c.ClienteId = d.ClienteId
                 ORDER BY d.FechaCreacion DESC, d.PedidoId DESC
                 """);
+
+            pedidos = pedidos.Where(p => !companiasAgente.Contains(p.CompaniaId))
+                .Concat(conexionesPedidos.Where(x => x.Modo == "agente").SelectMany(x => ReplicaPedidos.Leer(cn, x.CompaniaId).Select(f => f.Pedido))).ToList();
+            foreach (var c in conexionesPedidos.Where(x => x.Modo == "agente"))
+                if (cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.ReplicaPedidos WHERE InquilinoId=@id AND CompaniaId=@compania", new { id = ReplicaPedidos.Principal(cn), compania = c.CompaniaId }) == 0)
+                    avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ") + $"Pedidos compañía {c.CompaniaId}: pendiente de la primera sincronización del agente.";
 
             IEnumerable<FacturaDto> facturas;
             var facturasSoftland = parametros.GetValueOrDefault("facturasFuenteExterna") == "1"
@@ -185,10 +199,12 @@ public static class EstadoEndpoints
                         var companiaId = cfg.CompaniaId?.ToString()
                             ?? companias.FirstOrDefault()?.Id ?? "0";
                         facturas = Softland.Facturas(cfg, secreto, companiaId).ToList();
+                        ReplicaPedidos.RegistrarVerificacion(cn, "facturas", int.Parse(companiaId), true);
                     }
                     catch (Exception ex)
                     {
                         facturas = [];
+                        ReplicaPedidos.RegistrarVerificacion(cn, "facturas", cfg.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0"), false);
                         avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
                             + "No fue posible leer las facturas de SoftlandERP: " + Detalle(ex);
                     }
@@ -230,10 +246,12 @@ public static class EstadoEndpoints
                         var companiaId = cfg.CompaniaId?.ToString()
                             ?? companias.FirstOrDefault()?.Id ?? "0";
                         documentosPorPagar = Softland.DocumentosPorPagar(cfg, secreto, companiaId).ToList();
+                        ReplicaPedidos.RegistrarVerificacion(cn, "documentosPagar", int.Parse(companiaId), true);
                     }
                     catch (Exception ex)
                     {
                         documentosPorPagar = [];
+                        ReplicaPedidos.RegistrarVerificacion(cn, "documentosPagar", cfg.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0"), false);
                         avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
                             + "No fue posible leer los documentos por pagar de SoftlandERP: " + Detalle(ex);
                     }
