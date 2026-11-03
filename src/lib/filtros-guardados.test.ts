@@ -1,6 +1,30 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
-import { claveFiltro, clavePreferenciasDemo, leerFiltro, leerPreferenciasDemo } from "./filtros-guardados";
+import { claveFiltro, clavePreferenciasDemo, leerFiltro, leerPreferenciasDemo, resolverCompaniaActiva } from "./filtros-guardados";
+
+test("una sola compañía no aplica un filtro global oculto", () => {
+  assert.equal(resolverCompaniaActiva([{ id: "AX" }], "AX"), "todas");
+});
+
+test("sin compañías disponibles no aplica una selección anterior", () => {
+  assert.equal(resolverCompaniaActiva([], "AX"), "todas");
+});
+
+test("con varias compañías conserva la selección guardada y todas", () => {
+  const companias = [{ id: "AX" }, { id: "BX" }];
+  assert.equal(resolverCompaniaActiva(companias, "BX"), "BX");
+  assert.equal(resolverCompaniaActiva(companias, "todas"), "todas");
+});
+
+test("una compañía retirada no deja un filtro global inválido", () => {
+  assert.equal(resolverCompaniaActiva([{ id: "AX" }, { id: "BX" }], "CX"), "todas");
+});
+
+test("la preferencia vuelve a aplicarse al recuperar varias compañías", () => {
+  const guardada = "BX";
+  assert.equal(resolverCompaniaActiva([{ id: "BX" }], guardada), "todas");
+  assert.equal(resolverCompaniaActiva([{ id: "AX" }, { id: "BX" }], guardada), "BX");
+});
 
 test("cada pantalla recuerda su propia selección sin compartir campos", () => {
   const preferencias = { [claveFiltro("pagos", "periodo")]: JSON.stringify("semana") };

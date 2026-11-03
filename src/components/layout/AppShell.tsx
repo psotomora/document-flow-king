@@ -210,7 +210,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <p className="capitalize">Perfil: {usuario.perfil}</p>
           <p className="truncate">
             Compañía:{" "}
-            {companiaActiva === "todas"
+            {companias.length === 1
+              ? companias[0]?.nombre
+              : companiaActiva === "todas"
               ? "Todas las compañías"
               : (companias.find((c) => c.id === companiaActiva)?.nombre ?? "—")}
           </p>
@@ -261,13 +263,13 @@ export function AppShell({ children }: { children: ReactNode }) {
             </SheetContent>
           </Sheet>
 
-          <div className="flex min-w-0 items-center gap-2">
+          {companias.length > 1 ? <div className="flex min-w-0 items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">Compañía</span>
             <Select
               value={companiaActiva}
               onValueChange={(v) => setCompaniaActiva(v as string)}
             >
-              <SelectTrigger className="h-8 w-full max-w-[11rem] sm:w-44">
+              <SelectTrigger aria-label="Seleccionar compañía" className="h-8 w-full max-w-[11rem] sm:w-44">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -279,7 +281,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div> : null}
 
           <div className="hidden items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 py-1 text-xs md:flex">
             <span className="text-muted-foreground">Tipo de cambio</span>
