@@ -1,6 +1,12 @@
 /** Una clave independiente por pantalla y campo evita sobrescribir otros filtros. */
 export const claveFiltro = (pantalla: string, campo: string) => `filtro_${pantalla}_${campo}`;
 
+/** Sin selector visible, no aplicar una restricción global oculta ni borrar la preferencia. */
+export function resolverCompaniaActiva(companias: readonly { id: string }[], guardada: string): string {
+  if (companias.length <= 1) return "todas";
+  return guardada === "todas" || companias.some((c) => c.id === guardada) ? guardada : "todas";
+}
+
 export function leerFiltro<T>(bruto: string | undefined, defecto: T): T {
   if (bruto === undefined) return defecto;
   try {

@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.52 - 2026-11-03
+- Opción A: el selector global de compañía solo aparece cuando hay varias compañías disponibles. Con una sola, el menú muestra su nombre y no se aplica un filtro global oculto; se conserva la preferencia del usuario para cuando vuelvan a existir varias.
+- Actualizar **solo aplicación web**; API, agente y scripts SQL sin cambios.
+
 ## 1.38.51 - 2026-11-03
 - Fase 3: Documentos por pagar (DOCUMENTOS_CP) se replican por el agente en las compañías en modo Agente, con la misma consulta, mapeo e IDs del modo directo; leyenda y «Sincronizar ahora» en Documentos por pagar.
 - Ejecutar SQL `22_replica_documentos_pagar.sql` y actualizar **aplicación web, API y agente**.

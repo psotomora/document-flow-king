@@ -29,7 +29,7 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
-import { clavePreferenciasDemo, leerPreferenciasDemo } from "@/lib/filtros-guardados";
+import { clavePreferenciasDemo, leerPreferenciasDemo, resolverCompaniaActiva } from "@/lib/filtros-guardados";
 import {
   contratosPorFacturarDelMes,
   pedidosPendientesDeContratos,
@@ -301,7 +301,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
   const [parametros, setParametros] = useState<Record<string, string>>({ ...PARAMETROS_DEFECTO });
   const [preferencias, setPreferencias] = useState<Record<string, string>>({});
   const companiaGuardada = preferencias["filtro_global_compania"] ?? "todas";
-  const companiaActiva = companiaGuardada === "todas" || companias.some((c) => c.id === companiaGuardada) ? companiaGuardada : "todas";
+  const companiaActiva = resolverCompaniaActiva(companias, companiaGuardada);
   const preferenciasActuales = useRef(preferencias);
   preferenciasActuales.current = preferencias;
   const guardadosPendientes = useRef(new Map<string, Promise<unknown>>());
