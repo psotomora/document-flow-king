@@ -176,6 +176,7 @@ function PaginaContratos() {
 
   return (
     <div className="space-y-6">
+      <BarraEstadoSincronizacion entidad="contratos" />
       <EncabezadoPagina
         titulo="Contratos recurrentes"
         requerimiento="RF-011"
