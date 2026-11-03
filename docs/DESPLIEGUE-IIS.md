@@ -49,6 +49,7 @@ En SSMS conectado a la instancia destino, ejecute en este orden (Abrir archivo �
 | `database/07…15_*.sql` | Actualizaciones posteriores (permisos, preferencias, documentos, contratos, correo, licencia) |
 | `database/16_transferencias.sql` | Transferencias de fondos entre cuentas bancarias |
 | `database/17_pago_factura_pagada.sql` | Pagos bancarios asociados a facturas ya pagadas sin modificar su estado |
+| `database/18_agente_sincronizacion.sql` | Fase 1 SaaS: inquilinos y estado de sincronización con el ERP |
 
 Cree un login SQL para la API (recomendado, evita problemas de permisos del grupo de aplicaciones):
 
