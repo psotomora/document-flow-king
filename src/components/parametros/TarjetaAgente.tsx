@@ -8,6 +8,7 @@ import { useApp } from "@/contexto/AppContexto";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { estadoSoftland } from "@/lib/estado-softland";
+import { useSesionSaas } from "@/lib/empresas";
 
 interface ConexionErp { companiaId: number; modo: "directa" | "agente"; intervaloMinutos: number }
 
@@ -38,6 +39,9 @@ export function TarjetaAgente() {
   const [guardando, setGuardando] = useState(false);
   const [intervalo, setIntervalo] = useState("5");
   const [ahora, setAhora] = useState(() => Date.now());
+  const sesionSaas = useSesionSaas();
+  // Sin esquema SaaS (sesión nula) se mantiene el comportamiento anterior para el administrador.
+  const puedeGenerarToken = esAdministrador && (sesionSaas ? sesionSaas.superAdministrador : true);
   const [token, setToken] = useState<string | null>(null);
   const [conApi, setConApi] = useState(false);
 
@@ -130,7 +134,8 @@ export function TarjetaAgente() {
             <p className="text-xs text-muted-foreground">
               {estado?.tokenConfigurado ? "Token del agente configurado." : "Aún no se ha generado el token del agente."}
             </p>
-            {esAdministrador ? <Button variant="outline" size="sm" onClick={generar} className="gap-1.5">
+            {!puedeGenerarToken && esAdministrador ? <p className="text-xs text-muted-foreground">El token lo emite el Súper Administrador de Aplix en Administración → Empresas.</p> : null}
+            {puedeGenerarToken ? <Button variant="outline" size="sm" onClick={generar} className="gap-1.5">
               <KeyRound className="size-4" /> {estado?.tokenConfigurado ? "Regenerar token" : "Generar token"}
             </Button> : null}
           </div>
