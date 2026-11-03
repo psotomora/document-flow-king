@@ -45,3 +45,6 @@
 - [x] Conservar la contraseña actual cuando falle el correo de recuperación; versión 1.38.16. Tres pruebas HTTP aisladas verifican rechazo, excepción y envío exitoso con inicio de sesión; pendiente desplegar la API en IIS para usar la corrección en producción.
 - [x] Comparar NotifyHub y License Hub y agregar alternativa ICO; versión 1.38.17. Página e imágenes verificadas localmente (HTTP 200); queda comprobar Safari en el dispositivo después de desplegar en IIS.
 - [x] Fase 3: replicar Documentos por pagar por agente (1.38.51)
+
+- [x] Fase 5 paso 1: empresas, cupo de usuarios, Súper Administrador (1.38.53)
+- [ ] Fase 5 paso 2: acotar todos los datos por empresa y habilitar el ingreso de empresas nuevas
