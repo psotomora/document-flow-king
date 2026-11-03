@@ -415,10 +415,24 @@ public static class EstadoEndpoints
 
             foreach (var c in conexionesPedidos)
                 parametros[$"pedidosModoCompania:{c.CompaniaId}"] = c.Modo;
-            return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
-                erogaciones, documentosPorPagar, documentosPorCobrar, contratos, pedidos,
+            // Aislamiento por empresa: solo compañías, bancos y documentos de la empresa del usuario.
+            var alcance = Saas.AlcanceUsuario(cn, ctx.User.UsuarioId());
+            if (alcance is not null)
+            {
+                companias = companias.Where(c => int.TryParse(c.Id, out var n) && alcance.Companias.Contains(n)).ToList();
+                var inquilino = cn.ExecuteScalar<int>(
+                    "SELECT InquilinoId FROM flujo.Usuario WHERE UsuarioId = @usuarioId", new { usuarioId = ctx.User.UsuarioId() });
+                var mismos = cn.Query<int>("SELECT UsuarioId FROM flujo.Usuario WHERE InquilinoId = @inquilino", new { inquilino })
+                    .Select(n => n.ToString()).ToHashSet();
+                usuarios = usuarios.Where(u => mismos.Contains(u.Id)).ToList();
+            }
+            return Results.Ok(new EstadoDto(usuario, usuarios, companias,
+                Saas.Acotar(bancos, alcance), Saas.Acotar(facturas, alcance), Saas.Acotar(pagos, alcance),
+                Saas.Acotar(erogaciones, alcance), Saas.Acotar(documentosPorPagar, alcance),
+                Saas.Acotar(documentosPorCobrar, alcance), Saas.Acotar(contratos, alcance), Saas.Acotar(pedidos, alcance),
                 tiposCambio, bitacora, parametros, avisoFuente, preferencias,
-                documentosPorCobrarComparativo, transferencias));
+                Saas.Acotar(documentosPorCobrarComparativo, alcance),
+                transferencias is null ? null : Saas.Acotar(transferencias, alcance)));
         }).RequireAuthorization();
     }
 }

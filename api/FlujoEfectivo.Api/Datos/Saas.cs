@@ -64,4 +64,65 @@ public static class Saas
         cn.ExecuteScalar<int>(
             "SELECT COUNT(1) FROM flujo.Usuario WHERE InquilinoId = @i AND Activo = 1 AND (@e IS NULL OR UsuarioId <> @e)",
             new { i = inquilinoId, e = excluir });
+
+    /* ------------------- Aislamiento de datos (paso 2) ------------------- */
+
+    public sealed record Alcance(HashSet<int> Companias, HashSet<int> Bancos);
+
+    /// <summary>True cuando ya se ejecutó 24_aislamiento_datos_inquilino.sql.</summary>
+    public static bool AislamientoListo(IDbConnection cn) =>
+        Listo(cn) && cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN COL_LENGTH('flujo.Compania','InquilinoId') IS NOT NULL THEN 1 ELSE 0 END") == 1;
+
+    /// <summary>Compañías y bancos de la empresa del usuario; null si el script 24 no se ha ejecutado.</summary>
+    public static Alcance? AlcanceUsuario(IDbConnection cn, int usuarioId)
+    {
+        if (!AislamientoListo(cn)) return null;
+        var companias = cn.Query<int>(
+            """
+            SELECT c.CompaniaId FROM flujo.Compania c
+            INNER JOIN flujo.Usuario u ON u.InquilinoId = c.InquilinoId
+            WHERE u.UsuarioId = @usuarioId
+            """, new { usuarioId }).ToHashSet();
+        var bancos = cn.Query<int>(
+            """
+            SELECT b.CuentaBancariaId FROM flujo.CuentaBancaria b
+            INNER JOIN flujo.Compania c ON c.CompaniaId = b.CompaniaId
+            INNER JOIN flujo.Usuario u ON u.InquilinoId = c.InquilinoId
+            WHERE u.UsuarioId = @usuarioId
+            """, new { usuarioId }).ToHashSet();
+        return new Alcance(companias, bancos);
+    }
+
+    private static readonly string[] CamposCompania = ["CompaniaId", "CompaniaOrigenId", "CompaniaDestinoId"];
+    private static readonly string[] CamposBanco = ["BancoId", "CuentaBancariaId", "BancoOrigenId", "BancoDestinoId"];
+
+    private static int? Entero(object? v) => v switch
+    {
+        int n => n,
+        string s when int.TryParse(s, out var n) => n,
+        _ => null,
+    };
+
+    /// <summary>False si el objeto referencia una compañía o banco fuera de la empresa.</summary>
+    public static bool Permitido(object? item, Alcance a)
+    {
+        if (item is null) return true;
+        var tipo = item.GetType();
+        if (tipo.IsPrimitive || item is string) return true;
+        foreach (var p in tipo.GetProperties())
+        {
+            if (p.GetIndexParameters().Length > 0) continue;
+            var esCompania = CamposCompania.Contains(p.Name);
+            var esBanco = CamposBanco.Contains(p.Name);
+            if (!esCompania && !esBanco) continue;
+            if (Entero(p.GetValue(item)) is not { } id) continue;
+            if (esCompania && !a.Companias.Contains(id)) return false;
+            if (esBanco && !a.Bancos.Contains(id)) return false;
+        }
+        return true;
+    }
+
+    public static List<T> Acotar<T>(IEnumerable<T> items, Alcance? a) =>
+        a is null ? items.ToList() : items.Where(x => Permitido(x, a)).ToList();
 }
