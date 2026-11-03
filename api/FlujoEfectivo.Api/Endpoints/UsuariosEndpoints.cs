@@ -16,13 +16,28 @@ public static class UsuariosEndpoints
         cn.QueryFirstOrDefault<int?>("SELECT PerfilId FROM flujo.Perfil WHERE Codigo = @codigo",
             new { codigo });
 
-    /// <summary>Devuelve el mensaje de rechazo cuando la licencia no admite otro usuario activo.</summary>
-    private static string? LimiteUsuarios(System.Data.IDbConnection cn, IConfiguration config, int? excluir)
+    /// <summary>Inquilino del administrador de la sesión; null si aún no existe el esquema SaaS.</summary>
+    private static Saas.ContextoUsuario? Ambito(System.Data.IDbConnection cn, HttpContext ctx) =>
+        Saas.Contexto(cn, ctx.User.UsuarioId());
+
+    /// <summary>Filtro SQL (entero, sin parámetros de usuario) para acotar a la empresa de la sesión.</summary>
+    private static string Filtro(Saas.ContextoUsuario? c) =>
+        c is null ? "" : $" AND u.InquilinoId = {c.InquilinoId}";
+
+    /// <summary>Rechazo cuando el cupo de la empresa o la licencia no admiten otro usuario activo.</summary>
+    private static string? LimiteUsuarios(System.Data.IDbConnection cn, IConfiguration config, int? excluir, Saas.ContextoUsuario? c)
     {
+        if (c is not null)
+        {
+            var cupo = Saas.CupoExcedido(c.MaxUsuarios, Saas.Activos(cn, c.InquilinoId, excluir));
+            if (cupo is not null) return cupo;
+            // Las demás empresas se rigen solo por su cupo; la licencia .lic aplica a la principal.
+            if (!c.EsPrincipal) return null;
+        }
         var estado = Licencias.Estado(cn, config);
         if (!estado.Requerida || estado.MaxUsuarios <= 0) return null;
         var activos = cn.ExecuteScalar<int>(
-            "SELECT COUNT(1) FROM flujo.Usuario WHERE Activo = 1 AND (@e IS NULL OR UsuarioId <> @e)",
+            "SELECT COUNT(1) FROM flujo.Usuario u WHERE u.Activo = 1 AND (@e IS NULL OR u.UsuarioId <> @e)" + Filtro(c),
             new { e = excluir });
         return activos + 1 > estado.MaxUsuarios
             ? $"La licencia permite {estado.MaxUsuarios} usuarios activos y ya hay {activos}. "
@@ -38,7 +53,7 @@ public static class UsuariosEndpoints
         {
             if (!EsAdmin(ctx)) return Results.Forbid();
             using var cn = db.Abrir();
-            return Results.Ok(cn.Query<UsuarioAdminDto>(Consultas.Lista));
+            return Results.Ok(cn.Query<UsuarioAdminDto>(Consultas.Lista + Filtro(Ambito(cn, ctx))));
         });
 
         g.MapPost("/usuarios", (NuevoUsuario datos, HttpContext ctx, Db db, IConfiguration config) =>
@@ -53,9 +68,10 @@ public static class UsuariosEndpoints
             var perfilId = PerfilId(cn, datos.Perfil);
             if (perfilId is null) return Results.BadRequest(new { mensaje = "Perfil no válido." });
 
+            var ambito = Ambito(cn, ctx);
             if (datos.Activo)
             {
-                var limite = LimiteUsuarios(cn, config, null);
+                var limite = LimiteUsuarios(cn, config, null, ambito);
                 if (limite is not null) return Results.BadRequest(new { mensaje = limite });
             }
 
@@ -95,6 +111,11 @@ public static class UsuariosEndpoints
                     EditarCatalogos = datos.EditarCatalogos ?? false,
                 });
 
+            // El usuario nuevo pertenece a la empresa del administrador que lo crea.
+            if (ambito is not null)
+                cn.Execute("UPDATE flujo.Usuario SET InquilinoId = @i WHERE UsuarioId = @id",
+                    new { i = ambito.InquilinoId, id });
+
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Seguridad",
                 datos.NombreUsuario, "Creación",
                 valorNuevo: $"Perfil: {datos.Perfil}; Activo: {datos.Activo}; "
@@ -122,8 +143,9 @@ public static class UsuariosEndpoints
                 return Results.BadRequest(new { mensaje = "La contraseña debe tener al menos 8 caracteres." });
 
             using var cn = db.Abrir();
+            var ambito = Ambito(cn, ctx);
             var actual = cn.QueryFirstOrDefault<UsuarioAdminDto>(
-                Consultas.Lista + " AND u.UsuarioId = @usuarioId", new { usuarioId });
+                Consultas.Lista + Filtro(ambito) + " AND u.UsuarioId = @usuarioId", new { usuarioId });
             if (actual is null) return Results.NotFound(new { mensaje = "Usuario no encontrado." });
 
             int? perfilId = null;
@@ -135,7 +157,7 @@ public static class UsuariosEndpoints
 
             if (datos.Activo == true && !actual.Activo)
             {
-                var limite = LimiteUsuarios(cn, config, usuarioId);
+                var limite = LimiteUsuarios(cn, config, usuarioId, ambito);
                 if (limite is not null) return Results.BadRequest(new { mensaje = limite });
 
             }
@@ -149,7 +171,7 @@ public static class UsuariosEndpoints
                     SELECT COUNT(*) FROM flujo.Usuario u
                     INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId
                     WHERE p.Codigo = 'administrador' AND u.Activo = 1 AND u.UsuarioId <> @usuarioId
-                    """, new { usuarioId }) == 0;
+                    """ + Filtro(ambito), new { usuarioId }) == 0;
             if (quedaSinAdmin)
                 return Results.BadRequest(new { mensaje = "Debe existir al menos un administrador activo." });
 
@@ -232,8 +254,9 @@ public static class UsuariosEndpoints
                 return Results.BadRequest(new { mensaje = "No puede eliminar el usuario de la sesión activa." });
 
             using var cn = db.Abrir();
+            var ambito = Ambito(cn, ctx);
             var actual = cn.QueryFirstOrDefault<UsuarioAdminDto>(
-                Consultas.Lista + " AND u.UsuarioId = @usuarioId", new { usuarioId });
+                Consultas.Lista + Filtro(ambito) + " AND u.UsuarioId = @usuarioId", new { usuarioId });
             if (actual is null) return Results.NotFound(new { mensaje = "Usuario no encontrado." });
 
             var referencias = cn.QuerySingle<int>(

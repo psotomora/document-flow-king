@@ -33,6 +33,10 @@ public static class AuthEndpoints
             if (fila is null || !fila.Activo || !Contrasenas.Verificar(datos.Contrasena, fila.HashContrasena))
                 return Results.Json(new { mensaje = "Usuario o contraseña incorrectos." }, statusCode: 401);
 
+            var bloqueo = Saas.BloqueoIngreso(Saas.Contexto(cn, fila.UsuarioId), DateTime.Today);
+            if (bloqueo is not null)
+                return Results.Json(new { mensaje = bloqueo }, statusCode: 403);
+
             var usuario = new UsuarioDto(fila.UsuarioId.ToString(), fila.NombreCompleto, fila.Perfil);
             var (token, expira) = tokens.Crear(usuario);
 
