@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.46 — 2026-11-03
+- `npm run package:agente` compila el agente local (win-x64 autocontenido, no requiere .NET en el servidor del cliente) y crea `cashflow-agente-<versión>.zip` con el ejecutable y la plantilla `appsettings.json`; excluye configuraciones privadas, certificados, logs y Git. Nuevo `build:agente` para publicar en `publicar/agente` sin ZIP.
+- Solo herramientas de empaquetado: la API y la aplicación web no cambian.
+
 ## 1.38.45 — 2026-11-03
 - Agente local: agregado el paquete Microsoft.Extensions.Http para que compile (IHttpClientFactory).
 
