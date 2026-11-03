@@ -1,5 +1,12 @@
 # Historial de cambios
 
+## 1.38.50 - 2026-11-03
+- Fase 3: Facturas (con saldo de cuentas por cobrar) y Contratos se replican por el agente en las compañías en modo Agente, usando la misma consulta y mapeo del modo directo y los mismos IDs, por lo que pagos, conciliación y la coincidencia de contratos del mes no cambian.
+- Detalle replicado: todas las líneas de contratos; líneas de facturas pendientes y de los últimos 12 meses.
+- Leyenda de sincronización y botón «Sincronizar ahora» en Contratos; Facturas por cobrar y Contratos solicitan sincronización al agente.
+- Documentos por cobrar (comparativo anual) y por pagar siguen en conexión directa.
+- Ejecutar SQL `21_replica_documentos.sql` y actualizar **aplicación web, API y agente**.
+
 ## 1.38.49 - 2026-11-03
 - Paquete del agente: ejecutable único (PublishSingleFile) con scripts .bat de servicio, prueba en consola y LEAME; sin cientos de DLL.
 

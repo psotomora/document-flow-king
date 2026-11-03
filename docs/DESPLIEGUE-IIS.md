@@ -583,4 +583,12 @@ La conexión es `Agente:Softland`; cada entrada puede incluir una cadena `Softla
 
 **Alcance:** solo Pedidos y su detalle se replican. Facturas, cuentas por pagar, conciliación y escrituras siguen como antes; altas SaaS de otros inquilinos/usuarios quedan para la Fase 5. La instalación actual se mantiene vinculada a `principal`.
 
+## Fase 3: Facturas y Contratos (1.38.50)
+
+1. Ejecute `database/21_replica_documentos.sql` (requiere 18, 19 y 20).
+2. Actualice web, API (su `web.config` permite envíos de hasta 100 MB del agente) y agente. No hay que cambiar `appsettings.json` del agente: usa el mismo mapeo `Agente:Companias`.
+3. El modo Agente de cada compañía aplica a Pedidos, Facturas y Contratos a la vez. En cada ciclo el agente envía primero facturas y contratos y al final pedidos.
+4. Valide comparando en modo Directo y Agente: cantidad de facturas, saldo pendiente total en USD y CRC, contratos activos del mes y su detalle.
+5. Las líneas de facturas canceladas de más de 12 meses no se replican; su detalle indica consultar Softland.
+
 **Validación local:** `dotnet run --project api/tests/ReplicaPedidos` prueba validación, normalización e identidad de réplicas sin cuentas reales; `bun test src/lib/estado-softland.test.ts` comprueba el límite exacto de cinco minutos. El ciclo real requiere el agente del cliente, IIS y su SQL Server.
