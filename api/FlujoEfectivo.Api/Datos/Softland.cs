@@ -409,7 +409,15 @@ public static partial class Softland
         ConfigSoftland c, string secreto, string companiaId)
     {
         using var cn = Abrir(c, secreto);
-        var e = c.Esquema;
+        return DocumentosPorPagar(cn, c.Esquema, companiaId).ToList();
+    }
+
+    /// <summary>Misma consulta sobre una conexión abierta; la usa también el agente local.</summary>
+    public static IEnumerable<DocumentoPorPagarDto> DocumentosPorPagar(
+        IDbConnection cn, string esquema, string companiaId)
+    {
+        ValidarEsquema(esquema);
+        var e = esquema;
         var tieneProveedor = cn.ExecuteScalar<int>(
             "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
             new { t = $"{e}.PROVEEDOR" }) == 1;

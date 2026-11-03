@@ -117,13 +117,27 @@ internal static class SincronizarPedidos
             contratos = null;
             log.LogWarning("No se pudo leer Contratos de la compañía {Compania}; revise el mapeo local y permisos SELECT.", trabajo.CompaniaId);
         }
+        List<DocumentoPorPagarDto>? documentosPagar = null;
+        try
+        {
+            var (esquema, cadena) = Local(config, trabajo.CompaniaId);
+            using var cn = new SqlConnection(cadena);
+            await cn.OpenAsync(ct);
+            documentosPagar = Softland.DocumentosPorPagar(cn, esquema, trabajo.CompaniaId.ToString()).ToList();
+        }
+        catch (Exception) when (!ct.IsCancellationRequested)
+        {
+            documentosPagar = null;
+            log.LogWarning("No se pudo leer Documentos por pagar de la compañía {Compania}; revise permisos SELECT sobre DOCUMENTOS_CP.", trabajo.CompaniaId);
+        }
         var respuesta = await http.PostAsJsonAsync($"{api}/public/agente/documentos", new
         {
             trabajo.TrabajoId, trabajo.CompaniaId,
             facturasOk = facturas is not null, contratosOk = contratos is not null,
-            duracionMs = (int)Math.Min(int.MaxValue, reloj.ElapsedMilliseconds), facturas, contratos
+            duracionMs = (int)Math.Min(int.MaxValue, reloj.ElapsedMilliseconds), facturas, contratos,
+            documentosPagarOk = documentosPagar is not null, documentosPagar
         }, ct);
         respuesta.EnsureSuccessStatusCode();
-        log.LogInformation("Compañía {Compania}: {Facturas} facturas y {Contratos} contratos aceptados por la nube.", trabajo.CompaniaId, facturas?.Count, contratos?.Count);
+        log.LogInformation("Compañía {Compania}: {Facturas} facturas, {Contratos} contratos y {Pagar} documentos por pagar aceptados por la nube.", trabajo.CompaniaId, facturas?.Count, contratos?.Count, documentosPagar?.Count);
     }
 }

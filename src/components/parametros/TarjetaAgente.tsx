@@ -141,7 +141,7 @@ export function TarjetaAgente() {
             </div>
           ) : null}
           <div className="space-y-3 border-t border-border pt-3">
-            <h3 className="text-sm font-semibold">Conexión ERP · Pedidos, facturas y contratos</h3>
+            <h3 className="text-sm font-semibold">Conexión ERP · Pedidos, facturas, contratos y documentos por pagar</h3>
             <div className="grid items-end gap-3 sm:grid-cols-3">
               <div className="min-w-0 space-y-1">
                 <Label>Compañía</Label>

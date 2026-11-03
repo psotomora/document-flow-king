@@ -36,6 +36,34 @@ public static class ReplicaDocumentos
     public static List<FilaContrato> Contratos(IDbConnection cn, int compania) => !Lista(cn) ? [] :
         JsonSerializer.Deserialize<List<FilaContrato>>(Datos(cn, compania, "contratos") ?? "[]", ReplicaPedidos.Json) ?? [];
 
+    /// <summary>Documentos por pagar requieren el script 22 (amplía la restricción de entidades).</summary>
+    public static bool ListaPagar(IDbConnection cn) => Lista(cn) && cn.ExecuteScalar<int>(
+        "SELECT COUNT(*) FROM sys.check_constraints WHERE name='CK_ReplicaErp_Entidad' AND definition LIKE '%documentosPagar%'") == 1;
+
+    public static List<DocumentoPorPagarDto> DocumentosPagar(IDbConnection cn, int compania) => !ListaPagar(cn) ? [] :
+        JsonSerializer.Deserialize<List<DocumentoPorPagarDto>>(Datos(cn, compania, "documentosPagar") ?? "[]", ReplicaPedidos.Json) ?? [];
+
+    public static string? ValidarDocumentosPagar(List<DocumentoPorPagarDto>? filas)
+    {
+        if (filas is null || filas.Count > 200000) return "El envío debe contener una instantánea completa de hasta 200000 documentos por pagar.";
+        if (filas.Any(f => f is null)) return "Documento por pagar ausente.";
+        if (filas.Select(f => f.Tipo + "-" + f.Numero).Distinct(StringComparer.Ordinal).Count() != filas.Count) return "Documentos por pagar duplicados.";
+        foreach (var x in filas)
+            if (string.IsNullOrWhiteSpace(x.Numero) || x.Numero.Length > 100 || !Fecha(x.Fecha) || !Moneda(x.Moneda) || x.Saldo <= 0)
+                return "Datos de documento por pagar inválidos; no se reemplazó la réplica.";
+        return null;
+    }
+
+    public static void Normalizar(List<DocumentoPorPagarDto> filas, int compania)
+    {
+        foreach (var x in filas)
+        {
+            x.Id = Softland.PrefijoId + x.Tipo + "-" + x.Numero;
+            x.CompaniaId = compania.ToString();
+            x.Origen = Softland.Fuente;
+        }
+    }
+
     private static bool Moneda(string? m) => m is "USD" or "CRC";
     private static bool Fecha(string? f) => DateOnly.TryParseExact(f, "yyyy-MM-dd", out _);
 
