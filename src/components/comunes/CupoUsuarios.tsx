@@ -13,17 +13,17 @@ export function CupoUsuarios() {
     <div
       className={cn(
         "flex min-w-56 items-center gap-3 rounded-lg border px-3 py-2 text-sm",
-        lleno ? "border-warning/60 bg-warning/10" : "border-border bg-card",
+        lleno ? "border-advertencia/60 bg-advertencia-suave" : "border-border bg-card",
       )}
     >
-      <Users className={cn("size-4 shrink-0", lleno ? "text-warning" : "text-muted-foreground")} />
+      <Users className={cn("size-4 shrink-0", lleno ? "text-advertencia" : "text-muted-foreground")} />
       <div className="flex-1">
         <div>
           Licencias: <strong>{activos}</strong> de <strong>{max}</strong> usuarios utilizados
         </div>
         <div className="mt-1 h-1.5 rounded-full bg-muted">
           <div
-            className={cn("h-1.5 rounded-full", lleno ? "bg-warning" : "bg-primary")}
+            className={cn("h-1.5 rounded-full", lleno ? "bg-advertencia" : "bg-primary")}
             style={{ width: `${porcentajeCupo(activos, max)}%` }}
           />
         </div>
