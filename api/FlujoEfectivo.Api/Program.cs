@@ -415,11 +415,11 @@ api.AddEndpointFilter(async (contexto, siguiente) =>
         var rutaCompania = http.Request.RouteValues.TryGetValue("compania", out var rc) ? rc?.ToString() : null;
         if (candidatos.Count > 0 || rutaCompania is not null)
         {
-            var db = http.RequestServices.GetRequiredService<FlujoEfectivo.Api.Datos.Db>();
+            var db = http.RequestServices.GetRequiredService<Db>();
             using var cn = db.Abrir();
-            var alcance = FlujoEfectivo.Api.Datos.Saas.AlcanceUsuario(cn, FlujoEfectivo.Api.Seguridad.TokenServicioExtensiones.UsuarioId(http.User));
+            var alcance = Saas.AlcanceUsuario(cn, http.User.UsuarioId());
             if (alcance is not null &&
-                (candidatos.Any(a => !FlujoEfectivo.Api.Datos.Saas.Permitido(a, alcance)) ||
+                (candidatos.Any(a => !Saas.Permitido(a, alcance)) ||
                  (int.TryParse(rutaCompania, out var c) && !alcance.Companias.Contains(c))))
                 return Results.Json(new { mensaje = "La compañía o el banco indicado no pertenece a su empresa." }, statusCode: 403);
         }
