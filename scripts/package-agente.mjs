@@ -39,10 +39,10 @@ export function empaquetarAgente(raiz = process.cwd(), publicar = spawnSync) {
     });
     const windows = process.platform === "win32";
     const resultado = windows
-      ? publicar("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
+      ? spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",
           "Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::CreateFromDirectory($env:CASHFLOW_PACKAGE_SOURCE, $env:CASHFLOW_PACKAGE_ZIP)"],
           { encoding: "utf8", env: { ...process.env, CASHFLOW_PACKAGE_SOURCE: contenido, CASHFLOW_PACKAGE_ZIP: archivoZip } })
-      : publicar("zip", ["-q", "-r", archivoZip, "."], { cwd: contenido, encoding: "utf8" });
+      : spawnSync("zip", ["-q", "-r", archivoZip, "."], { cwd: contenido, encoding: "utf8" });
     if (resultado.error || resultado.status !== 0) throw new Error(`No se pudo crear el ZIP. ${windows ? "Revise PowerShell." : "Instale la utilidad zip."} ${resultado.error?.message ?? resultado.stderr ?? ""}`);
     const destino = join(raiz, nombre);
     const pendiente = `${destino}.tmp`;
