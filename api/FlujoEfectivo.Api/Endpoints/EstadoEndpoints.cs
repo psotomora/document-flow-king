@@ -89,10 +89,15 @@ public static class EstadoEndpoints
             var contratosSoftland = parametros.GetValueOrDefault("contratosFuenteExterna") == "1"
                 && string.Equals(parametros.GetValueOrDefault("pedidosFuenteOrigen", Softland.Fuente),
                     Softland.Fuente, StringComparison.OrdinalIgnoreCase);
+            var companiasErpAgente = ReplicaDocumentos.Lista(cn) ? ReplicaDocumentos.CompaniasAgente(cn) : [];
             if (contratosSoftland)
             {
                 var cfg = Softland.Leer(cn);
-                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                if (cfg is not null && companiasErpAgente.Contains(cfg.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0")))
+                {
+                    contratos = [];
+                }
+                else if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
                 {
                     contratos = [];
                     avisoFuente ??= "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
@@ -104,10 +109,12 @@ public static class EstadoEndpoints
                         var companiaId = cfg.CompaniaId?.ToString()
                             ?? companias.FirstOrDefault()?.Id ?? "0";
                         contratos = Softland.Contratos(cfg, secreto, companiaId).ToList();
+                        ReplicaPedidos.RegistrarVerificacion(cn, "contratos", int.Parse(companiaId), true);
                     }
                     catch (Exception ex)
                     {
                         contratos = [];
+                        ReplicaPedidos.RegistrarVerificacion(cn, "contratos", cfg.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0"), false);
                         avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ")
                             + "No fue posible leer los contratos de SoftlandERP: " + Detalle(ex);
                     }
@@ -187,7 +194,11 @@ public static class EstadoEndpoints
             if (facturasSoftland)
             {
                 var cfg = Softland.Leer(cn);
-                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                if (cfg is not null && companiasErpAgente.Contains(cfg.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0")))
+                {
+                    facturas = [];
+                }
+                else if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
                 {
                     facturas = [];
                     avisoFuente ??= "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";
@@ -225,6 +236,21 @@ public static class EstadoEndpoints
                 ORDER BY f.FechaEmision DESC, f.FacturaId DESC
                 """);
 
+            // Fase 3: compañías en modo agente leen la réplica (mismos IDs y mapeo que el modo directo).
+            if (contratosSoftland && companiasErpAgente.Count > 0)
+            {
+                contratos = contratos.Where(c => !companiasErpAgente.Contains(int.TryParse(c.CompaniaId, out var n) ? n : -1))
+                    .Concat(companiasErpAgente.SelectMany(c => ReplicaDocumentos.Contratos(cn, c).Select(f => f.Contrato))).ToList();
+                foreach (var c in companiasErpAgente.Where(c => !ReplicaDocumentos.Existe(cn, c, "contratos")))
+                    avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ") + $"Contratos compañía {c}: pendiente de la primera sincronización del agente.";
+            }
+            if (facturasSoftland && companiasErpAgente.Count > 0)
+            {
+                facturas = facturas.Where(f => !companiasErpAgente.Contains(int.TryParse(f.CompaniaId, out var n) ? n : -1))
+                    .Concat(companiasErpAgente.SelectMany(c => ReplicaDocumentos.Facturas(cn, c).Select(f => f.Factura))).ToList();
+                foreach (var c in companiasErpAgente.Where(c => !ReplicaDocumentos.Existe(cn, c, "facturas")))
+                    avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ") + $"Facturas compañía {c}: pendiente de la primera sincronización del agente.";
+            }
 
             // Documentos por pagar: registro interno o fuente externa (DOCUMENTOS_CP).
             IEnumerable<DocumentoPorPagarDto> documentosPorPagar;
