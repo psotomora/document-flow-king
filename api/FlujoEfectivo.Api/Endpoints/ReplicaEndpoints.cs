@@ -35,11 +35,18 @@ public static class ReplicaEndpoints
                 return Results.BadRequest(new { mensaje = "Modo inválido o intervalo fuera de 1 a 1440 minutos." });
             using var cn = db.Abrir();
             if (!ReplicaPedidos.Lista(cn)) return Results.BadRequest(new { mensaje = "Ejecute el script 20_replica_pedidos.sql." });
-            using var tx = cn.BeginTransaction(IsolationLevel.Serializable);
             var id = ReplicaPedidos.Principal(cn);
+            using var tx = cn.BeginTransaction(IsolationLevel.Serializable);
             if (cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.ConexionErpCompania x JOIN flujo.Compania c ON c.CompaniaId=x.CompaniaId WHERE x.InquilinoId=@id AND x.CompaniaId=@compania AND c.Activo=1", new { id, compania }, tx) != 1)
                 return Results.NotFound(new { mensaje = "Compañía no asignada a esta instalación." });
-            cn.Execute("UPDATE flujo.ConexionErpCompania SET Modo=@Modo, IntervaloMinutos=@IntervaloMinutos, TrabajoId=NULL, TrabajoEn=NULL WHERE InquilinoId=@id AND CompaniaId=@compania", new { id, compania, ajuste.Modo, ajuste.IntervaloMinutos }, tx);
+            cn.Execute("""
+                UPDATE flujo.ConexionErpCompania SET Modo=@Modo, IntervaloMinutos=@IntervaloMinutos,
+                    TrabajoId=NULL, TrabajoEn=NULL, SolicitudAtendida=NULL
+                WHERE InquilinoId=@id AND CompaniaId=@compania;
+                IF @Modo='directa'
+                    UPDATE flujo.SincronizacionEstado SET SolicitadaEn=NULL, SolicitadaPor=NULL
+                    WHERE InquilinoId=@id AND CompaniaId=@compania AND Entidad='pedidos';
+                """, new { id, compania, ajuste.Modo, ajuste.IntervaloMinutos }, tx);
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", $"ERP compañía {compania}", "Modificación", valorNuevo: $"Pedidos: {ajuste.Modo}; intervalo {ajuste.IntervaloMinutos} min", tx: tx);
             tx.Commit();
             return Results.Ok(new { mensaje = "Modo de pedidos actualizado." });
@@ -58,17 +65,20 @@ public static class ReplicaEndpoints
               AND (x.TrabajoId IS NULL OR x.TrabajoEn < DATEADD(MINUTE,-10,SYSUTCDATETIME()))
               AND (s.UltimaSincronizacion IS NULL OR s.UltimaSincronizacion <= DATEADD(MINUTE,-x.IntervaloMinutos,SYSUTCDATETIME()) OR s.SolicitadaEn IS NOT NULL)
             """, new { id }, tx).ToList();
+        var reservados = new List<ReplicaPedidos.Conexion>();
         foreach (var t in trabajos)
         {
             t.TrabajoId = Guid.NewGuid();
-            cn.Execute("""
+            var afectados = cn.Execute("""
                 UPDATE flujo.ConexionErpCompania SET TrabajoId=@TrabajoId, TrabajoEn=SYSUTCDATETIME(),
                     SolicitudAtendida=(SELECT SolicitadaEn FROM flujo.SincronizacionEstado WHERE InquilinoId=@id AND CompaniaId=@CompaniaId AND Entidad='pedidos')
-                WHERE InquilinoId=@id AND CompaniaId=@CompaniaId
+                WHERE InquilinoId=@id AND CompaniaId=@CompaniaId AND Modo='agente'
+                    AND (TrabajoId IS NULL OR TrabajoEn < DATEADD(MINUTE,-10,SYSUTCDATETIME()))
                 """, new { id, t.CompaniaId, t.TrabajoId }, tx);
+            if (afectados == 1) reservados.Add(t);
         }
         tx.Commit();
-        return trabajos;
+        return reservados;
     }
     public static void MapReplicaPublica(this IEndpointRouteBuilder app)
     {
