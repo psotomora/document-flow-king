@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.53 - 2026-11-03
+- Fase 5 (paso 1): empresas (inquilinos) con cupo de usuarios (`MaxUsuarios`), vencimiento, contacto y suspensión, gestionados por el Súper Administrador en la nueva pantalla **Empresas**; token del agente por empresa y creación de su primer administrador.
+- La API rechaza crear o activar usuarios por encima del cupo de la empresa; la principal sigue rigiéndose por la licencia .lic. Usuarios y perfiles muestra «Licencias: X de Y usuarios utilizados».
+- Empresas suspendidas o vencidas no ingresan y su agente queda rechazado. Por aislamiento, las empresas nuevas aún no ingresan hasta acotar los datos por empresa (paso 2).
+- Ejecutar SQL `23_saas_multi_inquilino.sql` y actualizar **aplicación web y API**; agente sin cambios.
+
 ## 1.38.52 - 2026-11-03
 - Opción A: el selector global de compañía solo aparece cuando hay varias compañías disponibles. Con una sola, el menú muestra su nombre y no se aplica un filtro global oculto; se conserva la preferencia del usuario para cuando vuelvan a existir varias.
 - Actualizar **solo aplicación web**; API, agente y scripts SQL sin cambios.
