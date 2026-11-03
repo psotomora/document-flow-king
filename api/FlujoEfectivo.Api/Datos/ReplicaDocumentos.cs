@@ -62,7 +62,7 @@ public static class ReplicaDocumentos
         foreach (var f in filas)
         {
             var x = f.Contrato;
-            if (string.IsNullOrWhiteSpace(x.Numero) || x.Numero.Length > 100 || !Fecha(x.ProximaFacturacion) || !Moneda(x.Moneda)
+            if (string.IsNullOrWhiteSpace(x.Numero) || x.Numero.Length > 100 || (x.ProximaFacturacion.Length > 0 && !Fecha(x.ProximaFacturacion)) || !Moneda(x.Moneda)
                 || x.Monto < 0 || x.PlazoDias < 0 || x.Estado is not ("Activo" or "Cancelado") || f.Detalle.Count > 10000)
                 return "Datos de contrato inválidos; no se reemplazó la réplica.";
         }
