@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.43 — 2026-11-03
+- Nuevo `npm run package:api`: compila automáticamente la API en Release en una carpeta temporal limpia y crea `cashflow-api-1.38.43.zip` en la raíz del proyecto.
+- Incluye DLL, dependencias, archivos de ejecución y plantilla IIS directamente en la raíz del ZIP; excluye todos los `appsettings*.json`, archivos `.env`, certificados, licencias, logs, SQL y metadatos Git. Conserve las configuraciones existentes del servidor.
+- La API mantiene su versión 1.38.41; no cambia su código ni hay nuevos scripts SQL. Solo actualizar la aplicación web para reflejar 1.38.43; el comando permite transferir la API pendiente de Fase 1 por separado (requiere script SQL 18 si aún no se ejecutó).
+
 ## 1.38.42 — 2026-11-03
 - Pagos recibidos: la casilla Mostrar facturas en estado pagado incluye esas facturas en el selector de conciliación; registrar el depósito conserva su estado y suma solo el ingreso bancario.
 - La lista de conciliación se amplía al texto más largo, limitada por la pantalla y sin ocultar información; las sugerencias automáticas mantienen la validación cronológica y solo consideran pendientes.
