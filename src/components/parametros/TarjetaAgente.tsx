@@ -68,7 +68,7 @@ export function TarjetaAgente() {
       await api(`/sincronizacion/conexiones/${compania}`, { metodo: "PUT", cuerpo: { modo, intervaloMinutos: Number(intervalo) } });
       await cargar();
       await recargar();
-      toast.success("Modo de conexión de Pedidos actualizado.");
+      toast.success("Modo de conexión ERP actualizado.");
     } catch (e) { toast.error(e instanceof Error ? e.message : "No se pudo guardar."); }
     finally { setGuardando(false); }
   }
@@ -141,7 +141,7 @@ export function TarjetaAgente() {
             </div>
           ) : null}
           <div className="space-y-3 border-t border-border pt-3">
-            <h3 className="text-sm font-semibold">Conexión ERP · Pedidos</h3>
+            <h3 className="text-sm font-semibold">Conexión ERP · Pedidos, facturas y contratos</h3>
             <div className="grid items-end gap-3 sm:grid-cols-3">
               <div className="min-w-0 space-y-1">
                 <Label>Compañía</Label>

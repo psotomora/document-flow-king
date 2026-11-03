@@ -840,6 +840,9 @@ public static class RegistrosEndpoints
             if (!id.StartsWith(prefijo, StringComparison.Ordinal))
                 return Results.Ok(Array.Empty<LineaContratoDto>());
             using var cn = db.Abrir();
+            foreach (var c in ReplicaDocumentos.Lista(cn) ? ReplicaDocumentos.CompaniasAgente(cn) : [])
+                if (ReplicaDocumentos.Contratos(cn, c).FirstOrDefault(f => f.Contrato.Id == id) is { } replica)
+                    return Results.Ok(replica.Detalle);
             var cfg = Softland.Leer(cn);
             if (cfg is null) return Results.BadRequest(new { mensaje = "No hay credenciales de SoftlandERP registradas." });
             try
@@ -857,6 +860,10 @@ public static class RegistrosEndpoints
             if (!id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
                 return Results.Ok(Array.Empty<LineaFacturaDto>());
             using var cn = db.Abrir();
+            foreach (var c in ReplicaDocumentos.Lista(cn) ? ReplicaDocumentos.CompaniasAgente(cn) : [])
+                if (ReplicaDocumentos.Facturas(cn, c).FirstOrDefault(f => f.Factura.Id == id) is { } replica)
+                    return replica.Detalle is { } detalle ? Results.Ok(detalle)
+                        : Results.Json(new { mensaje = "El detalle de facturas antiguas y canceladas no se replica; consulte Softland." }, statusCode: 404);
             var cfg = Softland.Leer(cn);
             if (cfg is null) return Results.BadRequest(new { mensaje = "No hay credenciales de SoftlandERP registradas." });
             try

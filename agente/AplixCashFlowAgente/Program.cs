@@ -36,7 +36,7 @@ sealed class Agente(IConfiguration config, IHttpClientFactory http, ILogger<Agen
         }
 
         var cliente = http.CreateClient();
-        cliente.Timeout = TimeSpan.FromSeconds(30);
+        cliente.Timeout = TimeSpan.FromMinutes(5); // instantáneas de facturas pueden pesar varios MB
         cliente.DefaultRequestHeaders.Add("x-agent-token", token);
         log.LogInformation("Agente {Version} iniciado. Nube: {Api}", Version, apiUrl);
 

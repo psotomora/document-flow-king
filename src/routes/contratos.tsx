@@ -5,6 +5,7 @@ import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
 import { Archive, Check, ChevronsUpDown, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
+import { BarraEstadoSincronizacion } from "@/components/comunes/BarraEstadoSincronizacion";
 import { DialogoLineasContrato } from "@/components/contratos/DialogoLineasContrato";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
@@ -175,6 +176,7 @@ function PaginaContratos() {
 
   return (
     <div className="space-y-6">
+      <BarraEstadoSincronizacion entidad="contratos" />
       <EncabezadoPagina
         titulo="Contratos recurrentes"
         requerimiento="RF-011"

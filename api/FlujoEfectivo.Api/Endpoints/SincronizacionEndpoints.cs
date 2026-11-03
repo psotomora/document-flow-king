@@ -9,7 +9,7 @@ namespace FlujoEfectivo.Api.Endpoints;
 public static class SincronizacionEndpoints
 {
     private static readonly HashSet<string> Entidades =
-        new(StringComparer.OrdinalIgnoreCase) { "pedidos", "facturas", "documentosPagar" };
+        new(StringComparer.OrdinalIgnoreCase) { "pedidos", "facturas", "contratos", "documentosPagar" };
 
     public sealed class EstadoSincronizacionDto
     {
@@ -53,11 +53,13 @@ public static class SincronizacionEndpoints
                 WHERE @compania IS NULL OR s.CompaniaId = @compania OR s.CompaniaId IS NULL
                 """, new { compania = Compania(companiaId) }).ToList();
             var conexiones = ReplicaPedidos.Conexiones(cn);
+            string[] porAgente = ReplicaDocumentos.Lista(cn) ? ["pedidos", "facturas", "contratos"] : ["pedidos"];
             foreach (var f in filas)
-                if (f.Entidad == "pedidos" && conexiones.Any(x => x.CompaniaId.ToString() == f.CompaniaId && x.Modo == "agente")) f.Modo = "agente";
+                if (porAgente.Contains(f.Entidad) && conexiones.Any(x => x.CompaniaId.ToString() == f.CompaniaId && x.Modo == "agente")) f.Modo = "agente";
             foreach (var c in conexiones.Where(x => x.Modo == "agente" && (companiaId is null || x.CompaniaId.ToString() == companiaId)))
-                if (!filas.Any(f => f.Entidad == "pedidos" && f.CompaniaId == c.CompaniaId.ToString()))
-                    filas.Add(new EstadoSincronizacionDto { Entidad = "pedidos", CompaniaId = c.CompaniaId.ToString(), Modo = "agente" });
+                foreach (var e in porAgente)
+                    if (!filas.Any(f => f.Entidad == e && f.CompaniaId == c.CompaniaId.ToString()))
+                        filas.Add(new EstadoSincronizacionDto { Entidad = e, CompaniaId = c.CompaniaId.ToString(), Modo = "agente" });
             return Results.Ok(filas);
         });
 
@@ -68,8 +70,9 @@ public static class SincronizacionEndpoints
 
             using var cn = db.Abrir();
             var conexiones = ReplicaPedidos.Conexiones(cn).Where(x => x.Modo == "agente" && (s.CompaniaId is null || x.CompaniaId.ToString() == s.CompaniaId)).ToList();
-            if (s.Entidad != "pedidos" || conexiones.Count == 0)
-                return Results.BadRequest(new { mensaje = "Esta pantalla usa conexión directa: utilice Actualizar. La sincronización por agente está habilitada solo para Pedidos en la Fase 3 piloto." });
+            var porAgente = s.Entidad == "pedidos" || (s.Entidad is "facturas" or "contratos" && ReplicaDocumentos.Lista(cn));
+            if (!porAgente || conexiones.Count == 0)
+                return Results.BadRequest(new { mensaje = "Esta pantalla usa conexión directa: utilice Actualizar. La sincronización por agente cubre Pedidos, Facturas y Contratos." });
             if (cn.ExecuteScalar<int?>("SELECT OBJECT_ID('flujo.SincronizacionEstado', 'U')") is null)
                 return Results.BadRequest(new { mensaje = "Falta ejecutar el script 18_agente_sincronizacion.sql." });
 

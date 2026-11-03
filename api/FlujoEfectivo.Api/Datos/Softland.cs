@@ -320,7 +320,13 @@ public static partial class Softland
     public static IEnumerable<FacturaDto> Facturas(ConfigSoftland c, string secreto, string companiaId)
     {
         using var cn = Abrir(c, secreto);
-        var e = c.Esquema;
+        return Facturas(cn, c.Esquema, companiaId).ToList();
+    }
+
+    public static IEnumerable<FacturaDto> Facturas(IDbConnection cn, string esquema, string companiaId)
+    {
+        ValidarEsquema(esquema);
+        var e = esquema;
         var tieneCondicion = cn.ExecuteScalar<int>(
             "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
             new { t = $"{e}.CONDICION_PAGO" }) == 1;
@@ -633,7 +639,13 @@ public static partial class Softland
     public static IEnumerable<ContratoDto> Contratos(ConfigSoftland c, string secreto, string companiaId)
     {
         using var cn = Abrir(c, secreto);
-        var e = c.Esquema;
+        return Contratos(cn, c.Esquema, companiaId).ToList();
+    }
+
+    public static IEnumerable<ContratoDto> Contratos(IDbConnection cn, string esquema, string companiaId)
+    {
+        ValidarEsquema(esquema);
+        var e = esquema;
         var tieneCliente = cn.ExecuteScalar<int>(
             "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
             new { t = $"{e}.CLIENTE" }) == 1;
@@ -705,7 +717,13 @@ public static partial class Softland
     public static IEnumerable<LineaContratoDto> LineasContrato(ConfigSoftland c, string secreto, string numero)
     {
         using var cn = Abrir(c, secreto);
-        var e = c.Esquema;
+        return LineasContrato(cn, c.Esquema, numero).ToList();
+    }
+
+    public static IEnumerable<LineaContratoDto> LineasContrato(IDbConnection cn, string esquema, string numero)
+    {
+        ValidarEsquema(esquema);
+        var e = esquema;
         var filas = cn.Query(
             $"""
             SELECT l.LINEA AS Linea, l.ARTICULO AS Articulo,
@@ -758,7 +776,13 @@ public static partial class Softland
     public static IEnumerable<LineaFacturaDto> LineasFactura(ConfigSoftland c, string secreto, string numero)
     {
         using var cn = Abrir(c, secreto);
-        var e = c.Esquema;
+        return LineasFactura(cn, c.Esquema, numero).ToList();
+    }
+
+    public static IEnumerable<LineaFacturaDto> LineasFactura(IDbConnection cn, string esquema, string numero)
+    {
+        ValidarEsquema(esquema);
+        var e = esquema;
         var filas = cn.Query(
             $"""
             SELECT l.LINEA AS Linea, l.ARTICULO AS Articulo,

@@ -22,6 +22,13 @@ internal static class SincronizarPedidos
     }
     internal static async Task Ejecutar(HttpClient http, string api, IConfiguration config, Trabajo trabajo, ILogger log, CancellationToken ct)
     {
+        // Primero facturas y contratos (no liberan la reserva); al final Pedidos cierra el trabajo.
+        try { await EnviarDocumentos(http, api, config, trabajo, log, ct); }
+        catch (Exception) when (!ct.IsCancellationRequested)
+        {
+            log.LogWarning("La nube no aceptó Facturas/Contratos de la compañía {Compania}; se continúa con Pedidos.", trabajo.CompaniaId);
+        }
+
         var reloj = Stopwatch.StartNew();
         List<Fila>? pedidos = null;
         var ok = false;
@@ -56,5 +63,67 @@ internal static class SincronizarPedidos
         }, ct);
         respuesta.EnsureSuccessStatusCode();
         log.LogInformation("Pedidos compañía {Compania}: {Ok}; {Registros} registros aceptados por la nube.", trabajo.CompaniaId, ok, ok ? pedidos?.Count : 0);
+    }
+
+    private static (string esquema, string cadena) Local(IConfiguration config, int compania)
+    {
+        var local = config.GetSection("Agente:Companias").GetChildren()
+            .FirstOrDefault(c => c.GetValue<int>("CompaniaId") == compania)
+            ?? throw new InvalidOperationException("Configure el mapeo local Agente:Companias para esta compañía.");
+        var esquema = local["Esquema"] ?? "";
+        Softland.ValidarEsquema(esquema);
+        return (esquema, local["Softland"] ?? config["Agente:Softland"] ?? "");
+    }
+
+    private static async Task EnviarDocumentos(HttpClient http, string api, IConfiguration config, Trabajo trabajo, ILogger log, CancellationToken ct)
+    {
+        var reloj = Stopwatch.StartNew();
+        List<object>? facturas = null, contratos = null;
+        try
+        {
+            var (esquema, cadena) = Local(config, trabajo.CompaniaId);
+            using var cn = new SqlConnection(cadena);
+            await cn.OpenAsync(ct);
+            // Mismas consultas y mapeo del modo directo; solo SELECT. El detalle de facturas se
+            // replica para las pendientes y las de los últimos 12 meses para acotar el volumen.
+            var desde = DateTime.Today.AddMonths(-12).ToString("yyyy-MM-dd");
+            facturas = [];
+            foreach (var f in Softland.Facturas(cn, esquema, trabajo.CompaniaId.ToString()))
+            {
+                ct.ThrowIfCancellationRequested();
+                var conDetalle = !f.Cobrada || string.CompareOrdinal(f.FechaEmision, desde) >= 0;
+                facturas.Add(new { factura = f, detalle = conDetalle ? Softland.LineasFactura(cn, esquema, f.Numero).ToList() : null });
+            }
+        }
+        catch (Exception) when (!ct.IsCancellationRequested)
+        {
+            facturas = null;
+            log.LogWarning("No se pudo leer Facturas de la compañía {Compania}; revise el mapeo local y permisos SELECT.", trabajo.CompaniaId);
+        }
+        try
+        {
+            var (esquema, cadena) = Local(config, trabajo.CompaniaId);
+            using var cn = new SqlConnection(cadena);
+            await cn.OpenAsync(ct);
+            contratos = [];
+            foreach (var c in Softland.Contratos(cn, esquema, trabajo.CompaniaId.ToString()))
+            {
+                ct.ThrowIfCancellationRequested();
+                contratos.Add(new { contrato = c, detalle = Softland.LineasContrato(cn, esquema, c.Numero).ToList() });
+            }
+        }
+        catch (Exception) when (!ct.IsCancellationRequested)
+        {
+            contratos = null;
+            log.LogWarning("No se pudo leer Contratos de la compañía {Compania}; revise el mapeo local y permisos SELECT.", trabajo.CompaniaId);
+        }
+        var respuesta = await http.PostAsJsonAsync($"{api}/public/agente/documentos", new
+        {
+            trabajo.TrabajoId, trabajo.CompaniaId,
+            facturasOk = facturas is not null, contratosOk = contratos is not null,
+            duracionMs = (int)Math.Min(int.MaxValue, reloj.ElapsedMilliseconds), facturas, contratos
+        }, ct);
+        respuesta.EnsureSuccessStatusCode();
+        log.LogInformation("Compañía {Compania}: {Facturas} facturas y {Contratos} contratos aceptados por la nube.", trabajo.CompaniaId, facturas?.Count, contratos?.Count);
     }
 }
