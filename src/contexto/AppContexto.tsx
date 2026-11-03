@@ -552,6 +552,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
     // de demostración en memoria (ids como "tx"), no se intenta crearlos.
     const idServidor = (v: string) => /^\d+$/.test(v);
     const pendientes = pedidosPendientesDeContratos(contratos, pedidos, hoy)
+      .filter((g) => parametros[`pedidosModoCompania:${g.pedido.companiaId}`] !== "agente")
       .filter((g) => !pedidosGenerados.current.has(g.pedido.numero))
       .filter(
         (g) =>
@@ -985,7 +986,9 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       trasladarContratosMes,
       contratosMesLimpiar: parametros[PARAM_CONTRATOS_MES_LIMPIAR] === "1",
       instalacionCliente: parametros[PARAM_INSTALACION_CLIENTE] === "1",
-      pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1",
+      pedidosFuenteExterna: parametros[PARAM_PEDIDOS_FUENTE_EXTERNA] === "1" || (companiaActiva === "todas"
+        ? Object.entries(parametros).some(([k, v]) => k.startsWith("pedidosModoCompania:") && v === "agente")
+        : parametros[`pedidosModoCompania:${companiaActiva}`] === "agente"),
       facturasFuenteExterna: parametros[PARAM_FACTURAS_FUENTE_EXTERNA] === "1",
       documentosPagoFuenteExterna: parametros[PARAM_DOCUMENTOS_PAGO_FUENTE_EXTERNA] === "1",
       documentosCobroFuenteExterna: parametros[PARAM_DOCUMENTOS_COBRO_FUENTE_EXTERNA] === "1",

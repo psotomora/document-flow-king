@@ -379,6 +379,8 @@ public static class EstadoEndpoints
                 // La tabla puede no existir en bases antiguas; se ignora.
             }
 
+            foreach (var c in conexionesPedidos)
+                parametros[$"pedidosModoCompania:{c.CompaniaId}"] = c.Modo;
             return Results.Ok(new EstadoDto(usuario, usuarios, companias, bancos, facturas, pagos,
                 erogaciones, documentosPorPagar, documentosPorCobrar, contratos, pedidos,
                 tiposCambio, bitacora, parametros, avisoFuente, preferencias,
