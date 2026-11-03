@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.49 - 2026-11-03
+- Paquete del agente: ejecutable único (PublishSingleFile) con scripts .bat de servicio, prueba en consola y LEAME; sin cientos de DLL.
+
 ## 1.38.48 — 2026-11-03
 - Fase 3 piloto de Pedidos: modo directo/agente por compañía, intervalo, instantánea completa con detalle, recepción atómica, solicitudes bajo demanda y reservas de trabajo. Misma consulta y mapeo de Softland compartidos por API y agente.
 - Pedidos por agente son de solo lectura. Facturas y cuentas por pagar conservan conexión directa. No habilita todavía un segundo inquilino de usuarios (Fase 5).

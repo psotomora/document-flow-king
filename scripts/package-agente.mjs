@@ -2,7 +2,7 @@
 // copiar al servidor del cliente. Patrón equivalente a package-api.mjs.
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
@@ -19,24 +19,19 @@ export function empaquetarAgente(raiz = process.cwd(), publicar = spawnSync) {
   try {
     // Una carpeta nueva evita incluir binarios obsoletos de compilaciones anteriores.
     // win-x64 autocontenido: el servidor del cliente no necesita instalar .NET.
-    const compilacion = publicar("dotnet", ["publish", proyecto, "-c", "Release", "-r", "win-x64", "--self-contained", "true", "-o", salida], { cwd: raiz, stdio: "inherit" });
+    const compilacion = publicar("dotnet", ["publish", proyecto, "-c", "Release", "-r", "win-x64", "--self-contained", "true", "-p:PublishSingleFile=true", "-p:IncludeNativeLibrariesForSelfExtract=true", "-p:DebugType=None", "-o", salida], { cwd: raiz, stdio: "inherit" });
     if (compilacion.error || compilacion.status !== 0) throw new Error(`No se pudo compilar el agente. Instale el SDK de .NET 8 y revise los errores de dotnet publish. ${compilacion.error?.message ?? ""}`);
-    for (const archivo of ["AplixCashFlowAgente.exe", "AplixCashFlowAgente.dll", "AplixCashFlowAgente.runtimeconfig.json", "appsettings.json"]) {
+    for (const archivo of ["AplixCashFlowAgente.exe", "appsettings.json"]) {
       if (!existsSync(join(salida, archivo))) throw new Error(`Publicación incompleta: falta ${archivo}. No se creó un ZIP nuevo.`);
     }
     mkdirSync(contenido);
-    cpSync(salida, contenido, {
-      recursive: true, dereference: true,
-      filter: (ruta) => {
-        const archivo = basename(ruta).toLowerCase();
-        return archivo !== ".git" && archivo !== ".env" && !archivo.startsWith(".env.") &&
-          // appsettings.json sí viaja (plantilla con Token vacío para configurar en el cliente);
-          // las variantes privadas (Development/Production) se excluyen.
-          (archivo === "appsettings.json" || !/^appsettings(?:\..+)?\.json$/.test(archivo)) &&
-          !["logs", "bin", "obj"].includes(archivo) &&
-          !/\.(?:pfx|p12|pem|key|lic|sql)$/.test(archivo);
-      },
-    });
+    // Ejecutable único + plantilla de configuración; nada más del publish (sin cientos de DLL).
+    for (const archivo of ["AplixCashFlowAgente.exe", "appsettings.json"]) cpSync(join(salida, archivo), join(contenido, archivo));
+    const distribucion = join(raiz, "agente/AplixCashFlowAgente/distribucion");
+    for (const archivo of ["instalar-servicio.bat", "desinstalar-servicio.bat", "probar-consola.bat", "LEAME.txt"]) {
+      if (!existsSync(join(distribucion, archivo))) throw new Error(`Falta agente/AplixCashFlowAgente/distribucion/${archivo}.`);
+      cpSync(join(distribucion, archivo), join(contenido, archivo));
+    }
     const windows = process.platform === "win32";
     const resultado = windows
       ? spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command",

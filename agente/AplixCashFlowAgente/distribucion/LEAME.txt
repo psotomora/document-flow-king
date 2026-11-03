@@ -1,0 +1,9 @@
+Aplix Cash Flow Agente
+======================
+1. Copie esta carpeta al servidor que ve el SQL Server de Softland (ej. C:\Aplix\CashFlowAgente).
+2. Edite appsettings.json: Token (Parametros > Agente local > Generar token) y la cadena Softland.
+3. Ejecute probar-consola.bat y confirme en la web "Agente en linea".
+4. Cierre la consola y ejecute instalar-servicio.bat como Administrador.
+5. Para retirarlo, ejecute desinstalar-servicio.bat como Administrador.
+No requiere instalar .NET ni abrir puertos: solo conexiones HTTPS salientes.
+Al actualizar, conserve su appsettings.json configurado.
