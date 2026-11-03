@@ -30,6 +30,8 @@ public static class ReplicaEndpoints
         public int DuracionMs { get; set; }
         public List<ReplicaDocumentos.FilaFactura>? Facturas { get; set; }
         public List<ReplicaDocumentos.FilaContrato>? Contratos { get; set; }
+        public bool DocumentosPagarOk { get; set; }
+        public List<FlujoEfectivo.Api.Modelos.DocumentoPorPagarDto>? DocumentosPagar { get; set; }
     }
     public static void MapReplica(this IEndpointRouteBuilder g)
     {
@@ -55,9 +57,9 @@ public static class ReplicaEndpoints
                 WHERE InquilinoId=@id AND CompaniaId=@compania;
                 IF @Modo='directa'
                     UPDATE flujo.SincronizacionEstado SET SolicitadaEn=NULL, SolicitadaPor=NULL
-                    WHERE InquilinoId=@id AND CompaniaId=@compania AND Entidad IN ('pedidos','facturas','contratos');
+                    WHERE InquilinoId=@id AND CompaniaId=@compania AND Entidad IN ('pedidos','facturas','contratos','documentosPagar');
                 """, new { id, compania, ajuste.Modo, ajuste.IntervaloMinutos }, tx);
-            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", $"ERP compañía {compania}", "Modificación", valorNuevo: $"Pedidos, facturas y contratos: {ajuste.Modo}; intervalo {ajuste.IntervaloMinutos} min", tx: tx);
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", $"ERP compañía {compania}", "Modificación", valorNuevo: $"Pedidos, facturas, contratos y documentos por pagar: {ajuste.Modo}; intervalo {ajuste.IntervaloMinutos} min", tx: tx);
             tx.Commit();
             return Results.Ok(new { mensaje = "Modo de conexión ERP actualizado." });
         });
@@ -74,7 +76,7 @@ public static class ReplicaEndpoints
             WHERE x.InquilinoId=@id AND x.Modo='agente'
               AND (x.TrabajoId IS NULL OR x.TrabajoEn < DATEADD(MINUTE,-10,SYSUTCDATETIME()))
               AND (s.UltimaSincronizacion IS NULL OR s.UltimaSincronizacion <= DATEADD(MINUTE,-x.IntervaloMinutos,SYSUTCDATETIME()) OR s.SolicitadaEn IS NOT NULL
-                   OR EXISTS (SELECT 1 FROM flujo.SincronizacionEstado q WHERE q.InquilinoId=x.InquilinoId AND q.CompaniaId=x.CompaniaId AND q.Entidad IN ('facturas','contratos') AND q.SolicitadaEn IS NOT NULL))
+                   OR EXISTS (SELECT 1 FROM flujo.SincronizacionEstado q WHERE q.InquilinoId=x.InquilinoId AND q.CompaniaId=x.CompaniaId AND q.Entidad IN ('facturas','contratos','documentosPagar') AND q.SolicitadaEn IS NOT NULL))
             """, new { id }, tx).ToList();
         var reservados = new List<ReplicaPedidos.Conexion>();
         foreach (var t in trabajos)
@@ -102,7 +104,10 @@ public static class ReplicaEndpoints
             var id = AgenteEndpoints.Autenticar(ctx, cn);
             if (id is null) return Results.Unauthorized();
             var error = (r.FacturasOk ? ReplicaDocumentos.ValidarFacturas(r.Facturas) : null)
-                ?? (r.ContratosOk ? ReplicaDocumentos.ValidarContratos(r.Contratos) : null);
+                ?? (r.ContratosOk ? ReplicaDocumentos.ValidarContratos(r.Contratos) : null)
+                ?? (r.DocumentosPagarOk ? ReplicaDocumentos.ValidarDocumentosPagar(r.DocumentosPagar) : null);
+            // Sin el script 22 un agente nuevo no rompe el envío: se ignoran los documentos por pagar.
+            var conPagar = r.DocumentosPagarOk && ReplicaDocumentos.ListaPagar(cn);
             if (error is not null || r.DuracionMs < 0) return Results.BadRequest(new { mensaje = error ?? "Duración inválida." });
             using var tx = cn.BeginTransaction(IsolationLevel.Serializable);
             var existe = cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.ConexionErpCompania WITH (UPDLOCK) WHERE InquilinoId=@id AND CompaniaId=@CompaniaId AND Modo='agente' AND TrabajoId=@TrabajoId", new { id, r.CompaniaId, r.TrabajoId }, tx);
@@ -130,6 +135,9 @@ public static class ReplicaEndpoints
             if (r.ContratosOk && r.Contratos is { } c) ReplicaDocumentos.Normalizar(c, r.CompaniaId);
             Guardar("facturas", r.FacturasOk, r.FacturasOk ? JsonSerializer.Serialize(r.Facturas, ReplicaPedidos.Json) : null, r.Facturas?.Count ?? 0);
             Guardar("contratos", r.ContratosOk, r.ContratosOk ? JsonSerializer.Serialize(r.Contratos, ReplicaPedidos.Json) : null, r.Contratos?.Count ?? 0);
+            if (conPagar && r.DocumentosPagar is { } p) ReplicaDocumentos.Normalizar(p, r.CompaniaId);
+            if (ReplicaDocumentos.ListaPagar(cn))
+                Guardar("documentosPagar", conPagar, conPagar ? JsonSerializer.Serialize(r.DocumentosPagar, ReplicaPedidos.Json) : null, r.DocumentosPagar?.Count ?? 0);
             tx.Commit();
             return Results.Ok(new { ok = true });
         }).AllowAnonymous().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(100 * 1024 * 1024));

@@ -260,7 +260,15 @@ public static class EstadoEndpoints
             if (cpSoftland)
             {
                 var cfg = Softland.Leer(cn);
-                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                var companiaCp = cfg?.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0");
+                if (cfg is not null && ReplicaDocumentos.ListaPagar(cn) && companiasErpAgente.Contains(companiaCp))
+                {
+                    // Fase 3: modo agente lee la réplica (mismos IDs y mapeo que el modo directo).
+                    documentosPorPagar = ReplicaDocumentos.DocumentosPagar(cn, companiaCp);
+                    if (!ReplicaDocumentos.Existe(cn, companiaCp, "documentosPagar"))
+                        avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ") + $"Documentos por pagar compañía {companiaCp}: pendiente de la primera sincronización del agente.";
+                }
+                else if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
                 {
                     documentosPorPagar = [];
                     avisoFuente ??= "La fuente SoftlandERP está activa, pero aún no se registran sus credenciales en Parámetros.";

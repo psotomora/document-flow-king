@@ -53,7 +53,8 @@ public static class SincronizacionEndpoints
                 WHERE @compania IS NULL OR s.CompaniaId = @compania OR s.CompaniaId IS NULL
                 """, new { compania = Compania(companiaId) }).ToList();
             var conexiones = ReplicaPedidos.Conexiones(cn);
-            string[] porAgente = ReplicaDocumentos.Lista(cn) ? ["pedidos", "facturas", "contratos"] : ["pedidos"];
+            string[] porAgente = ReplicaDocumentos.ListaPagar(cn) ? ["pedidos", "facturas", "contratos", "documentosPagar"]
+                : ReplicaDocumentos.Lista(cn) ? ["pedidos", "facturas", "contratos"] : ["pedidos"];
             foreach (var f in filas)
                 if (porAgente.Contains(f.Entidad) && conexiones.Any(x => x.CompaniaId.ToString() == f.CompaniaId && x.Modo == "agente")) f.Modo = "agente";
             foreach (var c in conexiones.Where(x => x.Modo == "agente" && (companiaId is null || x.CompaniaId.ToString() == companiaId)))
@@ -70,9 +71,10 @@ public static class SincronizacionEndpoints
 
             using var cn = db.Abrir();
             var conexiones = ReplicaPedidos.Conexiones(cn).Where(x => x.Modo == "agente" && (s.CompaniaId is null || x.CompaniaId.ToString() == s.CompaniaId)).ToList();
-            var porAgente = s.Entidad == "pedidos" || (s.Entidad is "facturas" or "contratos" && ReplicaDocumentos.Lista(cn));
+            var porAgente = s.Entidad == "pedidos" || (s.Entidad is "facturas" or "contratos" && ReplicaDocumentos.Lista(cn))
+                || (s.Entidad == "documentosPagar" && ReplicaDocumentos.ListaPagar(cn));
             if (!porAgente || conexiones.Count == 0)
-                return Results.BadRequest(new { mensaje = "Esta pantalla usa conexión directa: utilice Actualizar. La sincronización por agente cubre Pedidos, Facturas y Contratos." });
+                return Results.BadRequest(new { mensaje = "Esta pantalla usa conexión directa: utilice Actualizar. La sincronización por agente cubre Pedidos, Facturas, Contratos y Documentos por pagar." });
             if (cn.ExecuteScalar<int?>("SELECT OBJECT_ID('flujo.SincronizacionEstado', 'U')") is null)
                 return Results.BadRequest(new { mensaje = "Falta ejecutar el script 18_agente_sincronizacion.sql." });
 
