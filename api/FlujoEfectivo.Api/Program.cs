@@ -102,6 +102,7 @@ app.Use(async (ctx, next) =>
         || ruta.StartsWith("/api/salud", StringComparison.OrdinalIgnoreCase)
         || ruta.StartsWith("/api/auth", StringComparison.OrdinalIgnoreCase)
         || ruta.StartsWith("/api/licencia", StringComparison.OrdinalIgnoreCase)
+        || ruta.StartsWith("/api/public/agente", StringComparison.OrdinalIgnoreCase)
         || HttpMethods.IsOptions(ctx.Request.Method);
 
     if (!exenta)
@@ -405,6 +406,8 @@ api.MapUsuarios();
 api.MapRegistros();
 api.MapLicencia();
 api.MapSincronizacion();
+api.MapAgente();
+app.MapAgentePublico();
 
 
 app.MapGet("/api/salud", (Db db) =>
