@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.55 - 2026-11-03
+
+- Parámetros → Agente local: generar/regenerar el token queda reservado al Súper Administrador (validado también en `POST /api/agente/token`, con bitácora). Los administradores conservan el semáforo, diagnóstico y modo de conexión.
+
 ## 1.38.54 - 2026-11-03
 
 - Usuarios: casilla «Súper Administrador de Aplix» (solo visible para Súper Administradores) que asigna o retira el permiso sin SQL; exige perfil Administrador y no permite retirárselo a uno mismo. Nuevos endpoints `/api/inquilinos/usuarios/{id}/super-administrador`.

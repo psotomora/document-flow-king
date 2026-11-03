@@ -138,7 +138,7 @@ public static class AgenteEndpoints
             if (!TablasListas(cn))
                 return Results.BadRequest(new { mensaje = "Falta ejecutar los scripts 18_agente_sincronizacion.sql y 19_agente_estado.sql." });
             // Con el esquema SaaS instalado, solo el Súper Administrador emite tokens (igual que en Empresas).
-            if (Datos.Saas.Listo(cn) && Datos.Saas.Contexto(cn, ctx.User.UsuarioId()) is not { SuperAdministrador: true })
+            if (Saas.Listo(cn) && Saas.Contexto(cn, ctx.User.UsuarioId()) is not { SuperAdministrador: true })
                 return Results.Json(new { mensaje = "Solo el Súper Administrador de Aplix puede generar el token del agente, desde Administración → Empresas." }, statusCode: 403);
             var token = "agt_" + Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
             cn.Execute("UPDATE flujo.Inquilino SET TokenAgenteHash = @hash WHERE Codigo = 'principal'", new { hash = Hash(token) });
