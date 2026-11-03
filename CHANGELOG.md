@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.56 - 2026-11-03
+
+- Fase 5 (paso 2a): script `24_aislamiento_datos_inquilino.sql` asigna cada compañía a una empresa (las existentes a `principal`). `GET /api/estado` devuelve solo compañías, bancos, documentos y usuarios de la empresa del usuario, y la API rechaza (403) cualquier alta o cambio que apunte a una compañía o banco de otra empresa. El ingreso de empresas secundarias sigue bloqueado hasta acotar parámetros, correo y fuentes externas.
+
 ## 1.38.55 - 2026-11-03
 
 - Parámetros → Agente local: generar/regenerar el token queda reservado al Súper Administrador (validado también en `POST /api/agente/token`, con bitácora). Los administradores conservan el semáforo, diagnóstico y modo de conexión.
