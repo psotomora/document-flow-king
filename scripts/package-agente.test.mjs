@@ -15,15 +15,17 @@ function fixture(t) {
   };
   escribir(join(raiz, "package.json"), JSON.stringify({ version: "1.38.46" }));
   escribir(join(raiz, "agente/AplixCashFlowAgente/AplixCashFlowAgente.csproj"));
+  for (const b of ["instalar-servicio.bat", "desinstalar-servicio.bat", "probar-consola.bat", "LEAME.txt"]) escribir(join(raiz, "agente/AplixCashFlowAgente/distribucion", b));
   let salida;
   const publicar = (comando, args, opciones) => {
     assert.equal(comando, "dotnet");
     assert.deepEqual(args.slice(0, 4), ["publish", join(raiz, "agente/AplixCashFlowAgente/AplixCashFlowAgente.csproj"), "-c", "Release"]);
     assert.deepEqual(args.slice(4, 7), ["-r", "win-x64", "--self-contained"]);
     assert.equal(args[7], "true");
-    assert.equal(args[8], "-o");
+    assert.ok(args.includes("-p:PublishSingleFile=true"));
+    const o = args.indexOf("-o");
     assert.equal(opciones.cwd, raiz);
-    salida = args[9];
+    salida = args[o + 1];
     assert.equal(existsSync(salida), false);
     for (const ruta of ["AplixCashFlowAgente.exe", "AplixCashFlowAgente.dll", "AplixCashFlowAgente.runtimeconfig.json", "appsettings.json", "Microsoft.Data.SqlClient.dll"]) escribir(join(salida, ruta));
     return { status: 0 };
@@ -39,12 +41,12 @@ function entradas(zip) {
   return resultado.stdout.replaceAll("\\", "/").split(/\r?\n/).map(ruta => ruta.replace(/^\.\//, ""));
 }
 
-test("compila win-x64 autocontenido y crea ZIP versionado con el ejecutable y la plantilla de configuración", t => {
+test("compila win-x64 autocontenido y crea ZIP versionado con el ejecutable único, scripts .bat y la plantilla de configuración", t => {
   const f = fixture(t);
   const zip = empaquetarAgente(f.raiz, f.publicar);
   assert.equal(zip, join(f.raiz, "cashflow-agente-1.38.46.zip"));
   const archivos = entradas(zip);
-  for (const ruta of ["AplixCashFlowAgente.exe", "AplixCashFlowAgente.dll", "AplixCashFlowAgente.runtimeconfig.json", "appsettings.json", "Microsoft.Data.SqlClient.dll"]) assert.ok(archivos.includes(ruta), ruta);
+  assert.deepEqual(archivos.filter(Boolean).sort(), ["AplixCashFlowAgente.exe", "LEAME.txt", "appsettings.json", "desinstalar-servicio.bat", "instalar-servicio.bat", "probar-consola.bat"]);
   assert.equal(existsSync(f.salida()), false);
 });
 
@@ -56,7 +58,7 @@ test("excluye configuraciones privadas, certificados, logs, SQL y Git a cualquie
     return resultado;
   });
   const archivos = entradas(zip).filter(x => x && !x.endsWith("/"));
-  assert.equal(archivos.length, 5);
+  assert.equal(archivos.length, 6);
   assert.ok(archivos.includes("appsettings.json"));
 });
 
@@ -73,9 +75,9 @@ test("rechaza publicación incompleta antes de crear ZIP", t => {
   const f = fixture(t);
   assert.throws(() => empaquetarAgente(f.raiz, (...args) => {
     const resultado = f.publicar(...args);
-    rmSync(join(f.salida(), "AplixCashFlowAgente.runtimeconfig.json"));
+    rmSync(join(f.salida(), "AplixCashFlowAgente.exe"));
     return resultado;
-  }), /falta AplixCashFlowAgente.runtimeconfig.json/);
+  }), /falta AplixCashFlowAgente.exe/);
   assert.equal(existsSync(join(f.raiz, "cashflow-agente-1.38.46.zip")), false);
 });
 
