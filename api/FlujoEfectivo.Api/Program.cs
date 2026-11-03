@@ -404,6 +404,7 @@ api.MapEstado();
 api.MapUsuarios();
 api.MapRegistros();
 api.MapLicencia();
+api.MapSincronizacion();
 
 
 app.MapGet("/api/salud", (Db db) =>

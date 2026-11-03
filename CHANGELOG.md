@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.41 — 2026-11-02
+- Fase 1 SaaS: script `database/18_agente_sincronizacion.sql` (tablas `flujo.Inquilino` con inquilino por defecto y `flujo.SincronizacionEstado`).
+- API: `GET /api/sincronizacion/estado` y `POST /api/sincronizacion/solicitar`.
+- Web: leyenda de última sincronización y botón «Sincronizar ahora» en Pedidos pendientes, Facturas por cobrar y Documentos por pagar. Las consultas directas a Softland siguen activas.
+
 ## 1.38.40 — 2026-11-02
 - Conciliación bancaria (pagos recibidos y erogaciones): solo sugiere documentos emitidos hasta la fecha del movimiento, priorizando el más cercano.
 - El selector de documentos muestra y permite buscar por fecha de emisión. Solo aplicación web; sin API ni SQL.
