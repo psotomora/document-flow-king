@@ -61,7 +61,7 @@ internal static class SincronizarPedidos
             trabajo.TrabajoId, trabajo.CompaniaId, ok,
             duracionMs = (int)Math.Min(int.MaxValue, reloj.ElapsedMilliseconds), pedidos = ok ? pedidos : null
         }, ct);
-        respuesta.EnsureSuccessStatusCode();
+        await Verificar(respuesta, "Pedidos", log, ct);
         log.LogInformation("Pedidos compañía {Compania}: {Ok}; {Registros} registros aceptados por la nube.", trabajo.CompaniaId, ok, ok ? pedidos?.Count : 0);
     }
 
@@ -137,7 +137,17 @@ internal static class SincronizarPedidos
             duracionMs = (int)Math.Min(int.MaxValue, reloj.ElapsedMilliseconds), facturas, contratos,
             documentosPagarOk = documentosPagar is not null, documentosPagar
         }, ct);
-        respuesta.EnsureSuccessStatusCode();
+        await Verificar(respuesta, "Facturas/Contratos/Documentos por pagar", log, ct);
         log.LogInformation("Compañía {Compania}: {Facturas} facturas, {Contratos} contratos y {Pagar} documentos por pagar aceptados por la nube.", trabajo.CompaniaId, facturas?.Count, contratos?.Count, documentosPagar?.Count);
+    }
+
+    /// <summary>Muestra en consola el motivo exacto del rechazo de la nube (sin datos privados).</summary>
+    private static async Task Verificar(HttpResponseMessage r, string que, ILogger log, CancellationToken ct)
+    {
+        if (r.IsSuccessStatusCode) return;
+        var cuerpo = await r.Content.ReadAsStringAsync(ct);
+        if (cuerpo.Length > 500) cuerpo = cuerpo[..500];
+        log.LogWarning("La nube rechazó {Que}: HTTP {Codigo} {Cuerpo}", que, (int)r.StatusCode, cuerpo);
+        r.EnsureSuccessStatusCode();
     }
 }

@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.57 - 2026-11-03
+
+- Réplica por agente: `DOCUMENTOS_CC` se cruza con `OUTER APPLY TOP 1` para no duplicar facturas; unicidad de documentos por pagar por proveedor + tipo + número; mensajes de rechazo indican el documento; el agente imprime el cuerpo de los rechazos HTTP. Agente 1.38.57.
+
 ## 1.38.56 - 2026-11-03
 
 - Fase 5 (paso 2a): script `24_aislamiento_datos_inquilino.sql` asigna cada compañía a una empresa (las existentes a `principal`). `GET /api/estado` devuelve solo compañías, bancos, documentos y usuarios de la empresa del usuario, y la API rechaza (403) cualquier alta o cambio que apunte a una compañía o banco de otra empresa. El ingreso de empresas secundarias sigue bloqueado hasta acotar parámetros, correo y fuentes externas.
