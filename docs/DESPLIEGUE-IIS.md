@@ -80,7 +80,7 @@ cd C:\document-flow-king\api\FlujoEfectivo.Api
 
 ### 2.2 Configuración de producción
 
-Cree el archivo `appsettings.Production.json` dentro de `api\FlujoEfectivo.Api` (se copia solo al publicar y **sobrescribe** los valores de `appsettings.json`):
+Cree el archivo `appsettings.Production.json` directamente en la carpeta de la API del servidor (`C:\inetpub\FlujoEfectivoApi`). No se incluye al publicar ni en el ZIP; conserve este archivo en cada actualización. Sus valores **sobrescriben** los de `appsettings.json` si existe:
 
 ```json
 {
@@ -112,6 +112,53 @@ dotnet publish -c Release -o C:\inetpub\FlujoEfectivoApi
 
 Debe quedar en `C:\inetpub\FlujoEfectivoApi` el archivo `FlujoEfectivo.Api.dll`, `web.config` y `appsettings.Production.json`.
 La publicación no copia `appsettings.Production.json`: esto evita sobrescribir accidentalmente la llave y las conexiones propias del servidor. En la primera instalación, créelo manualmente en esa carpeta con el contenido del apartado 2.2. En actualizaciones posteriores, conserve exactamente el archivo existente.
+
+### 2.3.1 Compilar y crear el ZIP automáticamente (desde 1.38.43)
+
+Desde la **raíz** del proyecto, no desde la carpeta de la API:
+
+```powershell
+cd C:\github\document-flow-king
+npm run package:api
+```
+
+Requiere el SDK de .NET 8 en la computadora de desarrollo. El comando ejecuta
+`dotnet publish` en Release en una carpeta temporal nueva, verifica el resultado
+y crea `cashflow-api-1.38.43.zip` en la raíz. Windows utiliza PowerShell;
+Linux/macOS requiere `zip`. No hace falta ejecutar `build:api` antes.
+
+El ZIP contiene directamente `FlujoEfectivo.Api.dll`, dependencias,
+`FlujoEfectivo.Api.deps.json`, `FlujoEfectivo.Api.runtimeconfig.json` y la
+plantilla `web.config`. **No contiene ningún `appsettings*.json`**, credenciales,
+archivos `.env`, certificados, licencias, logs, SQL ni metadatos Git.
+No guarde los ZIP generados en el repositorio.
+
+Para actualizar una API existente, haga un respaldo de su carpeta, extraiga el
+ZIP a una carpeta temporal nueva y conserve **todos los appsettings y el
+web.config existentes** del servidor. En PowerShell como administrador:
+
+```powershell
+Import-Module WebAdministration
+Expand-Archive -Path C:\transferencias\cashflow-api-1.38.43.zip -DestinationPath C:\transferencias\api-1.38.43
+Stop-WebAppPool -Name "FlujoEfectivoApi"
+try {
+    robocopy C:\transferencias\api-1.38.43 C:\inetpub\FlujoEfectivoApi /E /XF web.config appsettings*.json
+    if ($LASTEXITCODE -ge 8) { throw "Error al copiar la API; revise la salida de robocopy." }
+} finally {
+    Start-WebAppPool -Name "FlujoEfectivoApi"
+}
+```
+
+No use `/MIR`: borraría la configuración que no viene en el ZIP. En una
+instalación nueva, copie también la plantilla `web.config` y cree la
+configuración del apartado 2.2. Adapte el nombre del grupo de aplicaciones
+al que realmente usa la API en IIS; NSSM corresponde solo a la web.
+
+Verifique `https://apps.aplix.cr/api/salud`: la API sigue en **1.38.41**;
+**1.38.43 es la versión de la aplicación y del nombre del paquete**.
+Este cambio no añade código de API ni SQL. Si está completando la publicación
+de Fase 1 pendiente, debe ejecutar `database/18_agente_sincronizacion.sql`
+si aún no lo hizo. El paquete web sigue generándose con `npm run package:node`.
 
 ### 2.4 Crear el grupo de aplicaciones
 

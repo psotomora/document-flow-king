@@ -1,6 +1,6 @@
 {
   "name": "tanstack_start_ts",
-  "version": "1.38.42",
+  "version": "1.38.43",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -17,6 +17,7 @@
     "dev:web": "vite dev",
     "dev:api": "node scripts/dev-api.mjs",
     "build:api": "dotnet publish api/FlujoEfectivo.Api -c Release -o publicar/api",
+    "package:api": "node scripts/package-api.mjs",
     "build:all": "npm run build:node && npm run build:api"
   },
   "overrides": {
