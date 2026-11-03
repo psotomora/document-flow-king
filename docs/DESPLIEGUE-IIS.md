@@ -562,3 +562,25 @@ una licencia nueva. El límite de usuarios impide activar usuarios adicionales.
 5. Pruebe en consola: `AplixCashFlowAgente.exe`. Como servicio:
    `sc.exe create AplixCashFlowAgente binPath= "C:\AplixAgente\AplixCashFlowAgente.exe" start= auto` y `sc.exe start AplixCashFlowAgente`.
 6. Validación: en Parámetros debe verse «Agente en línea» y «Conexión a Softland verificada». Solo usa HTTPS saliente (443); no abra puertos.
+
+## Fase 3 piloto: Pedidos (1.38.48)
+
+1. Ejecute `database/20_replica_pedidos.sql` después de los scripts 18 y 19. El modo inicial de todas las compañías es directa; no se altera Softland.
+2. Genere y despliegue los ZIP de aplicación y API (`npm run package:node`, `npm run package:api`). Detenga el servicio web y el AppPool correspondientes antes de copiar; conserve configuración de IIS y `appsettings*.json` de la API.
+3. Genere `npm run package:agente`, detenga el agente del cliente y copie los binarios conservando su `appsettings.json`. Agregue dentro de `Agente` el mapeo local (reemplace ID y esquema con los reales):
+
+```json
+"Companias": [
+  { "CompaniaId": 1, "Esquema": "ESQUEMA_SOFTLAND" }
+]
+```
+
+La conexión es `Agente:Softland`; cada entrada puede incluir una cadena `Softland` distinta. Las credenciales permanecen en el servidor del cliente. El usuario SQL solo necesita SELECT; esta fase no escribe en Softland. Se exige HTTPS para transmitir el token.
+
+4. Arranque el agente. En Parámetros → Agente local → Conexión ERP · Pedidos, seleccione compañía, intervalo y modo Agente. En Pedidos pulse Sincronizar ahora. La nube conserva el último conjunto íntegro ante errores; una instantánea exitosa vacía elimina los pedidos que ya no están pendientes.
+5. Compare cantidad, moneda y montos con modo Directo **sin filtros diferentes y sin movimientos en el ERP entre lecturas**; abra también el detalle de un pedido. Puede regresar a Directa desde Parámetros. El modo directo usa la configuración Softland existente; no se añaden conexiones directas por empresa en esta fase.
+6. La leyenda es verde con verificación exitosa reciente, y roja al alcanzar cinco minutos sin verificación o si falla. La sincronización y la verificación son fechas distintas: consultar el estado no modifica ninguna. En selección Todas se toma el estado más desfavorable y la fecha más antigua disponible.
+
+**Alcance:** solo Pedidos y su detalle se replican. Facturas, cuentas por pagar, conciliación y escrituras siguen como antes; altas SaaS de otros inquilinos/usuarios quedan para la Fase 5. La instalación actual se mantiene vinculada a `principal`.
+
+**Validación local:** `dotnet run --project api/tests/ReplicaPedidos` prueba validación, normalización e identidad de réplicas sin cuentas reales; `bun test src/lib/estado-softland.test.ts` comprueba el límite exacto de cinco minutos. El ciclo real requiere el agente del cliente, IIS y su SQL Server.

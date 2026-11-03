@@ -5,12 +5,15 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>AplixCashFlowAgente</RootNamespace>
-    <Version>1.38.46</Version>
-    <AssemblyVersion>1.38.46.0</AssemblyVersion>
-    <FileVersion>1.38.46.0</FileVersion>
+    <Version>1.38.48</Version>
+    <AssemblyVersion>1.38.48.0</AssemblyVersion>
+    <FileVersion>1.38.48.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="../../api/FlujoEfectivo.Api/Datos/Softland.cs" Link="Compartido/Softland.cs" />
+    <Compile Include="../../api/FlujoEfectivo.Api/Modelos/Dtos.cs" Link="Compartido/Dtos.cs" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />

@@ -169,7 +169,7 @@ function PaginaPedidos() {
             <p className="font-medium">Origen de los pedidos: {pedidosFuenteOrigen}</p>
             <p className={avisoFuenteExterna ? "text-xs break-words" : "text-xs text-muted-foreground"}>
               {avisoFuenteExterna ??
-                "Se muestran los pedidos en estado Normal leídos directamente de las tablas PEDIDO y PEDIDO_LINEA. Al generar la factura correspondiente, el pedido pasa a Facturado en el ERP."}
+                "Pedidos en estado Normal de Softland. Los pedidos por agente son de solo lectura; la facturación se realiza en el ERP."}
             </p>
           </div>
         </div>

@@ -21,6 +21,8 @@ public static class SincronizacionEndpoints
         public string? Resultado { get; set; }
         public string? Mensaje { get; set; }
         public DateTime? SolicitadaEn { get; set; }
+        public DateTime? UltimaVerificacion { get; set; }
+        public string Modo { get; set; } = "directa";
     }
 
     public sealed class SolicitudSincronizacion
@@ -40,14 +42,22 @@ public static class SincronizacionEndpoints
             if (cn.ExecuteScalar<int?>("SELECT OBJECT_ID('flujo.SincronizacionEstado', 'U')") is null)
                 return Results.Ok(Array.Empty<EstadoSincronizacionDto>());
 
+            var fase3 = ReplicaPedidos.Lista(cn);
             var filas = cn.Query<EstadoSincronizacionDto>(
-                """
+                $"""
                 SELECT s.Entidad, CAST(s.CompaniaId AS NVARCHAR(20)) AS CompaniaId,
-                       s.UltimaSincronizacion, s.DuracionMs, s.Registros, s.Resultado, s.Mensaje, s.SolicitadaEn
+                       s.UltimaSincronizacion, s.DuracionMs, s.Registros, s.Resultado, s.Mensaje, s.SolicitadaEn,
+                       {(fase3 ? "s.UltimaVerificacion" : "s.UltimaSincronizacion")} AS UltimaVerificacion
                 FROM flujo.SincronizacionEstado s
                 INNER JOIN flujo.Inquilino i ON i.InquilinoId = s.InquilinoId AND i.Codigo = 'principal'
                 WHERE @compania IS NULL OR s.CompaniaId = @compania OR s.CompaniaId IS NULL
-                """, new { compania = Compania(companiaId) });
+                """, new { compania = Compania(companiaId) }).ToList();
+            var conexiones = ReplicaPedidos.Conexiones(cn);
+            foreach (var f in filas)
+                if (f.Entidad == "pedidos" && conexiones.Any(x => x.CompaniaId.ToString() == f.CompaniaId && x.Modo == "agente")) f.Modo = "agente";
+            foreach (var c in conexiones.Where(x => x.Modo == "agente" && (companiaId is null || x.CompaniaId.ToString() == companiaId)))
+                if (!filas.Any(f => f.Entidad == "pedidos" && f.CompaniaId == c.CompaniaId.ToString()))
+                    filas.Add(new EstadoSincronizacionDto { Entidad = "pedidos", CompaniaId = c.CompaniaId.ToString(), Modo = "agente" });
             return Results.Ok(filas);
         });
 
@@ -57,10 +67,13 @@ public static class SincronizacionEndpoints
                 return Results.BadRequest(new { mensaje = $"Entidad no sincronizable: {s.Entidad}" });
 
             using var cn = db.Abrir();
+            var conexiones = ReplicaPedidos.Conexiones(cn).Where(x => x.Modo == "agente" && (s.CompaniaId is null || x.CompaniaId.ToString() == s.CompaniaId)).ToList();
+            if (s.Entidad != "pedidos" || conexiones.Count == 0)
+                return Results.BadRequest(new { mensaje = "Esta pantalla usa conexión directa: utilice Actualizar. La sincronización por agente está habilitada solo para Pedidos en la Fase 3 piloto." });
             if (cn.ExecuteScalar<int?>("SELECT OBJECT_ID('flujo.SincronizacionEstado', 'U')") is null)
                 return Results.BadRequest(new { mensaje = "Falta ejecutar el script 18_agente_sincronizacion.sql." });
 
-            var parametros = new { entidad = s.Entidad, compania = Compania(s.CompaniaId), usuario = ctx.User.NombreUsuario() };
+            foreach (var c in conexiones)
             cn.Execute(
                 """
                 DECLARE @inq INT = (SELECT InquilinoId FROM flujo.Inquilino WHERE Codigo = 'principal');
@@ -71,7 +84,7 @@ public static class SincronizacionEndpoints
                 IF @@ROWCOUNT = 0
                     INSERT INTO flujo.SincronizacionEstado (InquilinoId, CompaniaId, Entidad, SolicitadaEn, SolicitadaPor)
                     VALUES (@inq, @compania, @entidad, SYSUTCDATETIME(), @usuario);
-                """, parametros);
+                """, new { entidad = s.Entidad, compania = c.CompaniaId, usuario = ctx.User.NombreUsuario() });
             return Results.Ok(new { mensaje = "Sincronización solicitada." });
         });
     }

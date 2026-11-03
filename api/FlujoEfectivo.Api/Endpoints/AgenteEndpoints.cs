@@ -53,7 +53,7 @@ public static class AgenteEndpoints
             "SELECT CASE WHEN OBJECT_ID('flujo.Inquilino','U') IS NOT NULL AND OBJECT_ID('flujo.AgenteEstado','U') IS NOT NULL THEN 1 ELSE 0 END") == 1;
 
     /// <summary>Devuelve el inquilino del token, o null si el token no es válido.</summary>
-    private static int? Autenticar(HttpContext ctx, System.Data.IDbConnection cn)
+    public static int? Autenticar(HttpContext ctx, System.Data.IDbConnection cn)
     {
         var token = ctx.Request.Headers["x-agent-token"].ToString();
         if (string.IsNullOrWhiteSpace(token) || token.Length < 20) return null;
@@ -89,7 +89,8 @@ public static class AgenteEndpoints
             var solicitudes = cn.Query<string>(
                 "SELECT Entidad FROM flujo.SincronizacionEstado WHERE InquilinoId = @id AND SolicitadaEn IS NOT NULL",
                 new { id });
-            return Results.Ok(new { ok = true, hora = DateTime.UtcNow, solicitudes });
+            var trabajos = ReplicaEndpoints.Reservar(cn, id.Value);
+            return Results.Ok(new { ok = true, hora = DateTime.UtcNow, solicitudes, trabajos });
         }).AllowAnonymous();
 
         app.MapPost("/api/public/agente/diagnostico", (HttpContext ctx, Db db, Diagnostico d) =>

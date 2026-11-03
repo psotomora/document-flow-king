@@ -29,6 +29,11 @@ sealed class Agente(IConfiguration config, IHttpClientFactory http, ILogger<Agen
             log.LogError("Configure Agente:ApiUrl y Agente:Token en appsettings.json.");
             return;
         }
+        if (!Uri.TryCreate(apiUrl, UriKind.Absolute, out var destino) || destino.Scheme != Uri.UriSchemeHttps)
+        {
+            log.LogError("Agente:ApiUrl debe usar HTTPS; no se transmitirá el token por HTTP.");
+            return;
+        }
 
         var cliente = http.CreateClient();
         cliente.Timeout = TimeSpan.FromSeconds(30);
@@ -49,7 +54,19 @@ sealed class Agente(IConfiguration config, IHttpClientFactory http, ILogger<Agen
                 var resp = await cliente.PostAsJsonAsync($"{apiUrl}/public/agente/latido",
                     new { version = Version, equipo = Environment.MachineName }, ct);
                 if (!resp.IsSuccessStatusCode)
-                    log.LogWarning("Latido rechazado: {Estado} {Cuerpo}", (int)resp.StatusCode, await resp.Content.ReadAsStringAsync(ct));
+                    log.LogWarning("Latido rechazado: {Estado}", (int)resp.StatusCode);
+                else
+                {
+                    var respuesta = await resp.Content.ReadFromJsonAsync<SincronizarPedidos.LatidoRespuesta>(ct);
+                    foreach (var trabajo in respuesta?.Trabajos ?? [])
+                    {
+                        try { await SincronizarPedidos.Ejecutar(cliente, apiUrl, config, trabajo, log, ct); }
+                        catch (Exception) when (!ct.IsCancellationRequested)
+                        {
+                            log.LogWarning("La nube no aceptó el trabajo de compañía {Compania}; se reintentará tras vencer la reserva.", trabajo.CompaniaId);
+                        }
+                    }
+                }
             }
             catch (Exception ex) when (!ct.IsCancellationRequested)
             {

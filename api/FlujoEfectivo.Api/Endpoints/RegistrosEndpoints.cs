@@ -581,6 +581,8 @@ public static class RegistrosEndpoints
             using var cn = db.Abrir();
 
             // Pedido de SoftlandERP: solo se admite el paso a Facturado y se refleja en el ERP.
+            if (id.StartsWith(ReplicaPedidos.Prefijo, StringComparison.Ordinal))
+                return Results.BadRequest(new { mensaje = "Los pedidos por agente son de solo lectura en la Fase 3; facture en Softland y sincronice." });
             if (id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
             {
                 var numero = id[Softland.PrefijoId.Length..];
@@ -807,6 +809,16 @@ public static class RegistrosEndpoints
         /* ----------------------- Fuente externa: SoftlandERP ------------------ */
         g.MapGet("/pedidos/{id}/lineas", (string id, Db db, IConfiguration config) =>
         {
+            if (id.StartsWith(ReplicaPedidos.Prefijo, StringComparison.Ordinal))
+            {
+                var partes = id[ReplicaPedidos.Prefijo.Length..].Split(':', 2);
+                if (partes.Length != 2 || !int.TryParse(partes[0], out var compania)) return Results.BadRequest();
+                using var replicaCn = db.Abrir();
+                if (!ReplicaPedidos.Lista(replicaCn)) return Results.NotFound();
+                if (!ReplicaPedidos.Conexiones(replicaCn).Any(x => x.CompaniaId == compania && x.Modo == "agente")) return Results.NotFound();
+                var fila = ReplicaPedidos.Leer(replicaCn, compania).FirstOrDefault(x => x.Pedido.Id == id);
+                return fila is null ? Results.NotFound() : Results.Ok(fila.Detalle);
+            }
             if (!id.StartsWith(Softland.PrefijoId, StringComparison.Ordinal))
                 return Results.Ok(Array.Empty<LineaPedidoDto>());
             using var cn = db.Abrir();
