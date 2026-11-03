@@ -19,11 +19,11 @@ function fixture(t) {
   const publicar = (comando, args, opciones) => {
     assert.equal(comando, "dotnet");
     assert.deepEqual(args.slice(0, 4), ["publish", join(raiz, "agente/AplixCashFlowAgente/AplixCashFlowAgente.csproj"), "-c", "Release"]);
-    assert.deepEqual(args.slice(4, 8), ["-r", "win-x64", "--self-contained"]);
-    assert.equal(args[8], "true");
-    assert.equal(args[9], "-o");
+    assert.deepEqual(args.slice(4, 7), ["-r", "win-x64", "--self-contained"]);
+    assert.equal(args[7], "true");
+    assert.equal(args[8], "-o");
     assert.equal(opciones.cwd, raiz);
-    salida = args[10];
+    salida = args[9];
     assert.equal(existsSync(salida), false);
     for (const ruta of ["AplixCashFlowAgente.exe", "AplixCashFlowAgente.dll", "AplixCashFlowAgente.runtimeconfig.json", "appsettings.json", "Microsoft.Data.SqlClient.dll"]) escribir(join(salida, ruta));
     return { status: 0 };
