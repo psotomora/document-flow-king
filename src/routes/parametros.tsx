@@ -30,6 +30,7 @@ import {
 import { ConexionSoftland } from "@/components/parametros/ConexionSoftland";
 import { ServidorCorreo } from "@/components/parametros/ServidorCorreo";
 import { TarjetaLicencia } from "@/components/parametros/TarjetaLicencia";
+import { TarjetaAgente } from "@/components/parametros/TarjetaAgente";
 
 import {
   FUENTES_PEDIDOS,
@@ -600,6 +601,8 @@ function PaginaParametros() {
           </Table>
         </div>
       </div>
+
+      <TarjetaAgente />
 
       <div className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Carga inicial</h2>
