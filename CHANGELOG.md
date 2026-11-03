@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.48 — 2026-11-03
+- Fase 3 piloto de Pedidos: modo directo/agente por compañía, intervalo, instantánea completa con detalle, recepción atómica, solicitudes bajo demanda y reservas de trabajo. Misma consulta y mapeo de Softland compartidos por API y agente.
+- Pedidos por agente son de solo lectura. Facturas y cuentas por pagar conservan conexión directa. No habilita todavía un segundo inquilino de usuarios (Fase 5).
+- Leyenda superior verde tras verificación exitosa reciente, roja desde exactamente cinco minutos o tras fallo; consulta automática del estado sin renovar artificialmente la fecha.
+- Ejecutar SQL `20_replica_pedidos.sql` y actualizar **aplicación web y API**; actualizar aparte el agente del cliente, conservando su configuración y agregando el mapeo `Agente:Companias`.
+
 ## 1.38.47 — 2026-11-03
 - Parámetros: la tarjeta «Agente local» aparece debajo de la tarjeta de Licencia (antes estaba junto a «Carga inicial»).
 - Solo aplicación web; sin cambios en API ni SQL.
