@@ -57,7 +57,7 @@ export function TarjetaAgente() {
   }
 
   const color = (ok: boolean | null | undefined) =>
-    ok ? "bg-success" : ok === false ? "bg-destructive" : "bg-muted-foreground";
+    ok ? "bg-exito" : ok === false ? "bg-destructive" : "bg-muted-foreground";
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
