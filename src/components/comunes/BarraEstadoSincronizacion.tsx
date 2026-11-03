@@ -6,7 +6,7 @@ import { api, hayApi } from "@/lib/api";
 import { useApp } from "@/contexto/AppContexto";
 import { estadoSoftland, fechaUtc } from "@/lib/estado-softland";
 
-export type EntidadSincronizable = "pedidos" | "facturas" | "documentosPagar";
+export type EntidadSincronizable = "pedidos" | "facturas" | "contratos" | "documentosPagar";
 
 interface EstadoSinc {
   entidad: string;
