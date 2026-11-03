@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.38.41";
-export const APP_FECHA_VERSION = "2026-11-02";
+export const APP_VERSION = "1.38.42";
+export const APP_FECHA_VERSION = "2026-11-03";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,11 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.38.42",
+    fecha: "2026-11-03",
+    cambios: ["Conciliación incluye facturas pagadas al activar la casilla, con lista ampliada al contenido; Facturas por cobrar permite abrir el registro de pago con la factura seleccionada."],
+  },
   {
     version: "1.38.41",
     fecha: "2026-11-02",

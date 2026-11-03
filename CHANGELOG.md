@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.42 — 2026-11-03
+- Pagos recibidos: la casilla Mostrar facturas en estado pagado incluye esas facturas en el selector de conciliación; registrar el depósito conserva su estado y suma solo el ingreso bancario.
+- La lista de conciliación se amplía al texto más largo, limitada por la pantalla y sin ocultar información; las sugerencias automáticas mantienen la validación cronológica y solo consideran pendientes.
+- Facturas por cobrar: acción Registrar pago en cada fila abre la ventana existente con factura, monto, moneda y banco precargados.
+- Actualizar solo aplicación web; sin cambios en API ni SQL.
+
 ## 1.38.41 — 2026-11-02
 - Fase 1 SaaS: script `database/18_agente_sincronizacion.sql` (tablas `flujo.Inquilino` con inquilino por defecto y `flujo.SincronizacionEstado`).
 - API: `GET /api/sincronizacion/estado` y `POST /api/sincronizacion/solicitar`.

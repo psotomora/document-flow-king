@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { filtrarPorFecha } from "@/lib/conciliacion-fechas";
+import { facturasParaPago, montoReferenciaPago } from "@/lib/pagos-facturas";
 import { SelectorBuscable } from "@/components/comunes/SelectorBuscable";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { Moneda } from "@/data/tipos";
@@ -103,7 +104,7 @@ function saldoEnMoneda(f: FacturaCalculada, moneda: Moneda, tc: number): number 
 /** Margen de coincidencia para pagos en otra moneda (fluctuación cambiaria). */
 const MARGEN_CRUZADO = 0.03;
 
-export function ConciliacionEstadoCuenta() {
+export function ConciliacionEstadoCuenta({ mostrarPagadas = false }: { mostrarPagadas?: boolean }) {
   const { facturasCalculadas, bancos, companiaActiva, agregarPago, tipoCambio, puedeEditar } = useApp();
   const bancosActivos = filtrarPorCompania(
     bancos.filter((b) => b.activo),
@@ -117,6 +118,10 @@ export function ConciliacionEstadoCuenta() {
   const [procesando, setProcesando] = useState<string | null>(null);
 
   const banco = bancos.find((b) => b.id === bancoId);
+  const seleccionables = useMemo(
+    () => facturasParaPago(filtrarPorCompania(facturasCalculadas, banco?.companiaId ?? companiaActiva), mostrarPagadas),
+    [facturasCalculadas, banco, companiaActiva, mostrarPagadas],
+  );
   const pendientes = useMemo(
     () =>
       facturasCalculadas.filter(
@@ -151,8 +156,9 @@ export function ConciliacionEstadoCuenta() {
 
   /** TC implícito: monto depositado / saldo de la factura (o inverso si la factura es en CRC). */
   const tcImplicito = (f: FacturaCalculada, monto: number) => {
-    if (f.moneda === moneda || f.saldoPendiente <= 0) return "";
-    const tc = f.moneda === "USD" ? monto / f.saldoPendiente : f.saldoPendiente / monto;
+    const base = montoReferenciaPago(f);
+    if (f.moneda === moneda || base <= 0) return "";
+    const tc = f.moneda === "USD" ? monto / base : base / monto;
     return tc.toFixed(4);
   };
 
@@ -224,11 +230,13 @@ export function ConciliacionEstadoCuenta() {
     const f = facturasCalculadas.find((x) => x.id === fila.facturaId);
     if (!banco) { toast.error("Seleccione la cuenta bancaria del depósito."); return; }
     if (!f) { toast.error("Seleccione la factura a la que corresponde el depósito."); return; }
+    if (!seleccionables.some((opcion) => opcion.id === f.id)) { toast.error("La factura no está disponible para la cuenta y el filtro seleccionados."); return; }
+    const facturaYaPagada = f.estado === "Pagada";
     const cruzado = f.moneda !== moneda;
     const tc = Number(fila.tc);
     if (cruzado && !(tc > 0)) { toast.error("Indique el tipo de cambio de la operación."); return; }
     const aplicadoFactura = cruzado ? (f.moneda === "USD" ? m.monto / tc : m.monto * tc) : m.monto;
-    if (aplicadoFactura - f.saldoPendiente > 0.01) {
+    if (!facturaYaPagada && aplicadoFactura - f.saldoPendiente > 0.01) {
       { toast.error("El depósito excede el saldo pendiente de la factura; ajuste el tipo de cambio o elija otra factura."); return; }
     }
     setProcesando(m.clave);
@@ -241,12 +249,12 @@ export function ConciliacionEstadoCuenta() {
       tipoCambioOperacion: cruzado ? tc : undefined,
       metodo: "Transferencia",
       referencia: m.referencia.slice(0, 60) || `Estado de cuenta ${archivo}`.slice(0, 60),
-      aplicaFactura: true,
+      aplicaFactura: !facturaYaPagada,
     });
     setProcesando(null);
     if (!ok) return;
     actualizar(m, { aplicado: true });
-    toast.success(`Pago aplicado a la factura ${f.numero}`);
+    toast.success(facturaYaPagada ? `Ingreso registrado en el banco; la factura ${f.numero} conserva su estado pagado` : `Pago aplicado a la factura ${f.numero}`);
   };
 
   const usados = new Set(
@@ -326,7 +334,7 @@ export function ConciliacionEstadoCuenta() {
                   const opciones = [
                     ...s.exactas,
                     ...s.cruzadas,
-                    ...pendientes.filter((f) => !sugeridas.has(f.id)),
+                    ...seleccionables.filter((f) => !sugeridas.has(f.id)),
                   ].filter((f) => f.id === fila.facturaId || !usados.has(f.id));
                   const etiqueta = fila.aplicado
                     ? <Badge className="bg-exito text-exito-foreground">Aplicado</Badge>
@@ -347,6 +355,7 @@ export function ConciliacionEstadoCuenta() {
                       <TableCell>{etiqueta}</TableCell>
                       <TableCell>
                         <SelectorBuscable
+                          ampliarAlContenido
                           valor={fila.facturaId}
                           onChange={(v) => elegir(m, v)}
                           disabled={fila.aplicado || fila.omitido}
@@ -354,7 +363,7 @@ export function ConciliacionEstadoCuenta() {
                           buscarPlaceholder="Buscar por número o cliente..."
                           opciones={opciones.map((f) => ({
                             valor: f.id,
-                            etiqueta: `${f.numero} · ${f.cliente} · ${(f.fechaEmision || "").slice(0, 10)} · ${formatearMoneda(f.saldoPendiente, f.moneda)}`,
+                            etiqueta: `${f.numero} · ${f.cliente} · ${(f.fechaEmision || "").slice(0, 10)} · ${f.estado === "Pagada" ? "Pagada · " : ""}${formatearMoneda(montoReferenciaPago(f), f.moneda)}`,
                             busqueda: `${f.numero} ${f.cliente} ${(f.fechaEmision || "").slice(0, 10)}`,
                             destacada: sugeridas.has(f.id),
                           }))}
