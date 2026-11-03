@@ -558,7 +558,7 @@ una licencia nueva. El límite de usuarios impide activar usuarios adicionales.
 1. Ejecute `database/19_agente_estado.sql` (requiere el 18).
 2. Publique la API 1.38.44 y la aplicación web.
 3. En **Parámetros → Agente local**, pulse **Generar token** (administrador) y cópielo; solo se muestra una vez.
-4. En el servidor del cliente (con acceso al SQL de Softland): `npm run package:agente` genera `publicar/agente`. Copie la carpeta, edite `appsettings.json` (`ApiUrl`, `Token`, cadena `Softland`).
+4. En su equipo: `npm run package:agente` compila el agente autocontenido para Windows (no requiere .NET en el servidor del cliente) y genera `cashflow-agente-<versión>.zip` en la raíz del proyecto. Copie el contenido del ZIP a la carpeta del agente (p. ej. `C:\AplixAgente`) y edite `appsettings.json` (`ApiUrl`, `Token`, cadena `Softland`). Si la carpeta ya tiene un `appsettings.json` configurado, consérvelo. Para publicar sin ZIP use `npm run build:agente` (genera `publicar/agente`).
 5. Pruebe en consola: `AplixCashFlowAgente.exe`. Como servicio:
    `sc.exe create AplixCashFlowAgente binPath= "C:\AplixAgente\AplixCashFlowAgente.exe" start= auto` y `sc.exe start AplixCashFlowAgente`.
 6. Validación: en Parámetros debe verse «Agente en línea» y «Conexión a Softland verificada». Solo usa HTTPS saliente (443); no abra puertos.

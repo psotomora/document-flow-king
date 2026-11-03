@@ -1,6 +1,6 @@
 {
   "name": "tanstack_start_ts",
-  "version": "1.38.45",
+  "version": "1.38.46",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -16,7 +16,8 @@
     "format": "prettier --write .",
     "dev:web": "vite dev",
     "dev:api": "node scripts/dev-api.mjs",
-    "package:agente": "dotnet publish agente/AplixCashFlowAgente -c Release -r win-x64 --self-contained true -o publicar/agente",
+    "build:agente": "dotnet publish agente/AplixCashFlowAgente -c Release -r win-x64 --self-contained true -o publicar/agente",
+    "package:agente": "node scripts/package-agente.mjs",
     "build:api": "dotnet publish api/FlujoEfectivo.Api -c Release -o publicar/api",
     "package:api": "node scripts/package-api.mjs",
     "build:all": "npm run build:node && npm run build:api"
