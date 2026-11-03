@@ -1,5 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
+  Briefcase,
   BarChart3,
   Banknote,
   BookLock,
@@ -24,6 +25,7 @@ import { AvisoLicencia } from "@/components/comunes/AvisoLicencia";
 import { formatearFecha, formatearNumero } from "@/lib/formato";
 import { opcionDeRuta, puedeVer } from "@/lib/permisos";
 import { cn } from "@/lib/utils";
+import { useSesionSaas } from "@/lib/empresas";
 import {
   Select,
   SelectContent,
@@ -78,6 +80,7 @@ const navegacion = [
       { to: "/parametros", etiqueta: "Parámetros", icono: Settings2 },
       { to: "/bitacora", etiqueta: "Bitácora", icono: BookLock },
       { to: "/acceso", etiqueta: "Usuarios y perfiles", icono: FileSpreadsheet },
+      { to: "/empresas", etiqueta: "Empresas", icono: Briefcase },
     ],
   },
 ] as const;
@@ -130,7 +133,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     : null;
 
   // Opciones ocultas para el usuario según sus permisos de visibilidad.
+  const sesionSaas = useSesionSaas(modoApi ? 1 : 0);
   const rutaVisible = (item: { to: string }) => {
+    // Empresas solo para el Súper Administrador de Aplix.
+    if (item.to === "/empresas") return !!sesionSaas?.superAdministrador;
     const opcion = opcionDeRuta(item.to);
     return !opcion || puedeVer(usuario, opcion.clave);
   };
