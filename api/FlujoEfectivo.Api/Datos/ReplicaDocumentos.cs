@@ -47,10 +47,12 @@ public static class ReplicaDocumentos
     {
         if (filas is null || filas.Count > 200000) return "El envío debe contener una instantánea completa de hasta 200000 documentos por pagar.";
         if (filas.Any(f => f is null)) return "Documento por pagar ausente.";
-        if (filas.Select(f => f.Tipo + "-" + f.Numero).Distinct(StringComparer.Ordinal).Count() != filas.Count) return "Documentos por pagar duplicados.";
+        // La clave en Softland es proveedor + tipo + documento: proveedores distintos pueden repetir número.
+        var dup = filas.GroupBy(f => f.Proveedor + "|" + f.Tipo + "-" + f.Numero, StringComparer.Ordinal).FirstOrDefault(g => g.Count() > 1);
+        if (dup is not null) return $"Documento por pagar duplicado: {dup.First().Tipo}-{dup.First().Numero}.";
         foreach (var x in filas)
             if (string.IsNullOrWhiteSpace(x.Numero) || x.Numero.Length > 100 || !Fecha(x.Fecha) || !Moneda(x.Moneda) || x.Saldo <= 0)
-                return "Datos de documento por pagar inválidos; no se reemplazó la réplica.";
+                return $"Documento por pagar {x.Tipo}-{x.Numero} inválido (fecha, moneda o saldo); no se reemplazó la réplica.";
         return null;
     }
 
@@ -59,6 +61,7 @@ public static class ReplicaDocumentos
         foreach (var x in filas)
         {
             x.Id = Softland.PrefijoId + x.Tipo + "-" + x.Numero;
+            if (filas.Count(o => o.Tipo == x.Tipo && o.Numero == x.Numero) > 1) x.Id += "-" + x.Proveedor;
             x.CompaniaId = compania.ToString();
             x.Origen = Softland.Fuente;
         }
@@ -71,13 +74,14 @@ public static class ReplicaDocumentos
     {
         if (filas is null || filas.Count > 200000) return "El envío debe contener una instantánea completa de hasta 200000 facturas.";
         if (filas.Any(f => f is null || f.Factura is null)) return "Factura ausente.";
-        if (filas.Select(f => f.Factura.Numero).Distinct(StringComparer.Ordinal).Count() != filas.Count) return "Números de factura duplicados.";
+        var dupF = filas.GroupBy(f => f.Factura.Numero, StringComparer.Ordinal).FirstOrDefault(g => g.Count() > 1);
+        if (dupF is not null) return $"Número de factura duplicado: {dupF.Key}.";
         foreach (var f in filas)
         {
             var x = f.Factura;
             if (string.IsNullOrWhiteSpace(x.Numero) || x.Numero.Length > 100 || !Fecha(x.FechaEmision) || !Moneda(x.Moneda)
                 || x.Monto < 0 || x.PlazoDias < 0 || (f.Detalle?.Count ?? 0) > 10000)
-                return "Datos de factura inválidos; no se reemplazó la réplica.";
+                return $"Factura {x.Numero} inválida (fecha {x.FechaEmision}, moneda {x.Moneda}, monto o plazo); no se reemplazó la réplica.";
         }
         return null;
     }
@@ -86,13 +90,14 @@ public static class ReplicaDocumentos
     {
         if (filas is null || filas.Count > 50000) return "El envío debe contener una instantánea completa de hasta 50000 contratos.";
         if (filas.Any(f => f is null || f.Contrato is null || f.Detalle is null)) return "Contrato o detalle ausente.";
-        if (filas.Select(f => f.Contrato.Numero).Distinct(StringComparer.Ordinal).Count() != filas.Count) return "Números de contrato duplicados.";
+        var dupC = filas.GroupBy(f => f.Contrato.Numero, StringComparer.Ordinal).FirstOrDefault(g => g.Count() > 1);
+        if (dupC is not null) return $"Número de contrato duplicado: {dupC.Key}.";
         foreach (var f in filas)
         {
             var x = f.Contrato;
             if (string.IsNullOrWhiteSpace(x.Numero) || x.Numero.Length > 100 || (x.ProximaFacturacion.Length > 0 && !Fecha(x.ProximaFacturacion)) || !Moneda(x.Moneda)
                 || x.Monto < 0 || x.PlazoDias < 0 || x.Estado is not ("Activo" or "Cancelado") || f.Detalle.Count > 10000)
-                return "Datos de contrato inválidos; no se reemplazó la réplica.";
+                return $"Contrato {x.Numero} inválido (fecha, moneda {x.Moneda}, estado {x.Estado}, monto o plazo); no se reemplazó la réplica.";
         }
         return null;
     }

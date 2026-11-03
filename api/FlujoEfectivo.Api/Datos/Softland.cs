@@ -344,7 +344,8 @@ public static partial class Softland
               """
             : ", CAST(NULL AS DECIMAL(28,8)) AS SaldoErp, CAST(NULL AS CHAR(10)) AS FechaVence, 'N' AS AnuladaCxc";
         var joinCxc = tieneCxc
-            ? $"LEFT JOIN [{e}].[DOCUMENTOS_CC] cc ON cc.DOCUMENTO = f.FACTURA AND cc.TIPO = '{TipoDocCxc}'"
+            // OUTER APPLY TOP 1: varios movimientos de DOCUMENTOS_CC no deben duplicar la factura.
+            ? $"OUTER APPLY (SELECT TOP 1 x.SALDO, x.FECHA_VENCE, x.FECHA_ANUL FROM [{e}].[DOCUMENTOS_CC] x WHERE x.DOCUMENTO = f.FACTURA AND x.TIPO = '{TipoDocCxc}' ORDER BY CASE WHEN x.FECHA_ANUL IS NULL THEN 0 ELSE 1 END, x.SALDO DESC) cc"
             : "";
 
         var filas = cn.Query(
