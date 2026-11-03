@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.47 — 2026-11-03
+- Parámetros: la tarjeta «Agente local» aparece debajo de la tarjeta de Licencia (antes estaba junto a «Carga inicial»).
+- Solo aplicación web; sin cambios en API ni SQL.
+
 ## 1.38.46 — 2026-11-03
 - `npm run package:agente` compila el agente local (win-x64 autocontenido, no requiere .NET en el servidor del cliente) y crea `cashflow-agente-<versión>.zip` con el ejecutable y la plantilla `appsettings.json`; excluye configuraciones privadas, certificados, logs y Git. Nuevo `build:agente` para publicar en `publicar/agente` sin ZIP.
 - Solo herramientas de empaquetado: la API y la aplicación web no cambian.
