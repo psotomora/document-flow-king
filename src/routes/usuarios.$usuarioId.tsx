@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
+import { SuperAdministradorUsuario } from "@/components/comunes/SuperAdministradorUsuario";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -261,6 +262,11 @@ function PaginaUsuario() {
             </div>
             <Switch checked={activo} onCheckedChange={setActivo} />
           </div>
+
+          {!esNuevo && usuarioId ? (
+            <SuperAdministradorUsuario usuarioId={usuarioId} esPropio={usuarioId === sesion.id} />
+          ) : null}
+
 
           <div className="space-y-3 rounded-md border border-border p-3">
             <div>
