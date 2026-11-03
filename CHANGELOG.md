@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.54 - 2026-11-03
+
+- Usuarios: casilla «Súper Administrador de Aplix» (solo visible para Súper Administradores) que asigna o retira el permiso sin SQL; exige perfil Administrador y no permite retirárselo a uno mismo. Nuevos endpoints `/api/inquilinos/usuarios/{id}/super-administrador`.
+
 ## 1.38.53 - 2026-11-03
 - Fase 5 (paso 1): empresas (inquilinos) con cupo de usuarios (`MaxUsuarios`), vencimiento, contacto y suspensión, gestionados por el Súper Administrador en la nueva pantalla **Empresas**; token del agente por empresa y creación de su primer administrador.
 - La API rechaza crear o activar usuarios por encima del cupo de la empresa; la principal sigue rigiéndose por la licencia .lic. Usuarios y perfiles muestra «Licencias: X de Y usuarios utilizados».

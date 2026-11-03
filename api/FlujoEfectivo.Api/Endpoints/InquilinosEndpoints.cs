@@ -34,6 +34,8 @@ public static class InquilinosEndpoints
 
     public sealed record NuevoAdministrador(string Nombre, string NombreUsuario, string? Correo, string Contrasena);
 
+    public sealed record ValorSuper(bool Valor);
+
     private static string Faltante => "Falta ejecutar el script 23_saas_multi_inquilino.sql.";
 
     private static Saas.ContextoUsuario? Super(HttpContext ctx, System.Data.IDbConnection cn)
@@ -79,6 +81,36 @@ public static class InquilinosEndpoints
                 maxUsuarios = c.MaxUsuarios,
                 usuariosActivos = Saas.Activos(cn, c.InquilinoId, null),
             });
+        });
+
+        g.MapGet("/inquilinos/usuarios/{id:int}/super-administrador", (int id, HttpContext ctx, Db db) =>
+        {
+            using var cn = db.Abrir();
+            if (!Saas.Listo(cn)) return Results.BadRequest(new { mensaje = Faltante });
+            if (Super(ctx, cn) is null) return Results.Forbid();
+            var v = cn.QueryFirstOrDefault<bool?>("SELECT SuperAdministrador FROM flujo.Usuario WHERE UsuarioId = @id", new { id });
+            return v is null ? Results.NotFound(new { mensaje = "Usuario no encontrado." }) : Results.Ok(new { valor = v.Value });
+        });
+
+        g.MapPut("/inquilinos/usuarios/{id:int}/super-administrador", (int id, ValorSuper d, HttpContext ctx, Db db) =>
+        {
+            using var cn = db.Abrir();
+            if (!Saas.Listo(cn)) return Results.BadRequest(new { mensaje = Faltante });
+            if (Super(ctx, cn) is null) return Results.Forbid();
+            if (!d.Valor && id == ctx.User.UsuarioId())
+                return Results.BadRequest(new { mensaje = "No puede retirarse a sí mismo el rol de Súper Administrador." });
+            var u = cn.QueryFirstOrDefault<(string NombreUsuario, string Perfil)?>(
+                """
+                SELECT u.NombreUsuario, p.Codigo FROM flujo.Usuario u
+                INNER JOIN flujo.Perfil p ON p.PerfilId = u.PerfilId WHERE u.UsuarioId = @id
+                """, new { id });
+            if (u is null) return Results.NotFound(new { mensaje = "Usuario no encontrado." });
+            if (d.Valor && !string.Equals(u.Value.Perfil, "administrador", StringComparison.OrdinalIgnoreCase))
+                return Results.BadRequest(new { mensaje = "Primero asigne el perfil Administrador al usuario." });
+            cn.Execute("UPDATE flujo.Usuario SET SuperAdministrador = @v WHERE UsuarioId = @id", new { v = d.Valor, id });
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Usuarios", u.Value.NombreUsuario,
+                d.Valor ? "Asignar Súper Administrador" : "Retirar Súper Administrador");
+            return Results.Ok(new { valor = d.Valor });
         });
 
         g.MapGet("/inquilinos", (HttpContext ctx, Db db) =>
