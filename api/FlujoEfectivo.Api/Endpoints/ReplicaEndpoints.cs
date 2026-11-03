@@ -132,7 +132,7 @@ public static class ReplicaEndpoints
             Guardar("contratos", r.ContratosOk, r.ContratosOk ? JsonSerializer.Serialize(r.Contratos, ReplicaPedidos.Json) : null, r.Contratos?.Count ?? 0);
             tx.Commit();
             return Results.Ok(new { ok = true });
-        }).AllowAnonymous();
+        }).AllowAnonymous().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(100 * 1024 * 1024));
         app.MapPost("/api/public/agente/pedidos", (HttpContext ctx, Db db, Resultado r) =>
         {
             using var cn = db.Abrir();
