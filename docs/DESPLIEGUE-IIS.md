@@ -552,3 +552,13 @@ Comportamiento: 30 días antes del vencimiento aparece un aviso; al vencer, el s
 sigue operando durante los días de gracia con aviso en rojo; agotada la gracia —o si la
 licencia es de otro servidor— la API responde 402 y solo permite autenticarse y cargar
 una licencia nueva. El límite de usuarios impide activar usuarios adicionales.
+
+## Fase 2: agente local (1.38.44)
+
+1. Ejecute `database/19_agente_estado.sql` (requiere el 18).
+2. Publique la API 1.38.44 y la aplicación web.
+3. En **Parámetros → Agente local**, pulse **Generar token** (administrador) y cópielo; solo se muestra una vez.
+4. En el servidor del cliente (con acceso al SQL de Softland): `npm run package:agente` genera `publicar/agente`. Copie la carpeta, edite `appsettings.json` (`ApiUrl`, `Token`, cadena `Softland`).
+5. Pruebe en consola: `AplixCashFlowAgente.exe`. Como servicio:
+   `sc.exe create AplixCashFlowAgente binPath= "C:\AplixAgente\AplixCashFlowAgente.exe" start= auto` y `sc.exe start AplixCashFlowAgente`.
+6. Validación: en Parámetros debe verse «Agente en línea» y «Conexión a Softland verificada». Solo usa HTTPS saliente (443); no abra puertos.
