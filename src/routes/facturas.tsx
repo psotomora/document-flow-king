@@ -3,7 +3,7 @@ import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useMemo, useState } from "react";
-import { Database, FileDown, Plus, Trash2 } from "lucide-react";
+import { Database, FileDown, Plus, Trash2, Banknote } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { BarraEstadoSincronizacion } from "@/components/comunes/BarraEstadoSincronizacion";
@@ -13,6 +13,7 @@ import { useFiltroGuardado, useFilasVisibles } from "@/lib/preferencias";
 import { EstadoBadge } from "@/components/comunes/EstadoBadge";
 import { DialogoLineasFactura } from "@/components/facturas/DialogoLineasFactura";
 import { DialogoEstadoCuenta } from "@/components/facturas/DialogoEstadoCuenta";
+import { DialogoPago } from "@/components/pagos/DialogoPago";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -98,6 +99,7 @@ function PaginaFacturas() {
   /** Estados marcados; vacío equivale a "todos". Se recuerda por usuario. */
   const [estados, setEstados] = useFiltroGuardado<EstadoFactura[]>("facturas", "estados", []);
   const [facturaDetalle, setFacturaDetalle] = useState<Factura | null>(null);
+  const [facturaPagoId, setFacturaPagoId] = useState<string | null>(null);
   const alternarEstado = (e: EstadoFactura, marcado: boolean) =>
     setEstados((prev) => {
       const siguiente = marcado ? [...prev, e] : prev.filter((x) => x !== e);
@@ -327,6 +329,11 @@ function PaginaFacturas() {
                   <EstadoBadge estado={f.estado} />
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
+                  {puedeEditar ? (
+                    <Button variant="ghost" size="icon" title={`Registrar pago de ${f.numero}`} aria-label={`Registrar pago de ${f.numero}`} onClick={() => setFacturaPagoId(f.id)}>
+                      <Banknote className="size-4" />
+                    </Button>
+                  ) : null}
                   {f.origen ? (
                     <DialogoLineasFactura factura={f} />
                   ) : esAdministrador ? (
@@ -366,6 +373,9 @@ function PaginaFacturas() {
           />
         ) : null}
       </div>
+      {puedeEditar && facturaPagoId ? (
+        <DialogoPago key={facturaPagoId} abierto sinDisparador mostrarPagadas facturaInicialId={facturaPagoId} setAbierto={(valor) => { if (!valor) setFacturaPagoId(null); }} />
+      ) : null}
     </div>
   );
 }

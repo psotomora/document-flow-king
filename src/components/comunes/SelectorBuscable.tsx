@@ -28,6 +28,7 @@ interface Props {
   buscarPlaceholder?: string;
   disabled?: boolean;
   className?: string;
+  ampliarAlContenido?: boolean;
 }
 
 const normalizar = (s: string) =>
@@ -45,6 +46,7 @@ export function SelectorBuscable({
   buscarPlaceholder = "Buscar...",
   disabled,
   className,
+  ampliarAlContenido = false,
 }: Props) {
   const [abierto, setAbierto] = useState(false);
   const [texto, setTexto] = useState("");
@@ -72,10 +74,10 @@ export function SelectorBuscable({
           <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-56 p-0" align="start">
-        <Command shouldFilter={false}>
+      <PopoverContent collisionPadding={12} className={cn("min-w-56 p-0", ampliarAlContenido ? "w-max min-w-[min(var(--radix-popover-trigger-width),calc(100vw-24px))] max-w-[calc(100vw-24px)]" : "w-[var(--radix-popover-trigger-width)]")} align="start">
+        <Command shouldFilter={false} className={ampliarAlContenido ? "w-auto" : undefined}>
           <CommandInput placeholder={buscarPlaceholder} value={texto} onValueChange={setTexto} />
-          <CommandList>
+          <CommandList className={ampliarAlContenido ? "max-h-[min(300px,var(--radix-popover-content-available-height))]" : undefined}>
             <CommandEmpty>Sin resultados.</CommandEmpty>
             <CommandGroup>
               {filtradas.map((o) => (
@@ -88,8 +90,8 @@ export function SelectorBuscable({
                     setTexto("");
                   }}
                 >
-                  <Check className={cn("mr-2 size-4", o.valor === valor ? "opacity-100" : "opacity-0")} />
-                  <span className="truncate">
+                  <Check className={cn("mr-2 size-4 shrink-0", o.valor === valor ? "opacity-100" : "opacity-0")} />
+                  <span className={ampliarAlContenido ? "min-w-0 whitespace-normal break-words [overflow-wrap:anywhere]" : "truncate"}>
                     {o.destacada ? "★ " : ""}
                     {o.etiqueta}
                   </span>
