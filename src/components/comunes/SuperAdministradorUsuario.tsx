@@ -25,10 +25,7 @@ export function SuperAdministradorUsuario({ usuarioId, esPropio }: { usuarioId: 
   const cambiar = async (nuevo: boolean) => {
     setGuardando(true);
     try {
-      await api(`/inquilinos/usuarios/${usuarioId}/super-administrador`, {
-        method: "PUT",
-        body: JSON.stringify({ valor: nuevo }),
-      });
+      await api(`/inquilinos/usuarios/${usuarioId}/super-administrador`, { metodo: "PUT", cuerpo: { valor: nuevo } });
       setValor(nuevo);
       toast.success(nuevo ? "Súper Administrador asignado." : "Súper Administrador retirado.");
     } catch (e) {
