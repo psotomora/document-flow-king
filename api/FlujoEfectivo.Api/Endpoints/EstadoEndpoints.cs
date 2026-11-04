@@ -91,7 +91,7 @@ public static class EstadoEndpoints
             if (contratosSoftland)
             {
                 var cfg = Softland.Leer(cn);
-                if (cfg is not null && companiasErpAgente.Contains(cfg.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0")))
+                if (companiasErpAgente.Contains(cfg?.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0")))
                 {
                     contratos = [];
                 }
@@ -140,7 +140,7 @@ public static class EstadoEndpoints
             if (usaSoftland)
             {
                 var cfg = Softland.Leer(cn);
-                if (cfg is not null && companiasAgente.Contains(cfg.CompaniaId?.ToString() ?? companias.FirstOrDefault()?.Id ?? "0"))
+                if (companiasAgente.Contains(cfg?.CompaniaId?.ToString() ?? companias.FirstOrDefault()?.Id ?? "0"))
                 {
                     pedidos = [];
                 }
@@ -192,7 +192,7 @@ public static class EstadoEndpoints
             if (facturasSoftland)
             {
                 var cfg = Softland.Leer(cn);
-                if (cfg is not null && companiasErpAgente.Contains(cfg.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0")))
+                if (companiasErpAgente.Contains(cfg?.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0")))
                 {
                     facturas = [];
                 }
@@ -259,7 +259,7 @@ public static class EstadoEndpoints
             {
                 var cfg = Softland.Leer(cn);
                 var companiaCp = cfg?.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0");
-                if (cfg is not null && ReplicaDocumentos.ListaPagar(cn) && companiasErpAgente.Contains(companiaCp))
+                if (ReplicaDocumentos.ListaPagar(cn) && companiasErpAgente.Contains(companiaCp))
                 {
                     // Fase 3: modo agente lee la réplica (mismos IDs y mapeo que el modo directo).
                     documentosPorPagar = ReplicaDocumentos.DocumentosPagar(cn, companiaCp);
@@ -315,7 +315,14 @@ public static class EstadoEndpoints
             if (ccSoftland)
             {
                 var cfg = Softland.Leer(cn);
-                if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                var companiaCc = cfg?.CompaniaId ?? int.Parse(companias.FirstOrDefault()?.Id ?? "0");
+                if (companiasErpAgente.Contains(companiaCc) && (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor)))
+                {
+                    // Modo agente: la nube no exige credenciales directas ni muestra el aviso.
+                    documentosPorCobrar = [];
+                    documentosPorCobrarComparativo = [];
+                }
+                else if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
                 {
                     documentosPorCobrar = [];
                     documentosPorCobrarComparativo = [];
