@@ -329,6 +329,17 @@ export function PantallaLogin() {
         </CardContent>
       </Card>
       </section>
+      <AlertDialog open={sesionEnUso !== null} onOpenChange={(abierto) => !abierto && setSesionEnUso(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sesión activa en otro equipo</AlertDialogTitle>
+            <AlertDialogDescription>{sesionEnUso}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setSesionEnUso(null)}>Entendido</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }
