@@ -303,6 +303,9 @@ public static class EstadoEndpoints
                 ORDER BY d.Fecha DESC, d.DocumentoPorPagarId DESC
                 """);
 
+            // Marca «Pagado (Cash Flow)»: pagos conocidos aquí pero aún no registrados en el ERP.
+            documentosPorPagar = MarcasPagoCashFlow.Aplicar(cn, documentosPorPagar.ToList());
+
             // Documentos por cobrar: FACTURA aporta el histórico externo y DOCUMENTOS_CC
             // complementa saldo/vencimiento; si no, se usa el registro interno.
             // El comparativo anual usa exclusivamente FACTURA para evitar que DOCUMENTOS_CC,
