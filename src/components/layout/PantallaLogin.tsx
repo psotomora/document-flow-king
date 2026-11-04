@@ -17,6 +17,16 @@ import { CampoContrasena } from "@/components/comunes/CampoContrasena";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { esSesionEnUso } from "@/lib/sesion-unica";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import isotipoBlanco from "@/assets/isotipo-blanco.png.asset.json";
 
 // IIS no sirve /__l5e/assets-v1: resolver el puntero desde su origen público.
@@ -36,6 +46,7 @@ export function PantallaLogin() {
   const [usuario, setUsuario] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [sesionEnUso, setSesionEnUso] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [demostracion, setDemostracion] = useState(false);
   const [versionApi, setVersionApi] = useState<string | null>(null);
@@ -84,6 +95,10 @@ export function PantallaLogin() {
     try {
       await autenticar(usuario.trim(), contrasena);
     } catch (err) {
+      if (esSesionEnUso(err)) {
+        setSesionEnUso(err instanceof Error ? err.message : "Este usuario ya tiene una sesión activa.");
+        return;
+      }
       setError(err instanceof Error ? err.message : "No fue posible iniciar sesión");
     } finally {
       setEnviando(false);
@@ -314,6 +329,17 @@ export function PantallaLogin() {
         </CardContent>
       </Card>
       </section>
+      <AlertDialog open={sesionEnUso !== null} onOpenChange={(abierto) => !abierto && setSesionEnUso(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sesión activa en otro equipo</AlertDialogTitle>
+            <AlertDialogDescription>{sesionEnUso}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setSesionEnUso(null)}>Entendido</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

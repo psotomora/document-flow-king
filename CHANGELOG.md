@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.70 — 2026-11-04
+- Sesión única por usuario: el segundo ingreso con credenciales en uso se rechaza con un diálogo; la sesión se libera al salir o tras 3 minutos sin actividad. Script `database/26_sesion_unica.sql`.
+
 ## 1.38.69 — 2026-11-04
 - Empresas: campo «Compañías contratadas» y columna con registradas / cupo (vacío = sin límite). No permite un cupo menor a las compañías ya registradas.
 - Catálogos: indicador «N de M compañías contratadas»; el botón «Nueva compañía» se deshabilita al llegar al cupo. La API rechaza la creación aunque se intente directamente.

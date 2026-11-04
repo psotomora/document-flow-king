@@ -44,6 +44,25 @@ builder.Services
             IssuerSigningKey = tokens.Llave,
             ClockSkew = TimeSpan.FromMinutes(2),
         };
+        // Sesión única: el token debe corresponder a la sesión vigente del usuario.
+        o.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = ctx =>
+            {
+                var sesion = ctx.Principal?.SesionId();
+                var usuarioId = ctx.Principal?.UsuarioId() ?? 0;
+                if (sesion is null || usuarioId == 0)
+                {
+                    ctx.Fail("Sesión no válida.");
+                    return Task.CompletedTask;
+                }
+                var db = ctx.HttpContext.RequestServices.GetRequiredService<Db>();
+                using var cn = db.Abrir();
+                if (!SesionUnica.Validar(cn, usuarioId, sesion.Value))
+                    ctx.Fail("La sesión fue cerrada o reemplazada.");
+                return Task.CompletedTask;
+            },
+        };
     });
 builder.Services.AddAuthorization();
 

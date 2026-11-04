@@ -29,6 +29,7 @@ import type {
 } from "@/data/tipos";
 import { calcularFacturas, type FacturaCalculada } from "@/lib/calculos";
 import { api, ErrorApi, guardarToken, hayApi, obtenerToken } from "@/lib/api";
+import { MS_LATIDO_SESION } from "@/lib/sesion-unica";
 import { clavePreferenciasDemo, leerPreferenciasDemo, resolverCompaniaActiva } from "@/lib/filtros-guardados";
 import {
   contratosPorFacturarDelMes,
@@ -434,6 +435,18 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
       document.removeEventListener("visibilitychange", alVolver);
     };
   }, [modoApi, autenticado, recargar]);
+
+  // Latido de sesión única: mantiene la sesión ocupada mientras la aplicación está abierta.
+  useEffect(() => {
+    if (!modoApi || !autenticado) return;
+    const id = window.setInterval(() => {
+      void api("/auth/latido", { metodo: "POST" }).catch((e) => {
+        if (e instanceof ErrorApi && e.estado === 401)
+          forzarLogin("Su sesión fue cerrada. Inicie sesión nuevamente.");
+      });
+    }, MS_LATIDO_SESION);
+    return () => window.clearInterval(id);
+  }, [modoApi, autenticado, forzarLogin]);
 
   // Vigilancia de la conexión: solo se cierra la sesión tras varios fallos seguidos,
   // para que un corte momentáneo no expulse al usuario.
@@ -1032,6 +1045,8 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
         const pendientes = [...guardadosPendientes.current.values()];
         const terminar = () => {
         const eraDemo = !modoApi;
+        // Libera la sesión única en la API para poder ingresar desde otro equipo.
+        if (!eraDemo && obtenerToken()) void api("/auth/salir", { metodo: "POST" }).catch(() => undefined);
         guardarToken(null);
         setModoApi(hayApi());
         setAutenticado(false);
