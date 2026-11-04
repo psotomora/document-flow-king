@@ -12,6 +12,8 @@ export interface SesionSaas {
   inquilino?: { id: number; codigo: string; nombre: string; fechaVencimiento?: string | null };
   maxUsuarios?: number | null;
   usuariosActivos?: number;
+  maxCompanias?: number | null;
+  companiasRegistradas?: number;
 }
 
 export interface Empresa {
@@ -24,6 +26,8 @@ export interface Empresa {
   maxUsuarios: number | null;
   fechaVencimiento?: string | null;
   usuariosActivos: number;
+  maxCompanias?: number | null;
+  companiasRegistradas?: number;
   tokenConfigurado: boolean;
   ultimoLatido?: string | null;
   agenteEnLinea: boolean;
@@ -36,6 +40,12 @@ export type NivelCupo = "normal" | "lleno" | "sinLimite";
 export function nivelCupo(activos: number, max: number | null | undefined): NivelCupo {
   if (max == null) return "sinLimite";
   return activos >= max ? "lleno" : "normal";
+}
+
+/** True cuando la empresa ya registró todas las compañías contratadas. */
+export function cupoCompaniasLleno(sesion: SesionSaas | null): boolean {
+  if (!sesion?.disponible || sesion.maxCompanias == null) return false;
+  return (sesion.companiasRegistradas ?? 0) >= sesion.maxCompanias;
 }
 
 /** Porcentaje del cupo usado (0-100). */
