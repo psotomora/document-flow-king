@@ -38,6 +38,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 
 import { VersionApp } from "@/components/layout/VersionApp";
 import { ConexionApi } from "@/components/layout/ConexionApi";
+import { IndicadorConexion } from "@/components/layout/IndicadorConexion";
 import {
   estadoLicencia,
   licenciaDisponible,
@@ -296,7 +297,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <IndicadorConexion />
+
+          <div className="ml-auto flex min-w-0 items-center gap-2">
             <ConexionApi />
             {modoApi ? (
               <div className="flex flex-col items-end leading-tight">
@@ -307,7 +310,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             ) : (
               <Select value={usuario.id} onValueChange={cambiarUsuario}>
-                <SelectTrigger className="h-8 w-56">
+                <SelectTrigger className="h-8 w-44 sm:w-56">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
