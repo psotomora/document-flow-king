@@ -68,8 +68,8 @@ public static class Correo
         return cn.QueryFirstOrDefault<ConfigCorreo>(
             """
             SELECT Servidor, Puerto, Ssl, Usuario, ClaveCifrada, Remitente, NombreRemitente, CopiaOculta
-            FROM flujo.ConfiguracionCorreo WHERE Id = 1
-            """);
+            FROM flujo.ConfiguracionCorreo WHERE Id = @id
+            """, new { id = Saas.IdCorreo(cn) });
     }
 
     public static void Guardar(IDbConnection cn, ConfigCorreo c, int usuarioId)
@@ -78,7 +78,7 @@ public static class Correo
         cn.Execute(
             """
             MERGE flujo.ConfiguracionCorreo AS d
-            USING (SELECT 1 AS Id) AS o ON d.Id = o.Id
+            USING (SELECT @id AS Id) AS o ON d.Id = o.Id
             WHEN MATCHED THEN UPDATE SET
                 Servidor = @Servidor, Puerto = @Puerto, Ssl = @Ssl, Usuario = @Usuario,
                 ClaveCifrada = @ClaveCifrada, Remitente = @Remitente,
@@ -86,13 +86,13 @@ public static class Correo
                 Actualizado = SYSUTCDATETIME(), UsuarioId = @usuarioId
             WHEN NOT MATCHED THEN INSERT
                 (Id, Servidor, Puerto, Ssl, Usuario, ClaveCifrada, Remitente, NombreRemitente, CopiaOculta, UsuarioId)
-                VALUES (1, @Servidor, @Puerto, @Ssl, @Usuario, @ClaveCifrada, @Remitente,
+                VALUES (@id, @Servidor, @Puerto, @Ssl, @Usuario, @ClaveCifrada, @Remitente,
                         @NombreRemitente, @CopiaOculta, @usuarioId);
             """,
             new
             {
                 c.Servidor, c.Puerto, c.Ssl, c.Usuario, c.ClaveCifrada, c.Remitente,
-                c.NombreRemitente, c.CopiaOculta, usuarioId,
+                c.NombreRemitente, c.CopiaOculta, usuarioId, id = Saas.IdCorreo(cn),
             });
     }
 

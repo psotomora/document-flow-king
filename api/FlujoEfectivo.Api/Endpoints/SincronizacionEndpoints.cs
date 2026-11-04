@@ -49,9 +49,8 @@ public static class SincronizacionEndpoints
                        s.UltimaSincronizacion, s.DuracionMs, s.Registros, s.Resultado, s.Mensaje, s.SolicitadaEn,
                        {(fase3 ? "s.UltimaVerificacion" : "s.UltimaSincronizacion")} AS UltimaVerificacion
                 FROM flujo.SincronizacionEstado s
-                INNER JOIN flujo.Inquilino i ON i.InquilinoId = s.InquilinoId AND i.Codigo = 'principal'
-                WHERE @compania IS NULL OR s.CompaniaId = @compania OR s.CompaniaId IS NULL
-                """, new { compania = Compania(companiaId) }).ToList();
+                WHERE s.InquilinoId = @inq AND (@compania IS NULL OR s.CompaniaId = @compania OR s.CompaniaId IS NULL)
+                """, new { compania = Compania(companiaId), inq = Saas.InquilinoActual(cn) }).ToList();
             var conexiones = ReplicaPedidos.Conexiones(cn);
             string[] porAgente = ReplicaDocumentos.ListaPagar(cn) ? ["pedidos", "facturas", "contratos", "documentosPagar"]
                 : ReplicaDocumentos.Lista(cn) ? ["pedidos", "facturas", "contratos"] : ["pedidos"];
@@ -81,8 +80,7 @@ public static class SincronizacionEndpoints
             foreach (var c in conexiones)
             cn.Execute(
                 """
-                DECLARE @inq INT = (SELECT InquilinoId FROM flujo.Inquilino WHERE Codigo = 'principal');
-                UPDATE flujo.SincronizacionEstado
+                                UPDATE flujo.SincronizacionEstado
                    SET SolicitadaEn = SYSUTCDATETIME(), SolicitadaPor = @usuario
                  WHERE InquilinoId = @inq AND Entidad = @entidad
                    AND ((CompaniaId IS NULL AND @compania IS NULL) OR CompaniaId = @compania);

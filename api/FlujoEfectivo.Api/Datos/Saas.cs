@@ -46,12 +46,50 @@ public static class Saas
             return "El servicio de su empresa está suspendido. Contacte a Aplix.";
         if (c.FechaVencimiento is { } v && v.Date < hoy.Date)
             return $"La suscripción de su empresa venció el {v:dd/MM/yyyy}. Contacte a Aplix para renovarla.";
-        // Aislamiento: hasta que las consultas de datos queden acotadas por empresa,
-        // solo la instalación principal accede a la información operativa.
-        if (!c.EsPrincipal)
-            return "Su empresa está registrada; el acceso se habilitará cuando Aplix complete su configuración.";
         return null;
     }
+
+    /* ---------------- Empresa de la solicitud en curso (paso 3) ---------------- */
+
+    private static readonly AsyncLocal<int?> actual = new();
+
+    /// <summary>Empresa de la solicitud: la fija el filtro de /api (usuario) o el token del agente.</summary>
+    public static int? Actual { get => actual.Value; set => actual.Value = value; }
+
+    public static int PrincipalId(IDbConnection cn) => cn.ExecuteScalar<int>(
+        "SELECT InquilinoId FROM flujo.Inquilino WHERE Codigo='principal'");
+
+    /// <summary>Empresa vigente; sin contexto (procesos internos) se asume la principal.</summary>
+    public static int InquilinoActual(IDbConnection cn) => Actual ?? PrincipalId(cn);
+
+    /// <summary>Id de empresa secundaria vigente, o null si es la principal.</summary>
+    public static int? Secundaria(IDbConnection cn) =>
+        Actual is { } a && Listo(cn) && a != PrincipalId(cn) ? a : null;
+
+    /// <summary>Clave de parámetro propia de la empresa (la principal conserva las claves existentes).</summary>
+    public static string ClaveParametro(int? secundaria, string clave) =>
+        secundaria is { } s ? $"t{s}:{clave}" : clave;
+
+    /// <summary>Parámetros generales de la empresa vigente, sin prefijo.</summary>
+    public static Dictionary<string, string> Parametros(IDbConnection cn)
+    {
+        var s = Secundaria(cn);
+        var filas = cn.Query<(string Clave, string Valor)>("SELECT Clave, Valor FROM flujo.Parametro");
+        if (s is null) return filas.Where(f => !EsClaveDeEmpresa(f.Clave)).ToDictionary(f => f.Clave, f => f.Valor);
+        var prefijo = $"t{s}:";
+        return filas.Where(f => f.Clave.StartsWith(prefijo, StringComparison.Ordinal))
+            .ToDictionary(f => f.Clave[prefijo.Length..], f => f.Valor);
+    }
+
+    public static bool EsClaveDeEmpresa(string clave) =>
+        clave.Length > 2 && clave[0] == 't' && char.IsDigit(clave[1]) && clave.Contains(':');
+
+    /// <summary>Nombre de la fuente externa (Softland) propia de la empresa.</summary>
+    public static string Fuente(IDbConnection cn, string fuente) =>
+        Secundaria(cn) is { } s ? $"{fuente}#{s}" : fuente;
+
+    /// <summary>Fila de configuración SMTP de la empresa (la principal conserva Id = 1).</summary>
+    public static int IdCorreo(IDbConnection cn) => Secundaria(cn) is { } s ? 1000 + s : 1;
 
     /// <summary>Mensaje de rechazo si la empresa ya alcanzó su cupo de usuarios activos.</summary>
     public static string? CupoExcedido(int? maxUsuarios, int activosSinExcluido) =>

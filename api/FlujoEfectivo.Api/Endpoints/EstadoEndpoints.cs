@@ -78,9 +78,7 @@ public static class EstadoEndpoints
                 ORDER BY t.Fecha DESC, t.TransferenciaId DESC
                 """);
 
-            var parametros = cn.Query<(string Clave, string Valor)>(
-                    "SELECT Clave, Valor FROM flujo.Parametro")
-                .ToDictionary(p => p.Clave, p => p.Valor);
+            var parametros = Saas.Parametros(cn);
 
             string? avisoFuente = null;
 
@@ -376,8 +374,10 @@ public static class EstadoEndpoints
                 SELECT TOP (500) CAST(BitacoraId AS NVARCHAR(20)) AS Id,
                        CONVERT(NVARCHAR(16), FechaHora, 126) AS FechaHora,
                        NombreUsuario AS Usuario, Modulo, Registro, Operacion, ValorAnterior, ValorNuevo
-                FROM flujo.Bitacora ORDER BY FechaHora DESC, BitacoraId DESC
-                """);
+                FROM flujo.Bitacora
+                WHERE @s IS NULL OR UsuarioId IN (SELECT UsuarioId FROM flujo.Usuario WHERE InquilinoId = @s)
+                ORDER BY FechaHora DESC, BitacoraId DESC
+                """, new { s = Saas.Secundaria(cn) });
 
             var esAdmin = string.Equals(ctx.User.Perfil(), "administrador", StringComparison.OrdinalIgnoreCase);
             const string consultaUsuarios =

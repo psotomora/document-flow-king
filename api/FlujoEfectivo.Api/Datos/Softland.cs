@@ -46,7 +46,7 @@ public static partial class Softland
             """
             SELECT Servidor, BaseDatos, Esquema, Usuario, ClaveCifrada, CompaniaId, Encriptar
             FROM flujo.FuenteExterna WHERE Fuente = @f
-            """, new { f = fuente ?? Fuente });
+            """, new { f = Saas.Fuente(cn, fuente ?? Fuente) });
 
     public static void Guardar(IDbConnection cn, ConfigSoftland c, int usuarioId, string? fuente = null) =>
         cn.Execute(
@@ -63,7 +63,7 @@ public static partial class Softland
             """,
             new
             {
-                f = fuente ?? Fuente, c.Servidor, c.BaseDatos, c.Esquema, c.Usuario, c.ClaveCifrada,
+                f = Saas.Fuente(cn, fuente ?? Fuente), c.Servidor, c.BaseDatos, c.Esquema, c.Usuario, c.ClaveCifrada,
                 c.CompaniaId, c.Encriptar, usuarioId,
             });
 

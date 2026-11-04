@@ -23,12 +23,28 @@ public static class ReplicaPedidos
     }
     public static bool Lista(IDbConnection cn) => cn.ExecuteScalar<int>(
         "SELECT CASE WHEN OBJECT_ID('flujo.ConexionErpCompania','U') IS NOT NULL AND OBJECT_ID('flujo.ReplicaPedidos','U') IS NOT NULL THEN 1 ELSE 0 END") == 1;
-    // Fases 1-3: usuarios existentes son de principal. No habilitar otros tenants
-    // hasta incorporar identidad de usuario por inquilino en la Fase 5.
-    public static int Principal(IDbConnection cn) => cn.ExecuteScalar<int>(
-        "SELECT InquilinoId FROM flujo.Inquilino WHERE Codigo='principal' AND Activo=1");
-    public static List<Conexion> Conexiones(IDbConnection cn) => !Lista(cn) ? [] : cn.Query<Conexion>(
-        "SELECT CompaniaId, Modo, IntervaloMinutos FROM flujo.ConexionErpCompania WHERE InquilinoId=@id", new { id = Principal(cn) }).ToList();
+    // Empresa vigente de la solicitud (usuario o token del agente); procesos internos usan la principal.
+    public static int Principal(IDbConnection cn) => Saas.InquilinoActual(cn);
+    public static List<Conexion> Conexiones(IDbConnection cn)
+    {
+        if (!Lista(cn)) return [];
+        Alinear(cn);
+        return cn.Query<Conexion>(
+            "SELECT CompaniaId, Modo, IntervaloMinutos FROM flujo.ConexionErpCompania WHERE InquilinoId=@id", new { id = Principal(cn) }).ToList();
+    }
+    /// <summary>Cada conexión ERP sigue a la empresa dueña de su compañía y toda compañía tiene su fila.</summary>
+    public static void Alinear(IDbConnection cn, IDbTransaction? tx = null)
+    {
+        if (!Saas.AislamientoListo(cn)) return;
+        cn.Execute("""
+            UPDATE x SET InquilinoId=c.InquilinoId, TrabajoId=NULL, TrabajoEn=NULL
+            FROM flujo.ConexionErpCompania x JOIN flujo.Compania c ON c.CompaniaId=x.CompaniaId
+            WHERE x.InquilinoId<>c.InquilinoId;
+            INSERT INTO flujo.ConexionErpCompania (CompaniaId, InquilinoId)
+            SELECT c.CompaniaId, c.InquilinoId FROM flujo.Compania c
+            WHERE NOT EXISTS (SELECT 1 FROM flujo.ConexionErpCompania x WHERE x.CompaniaId=c.CompaniaId);
+            """, transaction: tx);
+    }
     public static List<Fila> Leer(IDbConnection cn, int compania) => JsonSerializer.Deserialize<List<Fila>>(
         cn.QueryFirstOrDefault<string>("SELECT Datos FROM flujo.ReplicaPedidos WHERE InquilinoId=@id AND CompaniaId=@compania", new { id = Principal(cn), compania }) ?? "[]", Json) ?? [];
     public static string? Validar(List<Fila>? filas)
