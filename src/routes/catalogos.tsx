@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,8 @@ import {
 } from "@/components/ui/table";
 import { useApp } from "@/contexto/AppContexto";
 import { formatearMoneda } from "@/lib/formato";
+import type { Compania } from "@/data/tipos";
+import { validarCompania } from "@/lib/companias";
 
 export const Route = createFileRoute("/catalogos")({
   head: () => ({
@@ -61,6 +63,7 @@ function PaginaCatalogos() {
   const esAdministrador =
     esAdmin || (usuario.perfil !== "consulta" && usuario.editarCatalogos === true);
   const [abierto, setAbierto] = useState(false);
+  const [compania, setCompania] = useState<Compania | null>(null);
 
   return (
     <div className="space-y-6">
@@ -78,9 +81,10 @@ function PaginaCatalogos() {
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-          Compañías
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Compañías</h2>
+          {esAdministrador ? <Button size="sm" className="gap-1.5" onClick={() => setCompania({ id: "", codigo: "", nombre: "" })}><Plus className="size-4" /> Nueva compañía</Button> : null}
+        </div>
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <Table>
             <TableHeader>
@@ -88,6 +92,7 @@ function PaginaCatalogos() {
                 <TableHead>Código</TableHead>
                 <TableHead>Razón social</TableHead>
                 <TableHead className="text-right">Cuentas bancarias</TableHead>
+                {esAdministrador ? <TableHead className="text-right">Acciones</TableHead> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,8 +103,10 @@ function PaginaCatalogos() {
                   <TableCell className="text-right tabular-nums">
                     {bancos.filter((b) => b.companiaId === c.id).length}
                   </TableCell>
+                  {esAdministrador ? <TableCell className="text-right"><Button size="icon" variant="ghost" aria-label={`Editar compañía ${c.codigo}`} title={`Editar compañía ${c.codigo}`} onClick={() => setCompania(c)}><Pencil className="size-4" /></Button></TableCell> : null}
                 </TableRow>
               ))}
+              {companias.length === 0 ? <TableRow><TableCell colSpan={esAdministrador ? 4 : 3} className="py-8 text-center text-muted-foreground">No hay compañías registradas para su empresa.</TableCell></TableRow> : null}
             </TableBody>
           </Table>
         </div>
@@ -150,8 +157,39 @@ function PaginaCatalogos() {
           </Table>
         </div>
       </section>
+      {compania ? <DialogoCompania key={compania.id} compania={compania} cerrar={() => setCompania(null)} /> : null}
     </div>
   );
+}
+
+function DialogoCompania({ compania, cerrar }: { compania: Compania; cerrar: () => void }) {
+  const { agregarCompania, actualizarCompania } = useApp();
+  const [codigo, setCodigo] = useState(compania.codigo);
+  const [nombre, setNombre] = useState(compania.nombre);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const guardar = async (evento: React.FormEvent) => {
+    evento.preventDefault();
+    const invalido = validarCompania(codigo, nombre);
+    setError(invalido);
+    if (invalido || guardando) return;
+    setGuardando(true);
+    try {
+      const datos = { codigo: codigo.trim(), nombre: nombre.trim() };
+      const ok = compania.id ? await actualizarCompania(compania.id, datos) : await agregarCompania(datos);
+      if (!ok) { setError("No se guardó la compañía. Revise el aviso y vuelva a intentar."); return; }
+      toast.success(compania.id ? "Compañía actualizada" : "Compañía registrada en su empresa");
+      cerrar();
+    } finally { setGuardando(false); }
+  };
+  return <Dialog open onOpenChange={(v) => { if (!v && !guardando) cerrar(); }}><DialogContent className="max-w-md"><form onSubmit={guardar} className="space-y-4">
+    <DialogHeader><DialogTitle>{compania.id ? "Editar compañía" : "Nueva compañía"}</DialogTitle><DialogDescription>Empresa propietaria: la de su usuario actual.</DialogDescription></DialogHeader>
+    <div className="space-y-1.5"><Label htmlFor="c-codigo">Código</Label><Input id="c-codigo" value={codigo} maxLength={10} onChange={(e) => setCodigo(e.target.value)} required disabled={guardando} /></div>
+    <div className="space-y-1.5"><Label htmlFor="c-nombre">Razón social</Label><Input id="c-nombre" value={nombre} maxLength={150} onChange={(e) => setNombre(e.target.value)} required disabled={guardando} /></div>
+    {compania.id ? <p className="text-sm text-muted-foreground">ID para el agente: {compania.id}</p> : null}
+    {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
+    <DialogFooter><Button type="button" variant="outline" disabled={guardando} onClick={cerrar}>Cancelar</Button><Button type="submit" disabled={guardando}>{guardando ? "Guardando…" : "Guardar compañía"}</Button></DialogFooter>
+  </form></DialogContent></Dialog>;
 }
 
 function DialogoBanco({

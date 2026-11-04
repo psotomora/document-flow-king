@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.64 — 2026-11-04
+- Catálogos: creación y edición de compañías con código y razón social; se asignan a la empresa del usuario actual, sin SQL manual.
+- API: permiso de catálogos, aislamiento en alta y edición, validación de longitudes y código único; guardado y bitácora en una transacción. No permite reasignar una compañía a otra empresa.
+- Producción: actualizar aplicación web y API; sin scripts SQL nuevos ni cambios en el agente (requiere los scripts 23 y 24 existentes).
+
 ## 1.38.63 — 2026-11-04
 - Barra superior: estado del agente visible para empresas secundarias aunque sus compañías no tengan conexión asociada.
 
