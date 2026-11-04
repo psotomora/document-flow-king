@@ -38,7 +38,14 @@ public static class AuthEndpoints
                 return Results.Json(new { mensaje = bloqueo }, statusCode: 403);
 
             var usuario = new UsuarioDto(fila.UsuarioId.ToString(), fila.NombreCompleto, fila.Perfil);
-            var (token, expira) = tokens.Crear(usuario);
+            var sesionId = SesionUnica.Abrir(cn, fila.UsuarioId);
+            if (sesionId is null)
+                return Results.Json(new
+                {
+                    codigo = "sesion_activa",
+                    mensaje = "Este usuario ya tiene una sesión activa en otro equipo o navegador. Cierre esa sesión para poder ingresar.",
+                }, statusCode: 409);
+            var (token, expira) = tokens.Crear(usuario, sesionId);
 
             Db.Auditar(cn, fila.UsuarioId, fila.NombreCompleto, "Seguridad", datos.Usuario, "Acceso",
                 valorNuevo: "Inicio de sesión");
@@ -102,6 +109,20 @@ public static class AuthEndpoints
 
             return Results.Ok(new { mensaje = "Se envió una contraseña temporal al correo registrado. Revise su bandeja de entrada y la carpeta de correo no deseado." });
         }).AllowAnonymous();
+
+        // Latido: la validación del token ya renueva la actividad de la sesión.
+        grupo.MapPost("/auth/latido", () => Results.Ok(new { ok = true })).RequireAuthorization();
+
+        grupo.MapPost("/auth/salir", (HttpContext ctx, Db db) =>
+        {
+            var sesion = ctx.User.SesionId();
+            if (sesion is not null)
+            {
+                using var cn = db.Abrir();
+                SesionUnica.Cerrar(cn, ctx.User.UsuarioId(), sesion.Value);
+            }
+            return Results.Ok(new { ok = true });
+        }).RequireAuthorization();
 
         grupo.MapGet("/auth/yo", (HttpContext ctx) => Results.Ok(new UsuarioDto(
             ctx.User.UsuarioId().ToString(),

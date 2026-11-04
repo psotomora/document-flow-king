@@ -16,7 +16,7 @@ public sealed class TokenServicio(IConfiguration configuracion)
         configuracion["Jwt:Llave"]
         ?? throw new InvalidOperationException("Falta la configuración Jwt:Llave (mínimo 32 caracteres).")));
 
-    public (string token, DateTime expira) Crear(UsuarioDto usuario)
+    public (string token, DateTime expira) Crear(UsuarioDto usuario, Guid? sesionId = null)
     {
         var expira = DateTime.UtcNow.AddHours(HorasVigencia);
         var credenciales = new SigningCredentials(Llave, SecurityAlgorithms.HmacSha256);
@@ -27,7 +27,8 @@ public sealed class TokenServicio(IConfiguration configuracion)
             new Claim(ClaimTypes.Name, usuario.Nombre),
             new Claim(ClaimTypes.Role, usuario.Perfil),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        };
+        }.ToList();
+        if (sesionId is not null) claims.Add(new Claim(SesionUnica.Claim, sesionId.Value.ToString()));
 
         var token = new JwtSecurityToken(
             issuer: Emisor,
@@ -51,6 +52,9 @@ public static class ClaimsExtensiones
 
     public static string Perfil(this ClaimsPrincipal p) =>
         p.FindFirstValue(ClaimTypes.Role) ?? "consulta";
+
+    public static Guid? SesionId(this ClaimsPrincipal p) =>
+        Guid.TryParse(p.FindFirstValue(SesionUnica.Claim), out var s) ? s : null;
 
     public static bool PuedeEditar(this ClaimsPrincipal p) => p.Perfil() != "consulta";
 
