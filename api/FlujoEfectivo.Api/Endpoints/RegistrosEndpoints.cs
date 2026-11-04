@@ -472,6 +472,30 @@ public static class RegistrosEndpoints
             return Results.Ok(new { mensaje = "Documento eliminado." });
         });
 
+        g.MapPost("/documentos-pagar/marca-pago", (MarcaPagoDocumento m, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            if (string.IsNullOrWhiteSpace(m.Numero)) return Results.BadRequest(new { mensaje = "Documento inválido." });
+            using var cn = db.Abrir();
+            if (!MarcasPagoCashFlow.Disponible(cn))
+                return Results.BadRequest(new { mensaje = "Ejecute el script SQL 27 para habilitar la marca de pagado." });
+            MarcasPagoCashFlow.Marcar(cn, m, ctx.User.NombreUsuario());
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Documentos por pagar",
+                m.Numero, "Modificación", valorNuevo: $"Pagado (Cash Flow) {m.FechaPago} {m.Nota}".Trim());
+            return Results.Ok(new { mensaje = "Documento marcado como pagado." });
+        });
+
+        g.MapPost("/documentos-pagar/desmarcar-pago", (MarcaPagoDocumento m, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            using var cn = db.Abrir();
+            if (!MarcasPagoCashFlow.Disponible(cn)) return Results.Ok(new { mensaje = "Sin marcas." });
+            MarcasPagoCashFlow.Quitar(cn, m);
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Documentos por pagar",
+                m.Numero, "Modificación", valorNuevo: "Se quitó la marca Pagado (Cash Flow)");
+            return Results.Ok(new { mensaje = "Marca de pago retirada." });
+        });
+
         /* ----------------------- Documentos por cobrar ---------------------- */
         g.MapPost("/documentos-cobrar", (NuevoDocumentoPorCobrar d, HttpContext ctx, Db db) =>
         {

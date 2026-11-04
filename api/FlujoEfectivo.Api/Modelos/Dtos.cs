@@ -201,6 +201,12 @@ public class DocumentoPorPagarDto
     public decimal Saldo { get; set; }
     public string? Origen { get; set; }
     public string? Notas { get; set; }
+    /// <summary>Marcado como pagado en Cash Flow (no escribe en el ERP); Saldo pasa a 0 y SaldoOrigen conserva el original.</summary>
+    public bool PagadoCashFlow { get; set; }
+    public decimal? SaldoOrigen { get; set; }
+    public string? FechaPagoCashFlow { get; set; }
+    public string? NotaPagoCashFlow { get; set; }
+    public string? MarcadoPor { get; set; }
 }
 
 /// <summary>Documento de cuentas por cobrar del cliente (FAC o DEV), cobrado o pendiente.</summary>
@@ -422,6 +428,14 @@ public record NuevoDocumentoPorCobrar(
     decimal Monto,
     decimal Saldo,
     string? Notas);
+
+public record MarcaPagoDocumento(
+    string CompaniaId,
+    string Proveedor,
+    string Tipo,
+    string Numero,
+    string? FechaPago,
+    string? Nota);
 
 public record NuevoDocumentoPorPagar(
     string CompaniaId,
