@@ -28,6 +28,8 @@ import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { Moneda } from "@/data/tipos";
 import type { FacturaCalculada } from "@/lib/calculos";
 import { formatearMoneda } from "@/lib/formato";
+import { IndicadorPrevio } from "@/components/comunes/IndicadorPrevio";
+import { movimientosPrevios, type MovimientoRegistrado } from "@/lib/movimientos-previos";
 
 /** Movimiento de crédito leído del estado de cuenta. */
 interface Movimiento {
@@ -105,7 +107,15 @@ function saldoEnMoneda(f: FacturaCalculada, moneda: Moneda, tc: number): number 
 const MARGEN_CRUZADO = 0.03;
 
 export function ConciliacionEstadoCuenta({ mostrarPagadas = false }: { mostrarPagadas?: boolean }) {
-  const { facturasCalculadas, bancos, companiaActiva, agregarPago, tipoCambio, puedeEditar } = useApp();
+  const { facturasCalculadas, bancos, companiaActiva, agregarPago, tipoCambio, puedeEditar, pagos } = useApp();
+  const registrados = useMemo<MovimientoRegistrado[]>(() => {
+    const porId = new Map(facturasCalculadas.map((f) => [f.id, f]));
+    return pagos.map((p) => {
+      const f = porId.get(p.facturaId);
+      const partes = [f ? `Factura ${f.numero} · ${f.cliente}` : "", p.referencia ? `Ref: ${p.referencia}` : "", p.metodo];
+      return { id: p.id, fecha: p.fecha, bancoId: p.bancoId, moneda: p.moneda, monto: p.monto, descripcion: partes.filter(Boolean).join(" · ") };
+    });
+  }, [pagos, facturasCalculadas]);
   const bancosActivos = filtrarPorCompania(
     bancos.filter((b) => b.activo),
     companiaActiva,
@@ -318,6 +328,7 @@ export function ConciliacionEstadoCuenta({ mostrarPagadas = false }: { mostrarPa
                   <TableHead>Fecha</TableHead>
                   <TableHead>Referencia</TableHead>
                   <TableHead className="text-right">Depósito</TableHead>
+                  <TableHead className="text-center">Previo</TableHead>
                   <TableHead>Coincidencia</TableHead>
                   <TableHead className="min-w-72">Factura</TableHead>
                   <TableHead>Tipo de cambio</TableHead>
@@ -352,6 +363,7 @@ export function ConciliacionEstadoCuenta({ mostrarPagadas = false }: { mostrarPa
                       <TableCell className="whitespace-nowrap">{m.fecha}</TableCell>
                       <TableCell className="max-w-48 truncate" title={m.referencia}>{m.referencia || "—"}</TableCell>
                       <TableCell className="whitespace-nowrap text-right font-medium">{formatearMoneda(m.monto, moneda)}</TableCell>
+                      <TableCell className="text-center">{fila.aplicado ? <span className="text-muted-foreground">—</span> : <IndicadorPrevio previos={movimientosPrevios(m, bancoId, moneda, registrados)} />}</TableCell>
                       <TableCell>{etiqueta}</TableCell>
                       <TableCell>
                         <SelectorBuscable

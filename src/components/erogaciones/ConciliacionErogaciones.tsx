@@ -26,6 +26,8 @@ import { SelectorBuscable } from "@/components/comunes/SelectorBuscable";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
 import type { DocumentoPorPagar, Moneda } from "@/data/tipos";
 import { formatearMoneda } from "@/lib/formato";
+import { IndicadorPrevio } from "@/components/comunes/IndicadorPrevio";
+import { movimientosPrevios, type MovimientoRegistrado } from "@/lib/movimientos-previos";
 
 /** Movimiento de débito (pago emitido) leído del estado de cuenta. */
 export interface Movimiento {
@@ -112,6 +114,14 @@ export function ConciliacionErogaciones({
 }) {
   const { documentosPorPagar, bancos, companiaActiva, agregarErogacion, erogaciones, tipoCambio, puedeEditar } =
     useApp();
+  const registrados = useMemo<MovimientoRegistrado[]>(
+    () =>
+      erogaciones.map((e) => ({
+        id: e.id, fecha: e.fecha, bancoId: e.bancoId, moneda: e.moneda, monto: e.monto,
+        descripcion: [e.proveedor, e.numeroTransferencia ? `Transf: ${e.numeroTransferencia}` : "", e.documentoPagoNumero ? `Doc: ${e.documentoPagoNumero}` : "", e.notas ?? ""].filter(Boolean).join(" · "),
+      })),
+    [erogaciones],
+  );
   const bancosActivos = filtrarPorCompania(bancos.filter((b) => b.activo), companiaActiva);
   const [bancoId, setBancoId] = useFiltroGuardado("conciliacion-erogaciones", "bancoId", bancosActivos[0]?.id ?? "");
   const [moneda, setMoneda] = useFiltroGuardado<Moneda>("conciliacion-erogaciones", "moneda", "CRC");
@@ -318,6 +328,7 @@ export function ConciliacionErogaciones({
                   <TableHead>Fecha</TableHead>
                   <TableHead>Descripción</TableHead>
                   <TableHead className="text-right">Pago</TableHead>
+                  <TableHead className="text-center">Previo</TableHead>
                   <TableHead>Coincidencia</TableHead>
                   <TableHead className="min-w-72">Documento por pagar</TableHead>
                   <TableHead>Tipo de cambio</TableHead>
@@ -352,6 +363,7 @@ export function ConciliacionErogaciones({
                       <TableCell className="whitespace-nowrap">{m.fecha}</TableCell>
                       <TableCell className="max-w-48 truncate" title={m.descripcion || m.referencia}>{m.descripcion || m.referencia || "—"}</TableCell>
                       <TableCell className="whitespace-nowrap text-right font-medium">{formatearMoneda(m.monto, moneda)}</TableCell>
+                      <TableCell className="text-center">{fila.aplicado ? <span className="text-muted-foreground">—</span> : <IndicadorPrevio previos={movimientosPrevios(m, bancoId, moneda, registrados)} />}</TableCell>
                       <TableCell>{etiqueta}</TableCell>
                       <TableCell>
                         <SelectorBuscable
