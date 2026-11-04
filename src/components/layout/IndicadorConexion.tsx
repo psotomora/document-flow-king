@@ -42,7 +42,7 @@ export function IndicadorConexion() {
   const agente = propios?.agente;
   const verAgente = agente && (agente.ultimoDiagnostico || agente.enLinea) && sinConexion
     ? estadoSoftland(agente.ultimoDiagnostico ?? null, agente.softlandOk ?? null, ahora) : null;
-  const estadoAgente = !agente?.enLinea ? "error" : verAgente?.estado ?? "pendiente";
+  const estadoAgente = !agente?.enLinea ? "error" : verAgente ?? "pendiente";
   return (
     <div role="status" aria-label="Estado de conexión con Softland" className="flex min-w-0 flex-wrap gap-x-4 gap-y-2 text-xs">
       {visibles.map((c) => {
