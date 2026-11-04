@@ -19,6 +19,8 @@ public static class InquilinosEndpoints
         public string? Correo { get; set; }
         public bool Activo { get; set; }
         public int? MaxUsuarios { get; set; }
+        public int? MaxCompanias { get; set; }
+        public int CompaniasRegistradas { get; set; }
         public DateTime? FechaVencimiento { get; set; }
         public int UsuariosActivos { get; set; }
         public bool TokenConfigurado { get; set; }
@@ -30,7 +32,8 @@ public static class InquilinosEndpoints
 
     public sealed record DatosInquilino(
         string? Codigo, string? Nombre, string? Contacto, string? Correo,
-        int? MaxUsuarios, DateTime? FechaVencimiento, bool? Activo, bool? SinCupo);
+        int? MaxUsuarios, DateTime? FechaVencimiento, bool? Activo, bool? SinCupo,
+        int? MaxCompanias = null, bool? SinCupoCompanias = null);
 
     public sealed record NuevoAdministrador(string Nombre, string NombreUsuario, string? Correo, string Contrasena);
 
@@ -44,10 +47,12 @@ public static class InquilinosEndpoints
         return c is { SuperAdministrador: true } && ctx.User.EsAdministrador() ? c : null;
     }
 
-    private const string Lista =
+    private static string Lista(System.Data.IDbConnection cn) =>
+        (Saas.CupoCompaniasListo(cn) ? "SELECT i.MaxCompanias," : "SELECT CAST(NULL AS INT) AS MaxCompanias,") +
         """
-        SELECT i.InquilinoId AS Id, i.Codigo, i.Nombre, i.Contacto, i.Correo, i.Activo, i.MaxUsuarios,
+         i.InquilinoId AS Id, i.Codigo, i.Nombre, i.Contacto, i.Correo, i.Activo, i.MaxUsuarios,
                i.FechaVencimiento, i.Creado,
+               (SELECT COUNT(1) FROM flujo.Compania c WHERE c.InquilinoId = i.InquilinoId) AS CompaniasRegistradas,
                (SELECT COUNT(1) FROM flujo.Usuario u WHERE u.InquilinoId = i.InquilinoId AND u.Activo = 1) AS UsuariosActivos,
                CAST(CASE WHEN i.TokenAgenteHash IS NULL THEN 0 ELSE 1 END AS BIT) AS TokenConfigurado,
                a.UltimoLatido
@@ -80,6 +85,8 @@ public static class InquilinosEndpoints
                 inquilino = new { id = c.InquilinoId, c.Codigo, c.Nombre, c.FechaVencimiento },
                 maxUsuarios = c.MaxUsuarios,
                 usuariosActivos = Saas.Activos(cn, c.InquilinoId, null),
+                maxCompanias = Saas.CupoCompanias(cn, c.InquilinoId).Max,
+                companiasRegistradas = Saas.CupoCompanias(cn, c.InquilinoId).Registradas,
             });
         });
 
@@ -118,7 +125,7 @@ public static class InquilinosEndpoints
             using var cn = db.Abrir();
             if (!Saas.Listo(cn)) return Results.BadRequest(new { mensaje = Faltante });
             if (Super(ctx, cn) is null) return Results.Forbid();
-            var filas = cn.Query<InquilinoDto>(Lista + " ORDER BY CASE WHEN i.Codigo = 'principal' THEN 0 ELSE 1 END, i.Nombre")
+            var filas = cn.Query<InquilinoDto>(Lista(cn) + " ORDER BY CASE WHEN i.Codigo = 'principal' THEN 0 ELSE 1 END, i.Nombre")
                 .Select(Completar).ToList();
             return Results.Ok(filas);
         });
@@ -135,6 +142,7 @@ public static class InquilinosEndpoints
                 return Results.BadRequest(new { mensaje = "El código debe tener de 2 a 40 letras minúsculas, números o guiones." });
             if (nombre.Length == 0) return Results.BadRequest(new { mensaje = "Indique el nombre de la empresa." });
             if (d.MaxUsuarios is < 1) return Results.BadRequest(new { mensaje = "El cupo de usuarios debe ser al menos 1." });
+            if (d.MaxCompanias is < 1) return Results.BadRequest(new { mensaje = "El cupo de compañías debe ser al menos 1." });
             if (cn.ExecuteScalar<int>("SELECT COUNT(1) FROM flujo.Inquilino WHERE Codigo = @codigo", new { codigo }) > 0)
                 return Results.BadRequest(new { mensaje = "Ya existe una empresa con ese código." });
 
@@ -145,9 +153,11 @@ public static class InquilinosEndpoints
                 VALUES (@codigo, @nombre, @Contacto, @Correo, @max, @FechaVencimiento, ISNULL(@Activo, 1))
                 """,
                 new { codigo, nombre, d.Contacto, d.Correo, max = d.MaxUsuarios ?? 5, d.FechaVencimiento, d.Activo });
+            if (Saas.CupoCompaniasListo(cn))
+                cn.Execute("UPDATE flujo.Inquilino SET MaxCompanias = @mc WHERE InquilinoId = @id", new { id, mc = d.MaxCompanias ?? 1 });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Empresas", codigo, "Creación",
-                valorNuevo: $"Nombre: {nombre}; Cupo: {d.MaxUsuarios ?? 5}; Vence: {d.FechaVencimiento:yyyy-MM-dd}");
+                valorNuevo: $"Nombre: {nombre}; Cupo: {d.MaxUsuarios ?? 5}; Compañías: {d.MaxCompanias ?? 1}; Vence: {d.FechaVencimiento:yyyy-MM-dd}");
             return Results.Ok(new { id });
         });
 
@@ -156,13 +166,17 @@ public static class InquilinosEndpoints
             using var cn = db.Abrir();
             if (!Saas.Listo(cn)) return Results.BadRequest(new { mensaje = Faltante });
             if (Super(ctx, cn) is null) return Results.Forbid();
-            var actual = cn.QueryFirstOrDefault<InquilinoDto>(Lista + " WHERE i.InquilinoId = @id", new { id });
+            var actual = cn.QueryFirstOrDefault<InquilinoDto>(Lista(cn) + " WHERE i.InquilinoId = @id", new { id });
             if (actual is null) return Results.NotFound(new { mensaje = "Empresa no encontrada." });
             Completar(actual);
 
             if (actual.EsPrincipal && d.Activo == false)
                 return Results.BadRequest(new { mensaje = "La instalación principal no se puede suspender." });
             if (d.MaxUsuarios is < 1) return Results.BadRequest(new { mensaje = "El cupo de usuarios debe ser al menos 1." });
+            if (d.MaxCompanias is < 1) return Results.BadRequest(new { mensaje = "El cupo de compañías debe ser al menos 1." });
+            int? maxCompanias = d.SinCupoCompanias == true ? null : d.MaxCompanias ?? actual.MaxCompanias;
+            if (maxCompanias is { } mc && mc < actual.CompaniasRegistradas)
+                return Results.BadRequest(new { mensaje = $"La empresa ya tiene {actual.CompaniasRegistradas} compañías registradas; el cupo no puede ser menor." });
             var nombre = d.Nombre?.Trim();
             if (nombre is { Length: 0 }) return Results.BadRequest(new { mensaje = "Indique el nombre de la empresa." });
 
@@ -178,10 +192,12 @@ public static class InquilinosEndpoints
                 WHERE InquilinoId = @id
                 """,
                 new { id, nombre, d.Contacto, d.Correo, max, d.FechaVencimiento, d.Activo });
+            if (Saas.CupoCompaniasListo(cn))
+                cn.Execute("UPDATE flujo.Inquilino SET MaxCompanias = @maxCompanias WHERE InquilinoId = @id", new { id, maxCompanias });
 
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Empresas", actual.Codigo, "Modificación",
-                valorAnterior: $"Cupo: {actual.MaxUsuarios?.ToString() ?? "sin límite"}; Vence: {actual.FechaVencimiento:yyyy-MM-dd}; Activo: {actual.Activo}",
-                valorNuevo: $"Cupo: {max?.ToString() ?? "sin límite"}; Vence: {d.FechaVencimiento:yyyy-MM-dd}; Activo: {d.Activo ?? actual.Activo}");
+                valorAnterior: $"Cupo: {actual.MaxUsuarios?.ToString() ?? "sin límite"}; Compañías: {actual.MaxCompanias?.ToString() ?? "sin límite"}; Vence: {actual.FechaVencimiento:yyyy-MM-dd}; Activo: {actual.Activo}",
+                valorNuevo: $"Cupo: {max?.ToString() ?? "sin límite"}; Compañías: {maxCompanias?.ToString() ?? "sin límite"}; Vence: {d.FechaVencimiento:yyyy-MM-dd}; Activo: {d.Activo ?? actual.Activo}");
             return Results.Ok(new { mensaje = "Empresa actualizada." });
         });
 
@@ -209,7 +225,7 @@ public static class InquilinosEndpoints
             using var cn = db.Abrir();
             if (!Saas.Listo(cn)) return Results.BadRequest(new { mensaje = Faltante });
             if (Super(ctx, cn) is null) return Results.Forbid();
-            var inq = cn.QueryFirstOrDefault<InquilinoDto>(Lista + " WHERE i.InquilinoId = @id", new { id });
+            var inq = cn.QueryFirstOrDefault<InquilinoDto>(Lista(cn) + " WHERE i.InquilinoId = @id", new { id });
             if (inq is null) return Results.NotFound(new { mensaje = "Empresa no encontrada." });
             if (string.IsNullOrWhiteSpace(d.Nombre) || string.IsNullOrWhiteSpace(d.NombreUsuario))
                 return Results.BadRequest(new { mensaje = "Nombre y nombre de usuario son obligatorios." });

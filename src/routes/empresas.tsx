@@ -48,6 +48,7 @@ interface Formulario {
   contacto: string;
   correo: string;
   maxUsuarios: string;
+  maxCompanias: string;
   fechaVencimiento: string;
   activo: boolean;
   esPrincipal: boolean;
@@ -59,6 +60,7 @@ const VACIO: Formulario = {
   contacto: "",
   correo: "",
   maxUsuarios: "5",
+  maxCompanias: "1",
   fechaVencimiento: "",
   activo: true,
   esPrincipal: false,
@@ -105,6 +107,8 @@ function PaginaEmpresas() {
       correo: form.correo || null,
       maxUsuarios: sinCupo ? null : Number(form.maxUsuarios),
       sinCupo,
+      maxCompanias: form.maxCompanias.trim() === "" ? null : Number(form.maxCompanias),
+      sinCupoCompanias: form.maxCompanias.trim() === "",
       fechaVencimiento: form.fechaVencimiento || null,
       activo: form.activo,
     };
@@ -150,7 +154,7 @@ function PaginaEmpresas() {
       <EncabezadoPagina
         titulo="Empresas"
         requerimiento="SaaS"
-        descripcion="Empresas clientes del servicio: cupo de usuarios contratado, vencimiento, estado y token del agente local."
+        descripcion="Empresas clientes del servicio: cupo de usuarios y compañías contratadas, vencimiento, estado y token del agente local."
         acciones={
           <Button size="sm" className="gap-1.5" onClick={() => setForm({ ...VACIO })}>
             <Plus className="size-4" /> Nueva empresa
@@ -165,6 +169,7 @@ function PaginaEmpresas() {
               <TableHead>Código</TableHead>
               <TableHead>Empresa</TableHead>
               <TableHead>Usuarios</TableHead>
+              <TableHead>Compañías</TableHead>
               <TableHead>Vence</TableHead>
               <TableHead>Agente</TableHead>
               <TableHead>Estado</TableHead>
@@ -183,6 +188,9 @@ function PaginaEmpresas() {
                   </TableCell>
                   <TableCell className={cn(lleno && "font-semibold text-advertencia")}>
                     {e.maxUsuarios == null ? `${e.usuariosActivos} · según licencia` : `${e.usuariosActivos} / ${e.maxUsuarios} activos`}
+                  </TableCell>
+                  <TableCell className={cn(nivelCupo(e.companiasRegistradas ?? 0, e.maxCompanias) === "lleno" && "font-semibold text-advertencia")}>
+                    {e.maxCompanias == null ? `${e.companiasRegistradas ?? 0} · sin límite` : `${e.companiasRegistradas ?? 0} / ${e.maxCompanias}`}
                   </TableCell>
                   <TableCell>{e.fechaVencimiento ? e.fechaVencimiento.slice(0, 10) : "—"}</TableCell>
                   <TableCell>
@@ -213,6 +221,7 @@ function PaginaEmpresas() {
                             contacto: e.contacto ?? "",
                             correo: e.correo ?? "",
                             maxUsuarios: e.maxUsuarios == null ? "" : String(e.maxUsuarios),
+                            maxCompanias: e.maxCompanias == null ? "" : String(e.maxCompanias),
                             fechaVencimiento: e.fechaVencimiento?.slice(0, 10) ?? "",
                             activo: e.activo,
                             esPrincipal: e.esPrincipal,
@@ -278,6 +287,16 @@ function PaginaEmpresas() {
                     value={form.maxUsuarios}
                     placeholder={form.esPrincipal ? "Según licencia" : ""}
                     onChange={(e) => setForm({ ...form, maxUsuarios: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>Compañías contratadas</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={form.maxCompanias}
+                    placeholder="Sin límite"
+                    onChange={(e) => setForm({ ...form, maxCompanias: e.target.value })}
                   />
                 </div>
                 <div className="grid gap-1.5">

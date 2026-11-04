@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.69 — 2026-11-04
+- Empresas: campo «Compañías contratadas» y columna con registradas / cupo (vacío = sin límite). No permite un cupo menor a las compañías ya registradas.
+- Catálogos: indicador «N de M compañías contratadas»; el botón «Nueva compañía» se deshabilita al llegar al cupo. La API rechaza la creación aunque se intente directamente.
+- Nuevo script `database/25_cupo_companias.sql`: agrega `MaxCompanias`; las empresas secundarias existentes reciben como cupo las compañías que ya tienen. La principal queda sin límite.
+- Producción: actualizar web y API (API 1.38.69) y ejecutar el script SQL 25.
+
 ## 1.38.68 — 2026-11-04
 - `package:api` toma la versión de FlujoEfectivo.Api.csproj: `cashflow-api-1.38.64.zip`.
 - `package:agente` toma la versión de AplixCashFlowAgente.csproj: `cashflow-agente-1.38.57.zip`.

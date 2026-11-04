@@ -91,6 +91,26 @@ public static class Saas
     /// <summary>Fila de configuración SMTP de la empresa (la principal conserva Id = 1).</summary>
     public static int IdCorreo(IDbConnection cn) => Secundaria(cn) is { } s ? 1000 + s : 1;
 
+    /// <summary>True cuando ya se ejecutó 25_cupo_companias.sql.</summary>
+    public static bool CupoCompaniasListo(IDbConnection cn, IDbTransaction? tx = null) =>
+        cn.ExecuteScalar<int>("SELECT CASE WHEN COL_LENGTH('flujo.Inquilino','MaxCompanias') IS NOT NULL THEN 1 ELSE 0 END", transaction: tx) == 1;
+
+    /// <summary>Cupo de compañías (null = sin límite) y compañías registradas de la empresa.</summary>
+    public static (int? Max, int Registradas) CupoCompanias(IDbConnection cn, int inquilinoId, IDbTransaction? tx = null)
+    {
+        var registradas = cn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM flujo.Compania WITH (UPDLOCK, HOLDLOCK) WHERE InquilinoId = @inquilinoId", new { inquilinoId }, tx);
+        if (!CupoCompaniasListo(cn, tx)) return (null, registradas);
+        var max = cn.ExecuteScalar<int?>("SELECT MaxCompanias FROM flujo.Inquilino WHERE InquilinoId = @inquilinoId", new { inquilinoId }, tx);
+        return (max, registradas);
+    }
+
+    /// <summary>Mensaje de rechazo si la empresa ya registró todas las compañías contratadas.</summary>
+    public static string? CupoCompaniasExcedido(int? maxCompanias, int registradas) =>
+        maxCompanias is { } max && registradas + 1 > max
+            ? $"Su empresa ha alcanzado el límite de {max} compañías contratadas. Contacte a Aplix para ampliar su plan."
+            : null;
+
     /// <summary>Mensaje de rechazo si la empresa ya alcanzó su cupo de usuarios activos.</summary>
     public static string? CupoExcedido(int? maxUsuarios, int activosSinExcluido) =>
         maxUsuarios is { } max && activosSinExcluido + 1 > max

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
-import { mostrarConexionDirecta, nivelCupo, porcentajeCupo } from "./empresas";
+import { cupoCompaniasLleno, mostrarConexionDirecta, nivelCupo, porcentajeCupo } from "./empresas";
 
 test("3 de 5 activos es normal (60 %)", () => {
   assert.equal(nivelCupo(3, 5), "normal");
@@ -34,4 +34,10 @@ test("sesión pendiente o sin empresa identificada no muestra conexión directa"
 test("demostración e instalación sin SaaS conservan conexión directa", () => {
   assert.equal(mostrarConexionDirecta(false, null), true);
   assert.equal(mostrarConexionDirecta(true, { disponible: false, superAdministrador: false }), true);
+});
+
+test("cupo de compañías: lleno al alcanzar el máximo contratado", () => {
+  assert.equal(cupoCompaniasLleno({ disponible: true, superAdministrador: false, maxCompanias: 2, companiasRegistradas: 2 }), true);
+  assert.equal(cupoCompaniasLleno({ disponible: true, superAdministrador: false, maxCompanias: 2, companiasRegistradas: 1 }), false);
+  assert.equal(cupoCompaniasLleno({ disponible: true, superAdministrador: false, maxCompanias: null, companiasRegistradas: 9 }), false);
 });

@@ -36,6 +36,7 @@ import { useApp } from "@/contexto/AppContexto";
 import { formatearMoneda } from "@/lib/formato";
 import type { Compania } from "@/data/tipos";
 import { validarCompania } from "@/lib/companias";
+import { cupoCompaniasLleno, useSesionSaas } from "@/lib/empresas";
 
 export const Route = createFileRoute("/catalogos")({
   head: () => ({
@@ -64,6 +65,8 @@ function PaginaCatalogos() {
     esAdmin || (usuario.perfil !== "consulta" && usuario.editarCatalogos === true);
   const [abierto, setAbierto] = useState(false);
   const [compania, setCompania] = useState<Compania | null>(null);
+  const sesionSaas = useSesionSaas(companias.length);
+  const cupoLleno = cupoCompaniasLleno(sesionSaas);
 
   return (
     <div className="space-y-6">
@@ -83,7 +86,24 @@ function PaginaCatalogos() {
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Compañías</h2>
-          {esAdministrador ? <Button size="sm" className="gap-1.5" onClick={() => setCompania({ id: "", codigo: "", nombre: "" })}><Plus className="size-4" /> Nueva compañía</Button> : null}
+          {esAdministrador ? (
+            <div className="flex items-center gap-3">
+              {sesionSaas?.maxCompanias != null ? (
+                <span className={cupoLleno ? "text-xs font-semibold text-advertencia" : "text-xs text-muted-foreground"}>
+                  {sesionSaas.companiasRegistradas ?? 0} de {sesionSaas.maxCompanias} compañías contratadas
+                </span>
+              ) : null}
+              <Button
+                size="sm"
+                className="gap-1.5"
+                disabled={cupoLleno}
+                title={cupoLleno ? "Su empresa alcanzó el límite de compañías contratadas. Contacte a Aplix para ampliarlo." : undefined}
+                onClick={() => setCompania({ id: "", codigo: "", nombre: "" })}
+              >
+                <Plus className="size-4" /> Nueva compañía
+              </Button>
+            </div>
+          ) : null}
         </div>
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <Table>
