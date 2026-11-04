@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.61 — 2026-11-04
+- Token del agente: registrar «Modificación», operación admitida por CK_Bitacora_Operacion, y conservar el detalle de la generación sin guardar el token en la bitácora.
+- Ambas rutas de generación guardan hash y auditoría en una misma transacción; un fallo revierte el cambio y conserva el token anterior.
+- Corregidas también las operaciones de bitácora de creación de administrador y asignación/retiro de Súper Administrador.
+- Producción: solo API (`npm run package:api`), sin SQL ni agente nuevos. La web solo cambia la versión.
+
 ## 1.38.60 — 2026-11-04
 - Fase 5 (paso 3): se habilita el ingreso de empresas secundarias.
 - Separados por empresa: parámetros generales, configuración de correo, conexión a Softland, token/estado del agente, conexiones y sincronización ERP, histórico de contratos y bitácora.
