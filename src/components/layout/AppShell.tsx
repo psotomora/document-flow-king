@@ -8,6 +8,7 @@ import {
   CalendarClock,
   FileSpreadsheet,
   FileText,
+  KeyRound,
   Landmark,
   LogOut,
   Menu,
@@ -82,6 +83,7 @@ const navegacion = [
       { to: "/bitacora", etiqueta: "Bitácora", icono: BookLock },
       { to: "/acceso", etiqueta: "Usuarios y perfiles", icono: FileSpreadsheet },
       { to: "/empresas", etiqueta: "Empresas", icono: Briefcase },
+      { to: "/licencia", etiqueta: "Licencia", icono: KeyRound },
     ],
   },
 ] as const;
@@ -138,6 +140,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const rutaVisible = (item: { to: string }) => {
     // Empresas solo para el Súper Administrador de Aplix.
     if (item.to === "/empresas") return !!sesionSaas?.superAdministrador;
+    // Licencia: mismo permiso que Parámetros, donde estaba antes.
+    if (item.to === "/licencia") {
+      const parametros = opcionDeRuta("/parametros");
+      return !parametros || puedeVer(usuario, parametros.clave);
+    }
     const opcion = opcionDeRuta(item.to);
     return !opcion || puedeVer(usuario, opcion.clave);
   };
@@ -237,6 +244,20 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           ) : null}
           <VersionApp />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-2 w-full justify-start gap-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            onClick={() => {
+              alNavegar?.();
+              cerrarSesion();
+              // Ruta válida para que el ingreso se muestre aunque la URL actual no exista.
+              void navegar({ to: "/" });
+            }}
+          >
+            <LogOut className="size-4" />
+            Cerrar sesión
+          </Button>
         </div>
 
     </>
@@ -322,20 +343,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </SelectContent>
               </Select>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => {
-                cerrarSesion();
-                // Se vuelve siempre a una ruta válida para que la pantalla de
-                // ingreso se muestre aunque la URL actual no exista.
-                void navegar({ to: "/" });
-              }}
-            >
-              <LogOut className="size-4" />
-              <span className="hidden sm:inline">Cerrar sesión</span>
-            </Button>
           </div>
         </header>
 
