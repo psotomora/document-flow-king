@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.72 — 2026-11-04
+- Grupos del menú lateral colapsables, colapsados la primera vez y recordados por usuario.
+
 ## 1.38.71 — 2026-11-04
 - Pantalla propia de Licencia en Administración (retirada de Parámetros); el estado de licencia del pie del menú la abre.
 - «Cerrar sesión» se mueve al pie del menú lateral, como en NotifyHub y e-Invoice.

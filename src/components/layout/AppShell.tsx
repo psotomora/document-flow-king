@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Briefcase,
+  ChevronDown,
   BarChart3,
   Banknote,
   BookLock,
@@ -26,6 +27,7 @@ import { AvisoLicencia } from "@/components/comunes/AvisoLicencia";
 import { formatearFecha, formatearNumero } from "@/lib/formato";
 import { opcionDeRuta, puedeVer } from "@/lib/permisos";
 import { cn } from "@/lib/utils";
+import { useFiltroGuardado } from "@/lib/preferencias";
 import { useSesionSaas } from "@/lib/empresas";
 import {
   Select,
@@ -148,6 +150,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     const opcion = opcionDeRuta(item.to);
     return !opcion || puedeVer(usuario, opcion.clave);
   };
+  // Grupos del menú expandidos; la primera vez todos aparecen colapsados.
+  const [gruposAbiertos, setGruposAbiertos] = useFiltroGuardado<string[]>("menu", "gruposAbiertos", []);
+  const alternarGrupo = (grupo: string) =>
+    setGruposAbiertos((prev) => (prev.includes(grupo) ? prev.filter((g) => g !== grupo) : [...prev, grupo]));
   const secciones = navegacion.map((seccion) => ({
     grupo: seccion.grupo,
     items: [...seccion.items],
@@ -187,10 +193,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           {secciones.map((seccion) => (
             <div key={seccion.grupo ?? "tablero"}>
               {seccion.grupo ? (
-                <p className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase">
+                <button
+                  type="button"
+                  onClick={() => alternarGrupo(seccion.grupo!)}
+                  aria-expanded={gruposAbiertos.includes(seccion.grupo)}
+                  className="flex w-full items-center justify-between rounded px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-sidebar-foreground/50 uppercase hover:text-sidebar-foreground/80"
+                >
                   {seccion.grupo}
-                </p>
+                  <ChevronDown
+                    className={cn("size-3.5 transition-transform", gruposAbiertos.includes(seccion.grupo) ? "" : "-rotate-90")}
+                  />
+                </button>
               ) : null}
+              {seccion.grupo && !gruposAbiertos.includes(seccion.grupo) ? null : (
               <ul className="space-y-0.5">
                 {seccion.items.filter(rutaVisible).map((item) => {
                   const activo =
@@ -215,6 +230,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   );
                 })}
               </ul>
+              )}
             </div>
           ))}
         </nav>
