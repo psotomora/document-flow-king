@@ -10,6 +10,44 @@ namespace FlujoEfectivo.Api.Endpoints;
 /// pedidos, cuentas bancarias, tipo de cambio y carga inicial.</summary>
 public static class RegistrosEndpoints
 {
+    public sealed record DatosCompania(string? Codigo, string? Nombre);
+
+    private static IResult GuardarCompania(int? id, DatosCompania datos, HttpContext ctx, Db db)
+    {
+        if (!ctx.User.EsAdministrador() && !PuedeEditarCatalogos(ctx, db)) return SinPermiso();
+        var codigo = datos.Codigo?.Trim() ?? "";
+        var nombre = datos.Nombre?.Trim() ?? "";
+        if (codigo.Length is < 1 or > 10 || nombre.Length is < 1 or > 150)
+            return Results.BadRequest(new { mensaje = "Indique código (máximo 10 caracteres) y razón social (máximo 150 caracteres)." });
+        using var cn = db.Abrir();
+        if (!Saas.AislamientoListo(cn))
+            return Results.BadRequest(new { mensaje = "Falta completar la configuración de empresas con los scripts SQL 23 y 24." });
+        var empresa = Saas.Contexto(cn, ctx.User.UsuarioId());
+        if (empresa is null) return SinPermiso();
+        // Nunca aceptar una empresa del cuerpo ni reasignar compañías existentes.
+        var inquilino = empresa.InquilinoId;
+        using var tx = cn.BeginTransaction();
+        if (id is { } existente && cn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM flujo.Compania WITH (UPDLOCK, HOLDLOCK) WHERE CompaniaId=@id AND InquilinoId=@inquilino",
+            new { id = existente, inquilino }, tx) != 1)
+            return Results.Json(new { mensaje = "La compañía no pertenece a su empresa." }, statusCode: 403);
+        // Se conserva la unicidad global del catálogo existente (UQ_Compania_Codigo).
+        if (cn.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM flujo.Compania WITH (UPDLOCK, HOLDLOCK) WHERE Codigo=@codigo AND (@id IS NULL OR CompaniaId<>@id)",
+            new { codigo, id, inquilino }, tx) > 0)
+            return Results.BadRequest(new { mensaje = "Este código de compañía ya está en uso. Indique otro código." });
+        var guardado = id ?? cn.ExecuteScalar<int>(
+            "INSERT INTO flujo.Compania (Codigo, Nombre, InquilinoId) OUTPUT INSERTED.CompaniaId VALUES (@codigo, @nombre, @inquilino)",
+            new { codigo, nombre, inquilino }, tx);
+        if (id is not null)
+            cn.Execute("UPDATE flujo.Compania SET Codigo=@codigo, Nombre=@nombre WHERE CompaniaId=@id AND InquilinoId=@inquilino",
+                new { codigo, nombre, id, inquilino }, tx);
+        Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Catálogos", codigo,
+            id is null ? "Creación" : "Modificación", valorNuevo: $"Empresa {inquilino}: {nombre}", tx: tx);
+        tx.Commit();
+        return Results.Ok(new { id = guardado.ToString() });
+    }
+
     private sealed class FilaFactura
     {
         public string Numero { get; set; } = "";
@@ -36,6 +74,9 @@ public static class RegistrosEndpoints
 
     public static void MapRegistros(this IEndpointRouteBuilder g)
     {
+        g.MapPost("/companias", (DatosCompania c, HttpContext ctx, Db db) => GuardarCompania(null, c, ctx, db));
+        g.MapPut("/companias/{id:int}", (int id, DatosCompania c, HttpContext ctx, Db db) => GuardarCompania(id, c, ctx, db));
+
         /* ----------------------------- Facturas ----------------------------- */
         g.MapPost("/facturas", (NuevaFactura f, HttpContext ctx, Db db) =>
         {

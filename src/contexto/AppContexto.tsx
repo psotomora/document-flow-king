@@ -256,6 +256,8 @@ interface EstadoApp {
   agregarTransferencia: (t: Omit<Transferencia, "id">) => void;
   actualizarTransferencia: (id: string, t: Omit<Transferencia, "id">) => void;
   eliminarTransferencia: (id: string) => void;
+  agregarCompania: (c: Omit<Compania, "id">) => Promise<boolean>;
+  actualizarCompania: (id: string, c: Omit<Compania, "id">) => Promise<boolean>;
   agregarBanco: (b: Omit<Banco, "id">) => void;
   actualizarBanco: (id: string, cambios: Partial<Banco>) => void;
   registrarTipoCambio: (valor: number, nota?: string) => void;
@@ -1337,6 +1339,16 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           setTransferencias((prev) => prev.filter((x) => x.id !== id));
           if (t)
             anotar("Transferencias", t.referencia, "Eliminación", undefined, `${t.moneda} ${t.monto}`);
+        }),
+      agregarCompania: (c) =>
+        mutar("/companias", "POST", c, () => {
+          setCompanias((prev) => [...prev, { ...c, id: nuevoId("co") }]);
+          anotar("Catálogos", c.codigo, "Creación", c.nombre);
+        }),
+      actualizarCompania: (id, c) =>
+        mutar(`/companias/${id}`, "PUT", c, () => {
+          setCompanias((prev) => prev.map((x) => x.id === id ? { ...x, ...c } : x));
+          anotar("Catálogos", c.codigo, "Modificación", c.nombre);
         }),
       agregarBanco: (b) =>
         mutar("/bancos", "POST", b, () => {
