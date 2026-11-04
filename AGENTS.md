@@ -33,4 +33,3 @@ Receivable projections use calcularSaldoProyectado with the same calculated invo
 - Direct Softland settings visibility uses the session tenant code through mostrarConexionDirecta, not roles or company filters; unresolved connected sessions stay hidden and user-keyed session reads prevent stale tenant visibility. This is presentation only, not API authorization.
 - Agent company JSON is generated from the session-scoped company catalog, not the active company filter; schemas are explicitly editable suggestions and export contains only Companias, never credentials, to preserve existing agent settings.
 - Single-session login lives in Seguridad/SesionUnica.cs so a second login gets 409 and never displaces the first.
-- Agent-mode source checks: Datos/PruebaFuenteAgente.cs; cloud never opens client SQL.

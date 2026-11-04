@@ -1,0 +1,1 @@
+- Agent-mode Conexión 1/2 checks go through Datos/PruebaFuenteAgente.cs (tenant Parametro keys, heartbeat delivery) so the cloud never connects to client SQL.
