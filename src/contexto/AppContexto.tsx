@@ -1,3 +1,4 @@
+import { marcarPagado, quitarMarcaPagado } from "@/lib/pago-cash-flow";
 import {
   createContext,
   useCallback,
@@ -245,6 +246,8 @@ interface EstadoApp {
   agregarDocumentoPorPagar: (d: Omit<DocumentoPorPagar, "id">) => void;
   actualizarDocumentoPorPagar: (id: string, cambios: Partial<DocumentoPorPagar>) => void;
   eliminarDocumentoPorPagar: (id: string) => void;
+  marcarPagoDocumento: (id: string, fechaPago: string, nota: string | null) => Promise<boolean>;
+  quitarPagoDocumento: (id: string) => Promise<boolean>;
   agregarDocumentoPorCobrar: (d: Omit<DocumentoPorCobrar, "id">) => void;
   actualizarDocumentoPorCobrar: (id: string, cambios: Partial<DocumentoPorCobrar>) => void;
   eliminarDocumentoPorCobrar: (id: string) => void;
@@ -1280,6 +1283,34 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           setDocumentosPorCobrar((prev) => prev.filter((x) => x.id !== id));
           if (d) anotar("Documentos por cobrar", d.numero, "Eliminación");
         }),
+      marcarPagoDocumento: (id, fechaPago, nota) => {
+        const d = documentosPorPagar.find((x) => x.id === id);
+        if (!d) return Promise.resolve(false);
+        return mutar(
+          "/documentos-pagar/marca-pago",
+          "POST",
+          { companiaId: d.companiaId, proveedor: d.proveedor, tipo: d.tipo, numero: d.numero, fechaPago, nota },
+          () => {
+            setDocumentosPorPagar((prev) =>
+              prev.map((x) => (x.id === id ? marcarPagado(x, fechaPago, nota, usuario.nombre) : x)),
+            );
+            anotar("Documentos por pagar", d.numero, "Modificación", `Pagado (Cash Flow) ${fechaPago}`);
+          },
+        );
+      },
+      quitarPagoDocumento: (id) => {
+        const d = documentosPorPagar.find((x) => x.id === id);
+        if (!d) return Promise.resolve(false);
+        return mutar(
+          "/documentos-pagar/desmarcar-pago",
+          "POST",
+          { companiaId: d.companiaId, proveedor: d.proveedor, tipo: d.tipo, numero: d.numero },
+          () => {
+            setDocumentosPorPagar((prev) => prev.map((x) => (x.id === id ? quitarMarcaPagado(x) : x)));
+            anotar("Documentos por pagar", d.numero, "Modificación", "Se quitó la marca Pagado (Cash Flow)");
+          },
+        );
+      },
       eliminarDocumentoPorPagar: (id) =>
         mutar(`/documentos-pagar/${id}`, "DELETE", undefined, () => {
           const d = documentosPorPagar.find((x) => x.id === id);

@@ -121,6 +121,13 @@ export interface DocumentoPorPagar {
   /** Sistema del que proviene; ausente = registro interno. */
   origen?: string | null;
   notas?: string | null;
+  /** Marcado como pagado en Cash Flow (no se escribe en el ERP); saldo queda en 0. */
+  pagadoCashFlow?: boolean;
+  /** Saldo que reporta el origen antes de aplicar la marca. */
+  saldoOrigen?: number | null;
+  fechaPagoCashFlow?: string | null;
+  notaPagoCashFlow?: string | null;
+  marcadoPor?: string | null;
 }
 
 /**
