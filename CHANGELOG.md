@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.60 — 2026-11-04
+- Fase 5 (paso 3): se habilita el ingreso de empresas secundarias.
+- Separados por empresa: parámetros generales, configuración de correo, conexión a Softland, token/estado del agente, conexiones y sincronización ERP, histórico de contratos y bitácora.
+- Licencia y tipo de cambio: solo la instalación principal puede modificarlos.
+- Producción: solo API (sin SQL nuevo; requiere los scripts 23 y 24 ya ejecutados). La web solo cambia la versión.
+
 ## 1.38.59 - 2026-11-04
 
 - Modo Agente: la leyenda superior usa las verificaciones de lectura de la compañía cuando son posteriores al diagnóstico general. Conserva el vencimiento de cinco minutos, el estado desconectado y los fallos de otras lecturas; el latido nunca implica conexión exitosa al ERP.

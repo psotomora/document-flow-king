@@ -62,7 +62,10 @@ public static class AgenteEndpoints
             "SELECT InquilinoId, TokenAgenteHash FROM flujo.Inquilino WHERE Activo = 1 AND TokenAgenteHash IS NOT NULL");
         foreach (var c in candidatos)
             if (CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(c.Hash), Encoding.ASCII.GetBytes(hash)))
+            {
+                Saas.Actual = c.Id;
                 return c.Id;
+            }
         return null;
     }
 
@@ -124,8 +127,8 @@ public static class AgenteEndpoints
                        a.SoftlandOk, a.SoftlandLatenciaMs, a.SoftlandVersionSql, a.SoftlandMensaje
                 FROM flujo.Inquilino i
                 LEFT JOIN flujo.AgenteEstado a ON a.InquilinoId = i.InquilinoId
-                WHERE i.Codigo = 'principal'
-                """) ?? new EstadoAgenteDto();
+                WHERE i.InquilinoId = @id
+                """, new { id = Saas.InquilinoActual(cn) }) ?? new EstadoAgenteDto();
             e.EnLinea = e.UltimoLatido is { } u && DateTime.UtcNow - DateTime.SpecifyKind(u, DateTimeKind.Utc) < TimeSpan.FromMinutes(MinutosEnLinea);
             return Results.Ok(e);
         });
@@ -141,7 +144,7 @@ public static class AgenteEndpoints
             if (Saas.Listo(cn) && Saas.Contexto(cn, ctx.User.UsuarioId()) is not { SuperAdministrador: true })
                 return Results.Json(new { mensaje = "Solo el Súper Administrador de Aplix puede generar el token del agente, desde Administración → Empresas." }, statusCode: 403);
             var token = "agt_" + Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
-            cn.Execute("UPDATE flujo.Inquilino SET TokenAgenteHash = @hash WHERE Codigo = 'principal'", new { hash = Hash(token) });
+            cn.Execute("UPDATE flujo.Inquilino SET TokenAgenteHash = @hash WHERE InquilinoId = @id", new { hash = Hash(token), id = Saas.InquilinoActual(cn) });
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "principal", "Token de agente",
                 valorNuevo: "Se generó un token nuevo; el anterior quedó invalidado.");
             return Results.Ok(new { token });
