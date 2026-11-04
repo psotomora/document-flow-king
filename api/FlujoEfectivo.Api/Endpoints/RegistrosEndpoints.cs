@@ -755,7 +755,7 @@ public static class RegistrosEndpoints
                 FROM flujo.ContratoMesHistorico
                 WHERE @todas = 1 OR CompaniaId IN @companias
                 ORDER BY Mes DESC, Fecha, Numero
-                """, new { todas = alcance is null ? 1 : 0, companias = alcance?.Companias.ToArray() ?? [] });
+                """, new { todas = alcance is null ? 1 : 0, companias = alcance?.Companias.Select(c => c.ToString()).ToArray() ?? [] });
             return Results.Ok(filas);
         });
 
@@ -768,7 +768,7 @@ public static class RegistrosEndpoints
             var alcance = Saas.AlcanceUsuario(cn, ctx.User.UsuarioId());
             // Cada empresa solo archiva y reemplaza las líneas de sus propias compañías.
             if (alcance is not null)
-                lineas = lineas.Where(l => int.TryParse(l.CompaniaId?.ToString(), out var c) && alcance.Companias.Contains(c)).ToList();
+                lineas = lineas.Where(l => int.TryParse(l.CompaniaId, out var c) && alcance.Companias.Contains(c)).ToList();
             var archivadoEn = string.IsNullOrWhiteSpace(a.ArchivadoEn)
                 ? DateTime.UtcNow.ToString("yyyy-MM-dd")
                 : a.ArchivadoEn!.Trim();
@@ -776,7 +776,7 @@ public static class RegistrosEndpoints
             using var tx = cn.BeginTransaction();
             // Se reemplaza el mes completo para que reintentos no dupliquen filas.
             cn.Execute("DELETE FROM flujo.ContratoMesHistorico WHERE Mes = @mes AND (@todas = 1 OR CompaniaId IN @companias)",
-                new { mes, todas = alcance is null ? 1 : 0, companias = alcance?.Companias.ToArray() ?? [] }, tx);
+                new { mes, todas = alcance is null ? 1 : 0, companias = alcance?.Companias.Select(c => c.ToString()).ToArray() ?? [] }, tx);
             foreach (var l in lineas)
             {
                 cn.Execute(
