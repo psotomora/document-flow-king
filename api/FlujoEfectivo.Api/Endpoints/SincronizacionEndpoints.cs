@@ -87,7 +87,7 @@ public static class SincronizacionEndpoints
                 IF @@ROWCOUNT = 0
                     INSERT INTO flujo.SincronizacionEstado (InquilinoId, CompaniaId, Entidad, SolicitadaEn, SolicitadaPor)
                     VALUES (@inq, @compania, @entidad, SYSUTCDATETIME(), @usuario);
-                """, new { entidad = s.Entidad, compania = c.CompaniaId, usuario = ctx.User.NombreUsuario() });
+                """, new { entidad = s.Entidad, compania = c.CompaniaId, usuario = ctx.User.NombreUsuario(), inq = Saas.InquilinoActual(cn) });
             return Results.Ok(new { mensaje = "Sincronización solicitada." });
         });
     }
