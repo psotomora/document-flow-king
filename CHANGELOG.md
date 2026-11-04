@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.76 - 2026-11-04
+- Conciliación: el indicador «Previo» busca solo en el mismo mes calendario y elimina registros repetidos en el tooltip.
+
 ## 1.38.75
 - Conciliación de estados de cuenta (pagos recibidos y emitidos): columna «Previo» con ícono cuando ya existe un movimiento registrado del mismo banco, moneda y monto dentro de ±15 días; el tooltip muestra monto, fecha y descripción.
 

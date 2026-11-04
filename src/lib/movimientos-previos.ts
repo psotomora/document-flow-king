@@ -8,30 +8,33 @@ export interface MovimientoRegistrado {
   descripcion: string;
 }
 
-export const VENTANA_DIAS_PREVIO = 15;
-
-function dia(fecha: string): number | null {
-  const t = Date.parse(fecha.slice(0, 10) + "T00:00:00Z");
-  return Number.isNaN(t) ? null : t / 86400000;
+/** Mes calendario (AAAA-MM) de una fecha ISO o null si no es válida. */
+function mes(fecha: string): string | null {
+  const m = /^(\d{4})-(\d{2})/.exec((fecha ?? "").trim());
+  return m ? `${m[1]}-${m[2]}` : null;
 }
 
-/** Mismo banco, moneda y monto (±0,01) dentro de ±15 días de la fecha del extracto. */
+/**
+ * Mismo banco, moneda y monto (±0,01) dentro del mismo mes calendario que la fila del extracto.
+ * Elimina repeticiones (mismo id o mismo fecha + monto + descripción) para no listar un registro dos veces.
+ */
 export function movimientosPrevios(
   fila: { fecha: string; monto: number },
   bancoId: string,
   moneda: string,
   registrados: MovimientoRegistrado[],
 ): MovimientoRegistrado[] {
-  const d = dia(fila.fecha);
-  if (d === null) return [];
-  return registrados.filter((r) => {
-    const dr = dia(r.fecha);
-    return (
-      dr !== null &&
-      r.bancoId === bancoId &&
-      r.moneda === moneda &&
-      Math.abs(r.monto - fila.monto) < 0.01 &&
-      Math.abs(dr - d) <= VENTANA_DIAS_PREVIO
-    );
-  });
+  const m = mes(fila.fecha);
+  if (m === null) return [];
+  const vistos = new Set<string>();
+  const res: MovimientoRegistrado[] = [];
+  for (const r of registrados) {
+    if (r.bancoId !== bancoId || r.moneda !== moneda || Math.abs(r.monto - fila.monto) >= 0.01 || mes(r.fecha) !== m) continue;
+    const clave = `${r.fecha.slice(0, 10)}|${r.monto.toFixed(2)}|${r.descripcion.trim()}`;
+    if (vistos.has(`id:${r.id}`) || vistos.has(clave)) continue;
+    vistos.add(`id:${r.id}`);
+    vistos.add(clave);
+    res.push(r);
+  }
+  return res.sort((a, b) => a.fecha.localeCompare(b.fecha));
 }
