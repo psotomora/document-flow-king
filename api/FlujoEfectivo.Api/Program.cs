@@ -406,6 +406,20 @@ api.AddEndpointFilter(async (contexto, siguiente) =>
 {
     var http = contexto.HttpContext;
     var metodo = http.Request.Method;
+    if (http.User.Identity?.IsAuthenticated == true)
+    {
+        // Empresa de la solicitud: parámetros, correo, fuente ERP, réplicas y bitácora la usan.
+        var dbEmpresa = http.RequestServices.GetRequiredService<Db>();
+        using var cnEmpresa = dbEmpresa.Abrir();
+        var empresa = Saas.Contexto(cnEmpresa, http.User.UsuarioId());
+        Saas.Actual = empresa?.InquilinoId;
+        // Licencia y tipo de cambio son de la instalación: solo la principal los modifica.
+        var ruta = http.Request.Path.Value ?? "";
+        if (empresa is { EsPrincipal: false } && !HttpMethods.IsGet(metodo)
+            && (ruta.StartsWith("/api/licencia", StringComparison.OrdinalIgnoreCase)
+                || ruta.StartsWith("/api/tipos-cambio", StringComparison.OrdinalIgnoreCase)))
+            return Results.Json(new { mensaje = "Esta configuración la administra Aplix para todas las empresas." }, statusCode: 403);
+    }
     if (http.User.Identity?.IsAuthenticated == true && !HttpMethods.IsGet(metodo))
     {
         var candidatos = contexto.Arguments

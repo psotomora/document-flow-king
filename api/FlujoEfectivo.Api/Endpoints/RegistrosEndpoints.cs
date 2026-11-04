@@ -695,6 +695,10 @@ public static class RegistrosEndpoints
             if (valor.Length > 200)
                 return Results.BadRequest(new { mensaje = "El valor del parámetro es demasiado largo." });
             using var cn = db.Abrir();
+            if (Saas.EsClaveDeEmpresa(clave)) return Results.BadRequest(new { mensaje = "Clave de parámetro inválida." });
+            var claveVista = clave;
+            clave = Saas.ClaveParametro(Saas.Secundaria(cn), clave);
+            if (clave.Length > 60) return Results.BadRequest(new { mensaje = "Clave de parámetro inválida." });
             var anterior = cn.ExecuteScalar<string?>(
                 "SELECT Valor FROM flujo.Parametro WHERE Clave = @clave", new { clave });
             cn.Execute(
@@ -707,7 +711,7 @@ public static class RegistrosEndpoints
                     INSERT (Clave, Valor, UsuarioId) VALUES (@clave, @valor, @usuarioId);
                 """,
                 new { clave, valor, usuarioId = ctx.User.UsuarioId() });
-            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", clave,
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", claveVista,
                 "Modificación", anterior, valor);
             return Results.Ok(new { mensaje = "Parámetro actualizado." });
         });
@@ -738,9 +742,10 @@ public static class RegistrosEndpoints
         /* --------- Histórico de contratos por facturar (meses cerrados) -------- */
         // Tabla dedicada flujo.ContratoMesHistorico: la lista activa se mantiene
         // pequeña y el histórico se consulta aparte, sin afectar el rendimiento.
-        g.MapGet("/contratos-mes-historico", (Db db) =>
+        g.MapGet("/contratos-mes-historico", (HttpContext ctx, Db db) =>
         {
             using var cn = db.Abrir();
+            var alcance = Saas.AlcanceUsuario(cn, ctx.User.UsuarioId());
             var filas = cn.Query<ContratoMesHistoricoDto>(
                 """
                 SELECT Mes, CONVERT(CHAR(10), ArchivadoEn, 23) AS ArchivadoEn,
@@ -748,8 +753,9 @@ public static class RegistrosEndpoints
                        CONVERT(CHAR(10), Fecha, 23) AS Fecha,
                        Moneda, Monto, Pagado, Documento
                 FROM flujo.ContratoMesHistorico
+                WHERE @todas = 1 OR CompaniaId IN @companias
                 ORDER BY Mes DESC, Fecha, Numero
-                """);
+                """, new { todas = alcance is null ? 1 : 0, companias = alcance?.Companias.ToArray() ?? [] });
             return Results.Ok(filas);
         });
 
@@ -758,14 +764,19 @@ public static class RegistrosEndpoints
             var mes = (a.Mes ?? "").Trim();
             if (mes.Length != 7) return Results.BadRequest(new { mensaje = "Mes inválido (formato AAAA-MM)." });
             var lineas = a.Lineas ?? [];
+            using var cn = db.Abrir();
+            var alcance = Saas.AlcanceUsuario(cn, ctx.User.UsuarioId());
+            // Cada empresa solo archiva y reemplaza las líneas de sus propias compañías.
+            if (alcance is not null)
+                lineas = lineas.Where(l => int.TryParse(l.CompaniaId?.ToString(), out var c) && alcance.Companias.Contains(c)).ToList();
             var archivadoEn = string.IsNullOrWhiteSpace(a.ArchivadoEn)
                 ? DateTime.UtcNow.ToString("yyyy-MM-dd")
                 : a.ArchivadoEn!.Trim();
 
-            using var cn = db.Abrir();
             using var tx = cn.BeginTransaction();
             // Se reemplaza el mes completo para que reintentos no dupliquen filas.
-            cn.Execute("DELETE FROM flujo.ContratoMesHistorico WHERE Mes = @mes", new { mes }, tx);
+            cn.Execute("DELETE FROM flujo.ContratoMesHistorico WHERE Mes = @mes AND (@todas = 1 OR CompaniaId IN @companias)",
+                new { mes, todas = alcance is null ? 1 : 0, companias = alcance?.Companias.ToArray() ?? [] }, tx);
             foreach (var l in lineas)
             {
                 cn.Execute(
