@@ -27,6 +27,13 @@ public static class AgenteEndpoints
         public string? Mensaje { get; set; }
     }
 
+    public sealed class ResultadoPrueba
+    {
+        public string? Fuente { get; set; }
+        public bool Ok { get; set; }
+        public string? Mensaje { get; set; }
+    }
+
     public sealed class EstadoAgenteDto
     {
         public bool TokenConfigurado { get; set; }
@@ -75,7 +82,7 @@ public static class AgenteEndpoints
     /// <summary>Rutas públicas del agente (sin JWT; autenticadas con x-agent-token).</summary>
     public static void MapAgentePublico(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/public/agente/latido", (HttpContext ctx, Db db, Latido l) =>
+        app.MapPost("/api/public/agente/latido", (HttpContext ctx, Db db, IConfiguration config, Latido l) =>
         {
             using var cn = db.Abrir();
             if (!TablasListas(cn))
@@ -93,7 +100,18 @@ public static class AgenteEndpoints
                 "SELECT Entidad FROM flujo.SincronizacionEstado WHERE InquilinoId = @id AND SolicitadaEn IS NOT NULL",
                 new { id });
             var trabajos = ReplicaEndpoints.Reservar(cn, id.Value);
-            return Results.Ok(new { ok = true, hora = DateTime.UtcNow, solicitudes, trabajos });
+            var pruebas = PruebaFuenteAgente.Pendientes(cn, config["Jwt:Llave"] ?? "");
+            return Results.Ok(new { ok = true, hora = DateTime.UtcNow, solicitudes, trabajos, pruebas });
+        }).AllowAnonymous();
+
+        // Resultado de la comprobación de credenciales de Conexión 1/2 hecha por el agente.
+        app.MapPost("/api/public/agente/prueba-fuente", (HttpContext ctx, Db db, ResultadoPrueba r) =>
+        {
+            using var cn = db.Abrir();
+            var id = Autenticar(ctx, cn);
+            if (id is null) return Results.Json(new { mensaje = "Token de agente no válido." }, statusCode: 401);
+            var aceptado = PruebaFuenteAgente.Resolver(cn, r.Fuente ?? "", r.Ok, r.Mensaje);
+            return Results.Ok(new { aceptado });
         }).AllowAnonymous();
 
         app.MapPost("/api/public/agente/diagnostico", (HttpContext ctx, Db db, Diagnostico d) =>

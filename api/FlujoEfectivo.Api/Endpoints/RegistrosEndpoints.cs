@@ -1013,6 +1013,29 @@ public static class RegistrosEndpoints
             return ok ? Results.Ok(new { mensaje, pedidos }) : Results.BadRequest(new { mensaje });
         });
 
+        // Comprobación delegada al agente local (modo agente): la nube no abre conexión al SQL del cliente.
+        g.MapPost("/fuentes-externas/{fuente}/probar-agente", (string fuente, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            var nombre = Softland.NombreFuente(fuente);
+            if (nombre is null) return Results.NotFound(new { mensaje = "Fuente externa desconocida." });
+            using var cn = db.Abrir();
+            var cfg = Softland.Leer(cn, nombre);
+            if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                return Results.BadRequest(new { mensaje = "Guarde primero las credenciales de la conexión." });
+            PruebaFuenteAgente.Solicitar(cn, nombre, ctx.User.UsuarioId());
+            return Results.Ok(PruebaFuenteAgente.Consultar(cn, nombre));
+        });
+
+        g.MapGet("/fuentes-externas/{fuente}/prueba-agente", (string fuente, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.EsAdministrador()) return SinPermiso();
+            var nombre = Softland.NombreFuente(fuente);
+            if (nombre is null) return Results.NotFound(new { mensaje = "Fuente externa desconocida." });
+            using var cn = db.Abrir();
+            return Results.Ok(PruebaFuenteAgente.Consultar(cn, nombre));
+        });
+
         // Documentos del Comparativo anual leídos de una fuente externa concreta (solo FACTURA).
         g.MapGet("/documentos-cobrar/comparativo/{fuente}", (string fuente, HttpContext ctx, Db db, IConfiguration config) =>
         {
