@@ -2,7 +2,9 @@ import { FiltroFechas } from "@/components/comunes/FiltroFechas";
 import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { puedeMarcarPagado } from "@/lib/pago-cash-flow";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { BarraEstadoSincronizacion } from "@/components/comunes/BarraEstadoSincronizacion";
@@ -95,6 +97,7 @@ function PaginaDocumentosPorPagar() {
   const [fechaFin, setFechaFin] = useFiltroGuardado("documentos-pagar", "fechaFin", "");
   const [nuevo, setNuevo] = useState(false);
   const [enEdicion, setEnEdicion] = useState<DocumentoPorPagar | null>(null);
+  const [aMarcar, setAMarcar] = useState<DocumentoPorPagar | null>(null);
 
   const proveedorTexto = proveedorBusqueda.trim().toLowerCase();
   const numeroTexto = numeroBusqueda.trim().toLowerCase();
@@ -144,6 +147,8 @@ function PaginaDocumentosPorPagar() {
         Moneda: d.moneda,
         Monto: d.monto,
         Saldo: d.saldo,
+        "Pagado (Cash Flow)": d.pagadoCashFlow ? `Sí ${d.fechaPagoCashFlow ?? ""}`.trim() : "",
+        "Saldo en origen": d.pagadoCashFlow ? (d.saldoOrigen ?? "") : "",
         Notas: d.notas ?? "",
       })),
       usuario.nombre,
@@ -270,6 +275,7 @@ function PaginaDocumentosPorPagar() {
               <TableHead>Vence</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead className="text-right">Saldo</TableHead>
+              <TableHead>Pago (Cash Flow)</TableHead>
               <TableHead>Notas</TableHead>
               <TableHead />
             </TableRow>
@@ -292,6 +298,13 @@ function PaginaDocumentosPorPagar() {
                 </TableCell>
                 <TableCell className="text-right font-mono font-semibold tabular-nums">
                   {formatearMoneda(d.saldo, d.moneda)}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  <CeldaPagoCashFlow
+                    documento={d}
+                    editable={puedeEditar}
+                    onMarcar={() => setAMarcar(d)}
+                  />
                 </TableCell>
                 <TableCell className="max-w-xs truncate text-muted-foreground">
                   {d.notas ?? "—"}
@@ -325,7 +338,7 @@ function PaginaDocumentosPorPagar() {
             ))}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
                   No hay documentos para los filtros aplicados.
                 </TableCell>
               </TableRow>
@@ -334,11 +347,134 @@ function PaginaDocumentosPorPagar() {
         </Table>
       </div>
 
+      {aMarcar ? <DialogoMarcaPago documento={aMarcar} onCerrar={() => setAMarcar(null)} /> : null}
       {nuevo ? <DialogoDocumento abierto onCerrar={() => setNuevo(false)} /> : null}
       {enEdicion ? (
         <DialogoDocumento abierto documento={enEdicion} onCerrar={() => setEnEdicion(null)} />
       ) : null}
     </div>
+  );
+}
+
+function CeldaPagoCashFlow({
+  documento: d,
+  editable,
+  onMarcar,
+}: {
+  documento: DocumentoPorPagar;
+  editable: boolean;
+  onMarcar: () => void;
+}) {
+  if (d.pagadoCashFlow) {
+    return (
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              disabled={!editable}
+              onClick={onMarcar}
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+            >
+              <CheckCircle2 className="size-3.5" /> Pagado
+              {d.fechaPagoCashFlow ? ` · ${formatearFecha(d.fechaPagoCashFlow)}` : ""}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs text-xs">
+            <p>Pagado en Cash Flow; el ERP aún reporta saldo de {formatearMoneda(d.saldoOrigen ?? 0, d.moneda)}.</p>
+            {d.notaPagoCashFlow ? <p>Nota: {d.notaPagoCashFlow}</p> : null}
+            {d.marcadoPor ? <p>Marcado por: {d.marcadoPor}</p> : null}
+            {editable ? <p className="mt-1 opacity-80">Pulse para editar o quitar la marca.</p> : null}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+  if (!editable || !puedeMarcarPagado(d)) return <span className="text-muted-foreground">—</span>;
+  return (
+    <Button variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={onMarcar}>
+      <CheckCircle2 className="size-3.5" /> Marcar pagado
+    </Button>
+  );
+}
+
+function DialogoMarcaPago({
+  documento: d,
+  onCerrar,
+}: {
+  documento: DocumentoPorPagar;
+  onCerrar: () => void;
+}) {
+  const { hoy, marcarPagoDocumento, quitarPagoDocumento } = useApp();
+  const [fecha, setFecha] = useState(d.fechaPagoCashFlow ?? hoy);
+  const [nota, setNota] = useState(d.notaPagoCashFlow ?? "");
+  const [guardando, setGuardando] = useState(false);
+  const saldo = d.pagadoCashFlow ? (d.saldoOrigen ?? 0) : d.saldo;
+
+  const ejecutar = async (accion: () => Promise<boolean>, mensaje: string) => {
+    setGuardando(true);
+    const ok = await accion();
+    setGuardando(false);
+    if (ok) {
+      toast.success(mensaje);
+      onCerrar();
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(v) => (v ? undefined : onCerrar())}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Marcar como pagado (Cash Flow)</DialogTitle>
+          <DialogDescription>
+            {d.proveedor} · {d.tipo} {d.numero} · saldo {formatearMoneda(saldo, d.moneda)}. La marca
+            se guarda solo en Cash Flow y no modifica el ERP: el documento sale de pendientes y de
+            los saldos hasta que el ERP registre el pago.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="mp-fecha">Fecha de pago</Label>
+            <Input id="mp-fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="mp-nota">Nota (opcional)</Label>
+            <Textarea
+              id="mp-nota"
+              placeholder="Ej.: transferencia 80120, banco BAC"
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+            />
+          </div>
+        </div>
+        <DialogFooter className="gap-2">
+          {d.pagadoCashFlow ? (
+            <Button
+              variant="outline"
+              className="sm:mr-auto"
+              disabled={guardando}
+              onClick={() => ejecutar(() => quitarPagoDocumento(d.id), "Marca de pago retirada")}
+            >
+              Quitar marca
+            </Button>
+          ) : null}
+          <Button variant="outline" onClick={onCerrar} disabled={guardando}>
+            Cancelar
+          </Button>
+          <Button
+            disabled={guardando || !fecha}
+            onClick={() =>
+              ejecutar(
+                () => marcarPagoDocumento(d.id, fecha, nota.trim() || null),
+                "Documento marcado como pagado",
+              )
+            }
+          >
+            Guardar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

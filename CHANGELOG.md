@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.77 - 2026-11-04
+- Documentos por pagar: marca «Pagado (Cash Flow)» (fecha y nota) guardada en `flujo.DocumentoPagarMarca` sin escribir en el ERP; saldo en 0 en pendientes y totales. Requiere `database/27_marca_pago_documentos.sql`.
+
 ## 1.38.76 - 2026-11-04
 - Conciliación: el indicador «Previo» busca solo en el mismo mes calendario y elimina registros repetidos en el tooltip.
 
