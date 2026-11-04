@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.59 - 2026-11-04
+
+- Modo Agente: la leyenda superior usa las verificaciones de lectura de la compañía cuando son posteriores al diagnóstico general. Conserva el vencimiento de cinco minutos, el estado desconectado y los fallos de otras lecturas; el latido nunca implica conexión exitosa al ERP.
+- Actualizar solo aplicación web; API, agente y SQL sin cambios.
+
 ## 1.38.58 - 2026-11-04
 
 - API: comprobar soporte de documentos por pagar antes de iniciar la transacción y reutilizar el resultado durante el guardado; elimina el ExecuteScalar sin transacción que causaba HTTP 500 en `/api/public/agente/documentos`.

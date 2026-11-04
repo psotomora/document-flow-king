@@ -27,3 +27,26 @@ test("conexión directa considera solo su compañía y no el agente", () => {
   assert.equal(verificarConexion("directa", "1", filas, { ...agente, softlandOk: false }, ahora).estado, "exito");
   assert.equal(verificarConexion("directa", "2", filas, agente, ahora).estado, "error");
 });
+test("lecturas recientes actualizan la verificación aunque el diagnóstico siga en 5:59 p. m.", () => {
+  const viejo = { ...agente, ultimoDiagnostico: "2026-11-03T23:59:00Z" };
+  const filas = ["pedidos", "facturas", "contratos", "documentosPagar"].map(() => ({ companiaId: "1", ultimaVerificacion: "2026-11-04T00:19:00Z", resultado: "ok" }));
+  assert.deepEqual(verificarConexion("agente", "1", filas, viejo, Date.parse("2026-11-04T00:20:00Z")), { estado: "exito", fecha: "2026-11-04T00:19:00Z" });
+});
+test("un pedido exitoso no oculta una lectura fallida de facturas", () => {
+  const viejo = { ...agente, ultimoDiagnostico: "2026-11-03T23:59:00Z" };
+  const filas = [
+    { companiaId: "1", ultimaVerificacion: "2026-11-04T00:01:00Z", resultado: "error" },
+    { companiaId: "1", ultimaVerificacion: "2026-11-04T00:01:01Z", resultado: "ok" },
+  ];
+  assert.equal(verificarConexion("agente", "1", filas, viejo, ahora).estado, "error");
+});
+test("las lecturas del agente vencen a los cinco minutos y no verifican otra compañía", () => {
+  const viejo = { ...agente, ultimoDiagnostico: "2026-11-03T23:59:00Z" };
+  const filas = [{ companiaId: "1", ultimaVerificacion: "2026-11-04T00:01:00Z", resultado: "ok" }];
+  assert.equal(verificarConexion("agente", "1", filas, viejo, Date.parse("2026-11-04T00:06:00Z")).estado, "error");
+  assert.deepEqual(verificarConexion("agente", "2", filas, viejo, Date.parse("2026-11-04T00:06:00Z")), { estado: "error", fecha: viejo.ultimoDiagnostico });
+});
+test("una lectura reciente no pone verde un agente desconectado", () => {
+  const filas = [{ companiaId: "1", ultimaVerificacion: agente.ultimoDiagnostico, resultado: "ok" }];
+  assert.equal(verificarConexion("agente", "1", filas, { ...agente, enLinea: false }, ahora).estado, "error");
+});
