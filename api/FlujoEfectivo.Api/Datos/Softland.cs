@@ -9,6 +9,18 @@ using Microsoft.Data.SqlClient;
 namespace FlujoEfectivo.Api.Datos;
 
 /// <summary>Configuración de la conexión a la base de datos de SoftlandERP.</summary>
+/// <summary>Credenciales que la nube entrega al agente para comprobar Conexión 1/2 (compartido con el agente).</summary>
+public sealed class PruebaSolicitud
+{
+    public string Fuente { get; set; } = "";
+    public string Servidor { get; set; } = "";
+    public string BaseDatos { get; set; } = "";
+    public string Esquema { get; set; } = "";
+    public string Usuario { get; set; } = "";
+    public string Clave { get; set; } = "";
+    public bool Encriptar { get; set; } = true;
+}
+
 public sealed class ConfigSoftland
 {
     public string Servidor { get; set; } = "";

@@ -24,17 +24,6 @@ public static class PruebaFuenteAgente
 
     public sealed record EstadoDto(string Estado, DateTime? SolicitadaEn, DateTime? ResueltaEn, string? Mensaje);
 
-    public sealed class Solicitud
-    {
-        public string Fuente { get; set; } = "";
-        public string Servidor { get; set; } = "";
-        public string BaseDatos { get; set; } = "";
-        public string Esquema { get; set; } = "";
-        public string Usuario { get; set; } = "";
-        public string Clave { get; set; } = "";
-        public bool Encriptar { get; set; } = true;
-    }
-
     private static readonly string[] Fuentes = [Softland.Fuente, Softland.Fuente2];
 
     private static string Clave(IDbConnection cn, string fuente) =>
@@ -72,9 +61,9 @@ public static class PruebaFuenteAgente
         Escribir(cn, fuente, new Estado { Estado_ = "en_proceso", SolicitadaEn = DateTime.UtcNow }, usuarioId);
 
     /// <summary>Solicitudes que el agente debe atender ahora (con credenciales descifradas, solo por HTTPS).</summary>
-    public static List<Solicitud> Pendientes(IDbConnection cn, string secreto)
+    public static List<PruebaSolicitud> Pendientes(IDbConnection cn, string secreto)
     {
-        var lista = new List<Solicitud>();
+        var lista = new List<PruebaSolicitud>();
         var ahora = DateTime.UtcNow;
         foreach (var f in Fuentes)
         {
@@ -94,7 +83,7 @@ public static class PruebaFuenteAgente
                 Resolver(cn, f, false, "La contraseña guardada pertenece a otra llave de seguridad. Escríbala de nuevo y guarde.");
                 continue;
             }
-            lista.Add(new Solicitud
+            lista.Add(new PruebaSolicitud
             {
                 Fuente = f, Servidor = cfg.Servidor, BaseDatos = cfg.BaseDatos, Esquema = cfg.Esquema,
                 Usuario = cfg.Usuario, Clave = clave, Encriptar = cfg.Encriptar,
