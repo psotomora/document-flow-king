@@ -36,6 +36,12 @@ public static class RegistrosEndpoints
             "SELECT COUNT(*) FROM flujo.Compania WITH (UPDLOCK, HOLDLOCK) WHERE Codigo=@codigo AND (@id IS NULL OR CompaniaId<>@id)",
             new { codigo, id, inquilino }, tx) > 0)
             return Results.BadRequest(new { mensaje = "Este código de compañía ya está en uso. Indique otro código." });
+        if (id is null)
+        {
+            var (max, registradas) = Saas.CupoCompanias(cn, inquilino, tx);
+            if (Saas.CupoCompaniasExcedido(max, registradas) is { } limite)
+                return Results.BadRequest(new { mensaje = limite });
+        }
         var guardado = id ?? cn.ExecuteScalar<int>(
             "INSERT INTO flujo.Compania (Codigo, Nombre, InquilinoId) OUTPUT INSERTED.CompaniaId VALUES (@codigo, @nombre, @inquilino)",
             new { codigo, nombre, inquilino }, tx);
