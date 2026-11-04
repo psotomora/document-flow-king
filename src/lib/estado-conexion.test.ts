@@ -50,3 +50,17 @@ test("una lectura reciente no pone verde un agente desconectado", () => {
   const filas = [{ companiaId: "1", ultimaVerificacion: agente.ultimoDiagnostico, resultado: "ok" }];
   assert.equal(verificarConexion("agente", "1", filas, { ...agente, enLinea: false }, ahora).estado, "error");
 });
+test("sin compañía registrada usa el diagnóstico del agente sin sumar lecturas ajenas", () => {
+  const filas = [{ companiaId: "2", ultimaVerificacion: agente.ultimoDiagnostico, resultado: "error" }];
+  assert.deepEqual(verificarConexion("agente", null, filas, agente, ahora), { estado: "exito", fecha: agente.ultimoDiagnostico });
+});
+test("un diagnóstico exitoso nuevo reemplaza fallos antiguos y lecturas aún pendientes", () => {
+  const filas = [
+    { companiaId: "1", ultimaVerificacion: "2026-11-03T23:59:00Z", resultado: "error" },
+    { companiaId: "1", ultimaVerificacion: null, resultado: null },
+  ];
+  assert.deepEqual(verificarConexion("agente", "1", filas, agente, ahora), { estado: "exito", fecha: agente.ultimoDiagnostico });
+});
+test("una compañía recién registrada sin lecturas muestra el diagnóstico exitoso actual", () => {
+  assert.deepEqual(verificarConexion("agente", "7", [], agente, ahora), { estado: "exito", fecha: agente.ultimoDiagnostico });
+});
