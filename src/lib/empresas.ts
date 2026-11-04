@@ -44,17 +44,25 @@ export function porcentajeCupo(activos: number, max: number | null | undefined):
   return Math.min(100, Math.round((activos / max) * 100));
 }
 
-export function useSesionSaas(recarga = 0): SesionSaas | null {
-  const [sesion, setSesion] = useState<SesionSaas | null>(null);
+/** Visibilidad de la configuración directa; no sustituye la autorización de la API. */
+export function mostrarConexionDirecta(modoApi: boolean, sesion: SesionSaas | null): boolean {
+  if (!modoApi) return true;
+  if (!sesion) return false;
+  if (!sesion.disponible) return true; // Instalaciones anteriores a SaaS.
+  return sesion.inquilino?.codigo.toLowerCase() === "principal";
+}
+
+export function useSesionSaas(recarga: number | string = 0): SesionSaas | null {
+  const [respuesta, setRespuesta] = useState<{ clave: number | string; sesion: SesionSaas | null } | null>(null);
   useEffect(() => {
     if (!hayApi()) return;
     let vigente = true;
     api<SesionSaas>("/inquilinos/sesion")
-      .then((s) => vigente && setSesion(s))
-      .catch(() => vigente && setSesion(null));
+      .then((s) => vigente && setRespuesta({ clave: recarga, sesion: s }))
+      .catch(() => vigente && setRespuesta({ clave: recarga, sesion: null }));
     return () => {
       vigente = false;
     };
   }, [recarga]);
-  return sesion;
+  return respuesta?.clave === recarga ? respuesta.sesion : null;
 }

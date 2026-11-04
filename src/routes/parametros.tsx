@@ -7,6 +7,7 @@ import { SelectorFilas } from "@/components/comunes/SelectorFilas";
 import { useFilasGlobales } from "@/lib/preferencias";
 import { urlApi } from "@/lib/api";
 import { APP_VERSION } from "@/lib/version";
+import { mostrarConexionDirecta, useSesionSaas } from "@/lib/empresas";
 import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +93,8 @@ function PaginaParametros() {
     parametros,
     actualizarParametro,
   } = useApp();
+  const sesionSaas = useSesionSaas(usuario.id);
+  const verConexionDirecta = mostrarConexionDirecta(modoApi, sesionSaas);
   const [valor, setValor] = useState(String(tipoCambio));
   const [nota, setNota] = useState("");
   const [versionApi, setVersionApi] = useState<string | null>(null);
@@ -447,7 +450,7 @@ function PaginaParametros() {
             </SelectContent>
           </Select>
         </div>
-        {pedidosFuenteOrigen === "SoftlandERP" ? (
+        {verConexionDirecta && pedidosFuenteOrigen === "SoftlandERP" ? (
           <>
             <ConexionSoftland
               habilitado={algunaFuenteExterna}
