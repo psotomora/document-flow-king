@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.74 — 2026-11-04
+- API y agente 1.38.74: se retiran AssemblyVersion y FileVersion fijos; el SDK .NET los deriva de Version para que salud, encabezados, diagnóstico y ZIP coincidan.
+- Pruebas de regresión verifican la fuente única de versión de cada componente.
+- Producción: actualizar API y agente conservando su configuración; web solo para mostrar la nueva versión. Sin scripts SQL.
+
 ## 1.38.73 — 2026-11-04
 - Empresas cliente vuelven a ver Conexión 1 y Conexión 2 en Parámetros; guardan sin prueba directa desde la nube.
 - Botón «Probar conexión» delegado al agente local, con estado en proceso (azul), fallida (rojo) o exitosa (verde).
