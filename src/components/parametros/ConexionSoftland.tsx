@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loader2, PlugZap, Save } from "lucide-react";
 import { toast } from "sonner";
 import { CampoContrasena } from "@/components/comunes/CampoContrasena";
@@ -16,6 +16,8 @@ import { Switch } from "@/components/ui/switch";
 import { useApp } from "@/contexto/AppContexto";
 import type { ConexionSoftland as Conexion } from "@/data/tipos";
 import { api } from "@/lib/api";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { presentarPruebaAgente, TEXTO_AYUDA_PRUEBA_AGENTE, type PruebaAgente } from "@/lib/prueba-agente";
 
 const VACIA: Conexion = {
   fuente: "SoftlandERP",
@@ -37,7 +39,10 @@ export function ConexionSoftland({
   habilitado,
   fuente = "softland",
   titulo = "Conexión 1 a fuente externa",
+  porAgente = false,
 }: {
+  /** Empresa cliente: la nube no llega a su SQL; la validación la hace el agente local. */
+  porAgente?: boolean;
   habilitado: boolean;
   /** Clave de la conexión: "softland" (1) o "softland2" (2). */
   fuente?: "softland" | "softland2";
@@ -52,6 +57,26 @@ export function ConexionSoftland({
   const [probando, setProbando] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [resultado, setResultado] = useState<{ ok: boolean; mensaje: string } | null>(null);
+  const [prueba, setPrueba] = useState<PruebaAgente | null>(null);
+
+  const leerPrueba = useCallback(async () => {
+    try {
+      setPrueba(await api<PruebaAgente>(`${ruta}/prueba-agente`));
+    } catch {
+      /* API anterior sin comprobación por agente */
+    }
+  }, [ruta]);
+
+  useEffect(() => {
+    if (porAgente && modoApi && esAdministrador) void leerPrueba();
+  }, [porAgente, modoApi, esAdministrador, leerPrueba]);
+
+  // Mientras el agente no responda, se consulta el estado cada 5 segundos.
+  useEffect(() => {
+    if (prueba?.estado !== "en_proceso") return;
+    const t = window.setInterval(() => void leerPrueba(), 5000);
+    return () => window.clearInterval(t);
+  }, [prueba?.estado, leerPrueba]);
 
   useEffect(() => {
     if (!modoApi || !esAdministrador) return;
@@ -89,6 +114,39 @@ export function ConexionSoftland({
       setResultado({ ok: true, mensaje: r.mensaje });
     } catch (e) {
       setResultado({ ok: false, mensaje: e instanceof Error ? e.message : "Falló la prueba" });
+    } finally {
+      setProbando(false);
+    }
+  };
+
+  const guardarSolo = async () => {
+    await api(ruta, { metodo: "PUT", cuerpo: cuerpo() });
+    setDatos((d) => ({ ...d, tieneClave: d.tieneClave || clave.length > 0 }));
+    setClave("");
+  };
+
+  const guardarAgente = async () => {
+    setGuardando(true);
+    setResultado(null);
+    try {
+      await guardarSolo();
+      toast.success("Conexión guardada.");
+      await recargar();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo guardar la conexión");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const probarAgente = async () => {
+    setProbando(true);
+    setResultado(null);
+    try {
+      await guardarSolo();
+      setPrueba(await api<PruebaAgente>(`${ruta}/probar-agente`, { metodo: "POST" }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "No se pudo solicitar la comprobación");
     } finally {
       setProbando(false);
     }
@@ -223,6 +281,38 @@ export function ConexionSoftland({
             Cifrar conexión (Encrypt)
           </Label>
         </div>
+        {porAgente ? (
+          <div className="ml-auto flex gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span tabIndex={0}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={probarAgente}
+                      disabled={bloqueado || cargando || probando || incompleta || prueba?.estado === "en_proceso"}
+                    >
+                      {probando ? <Loader2 className="size-4 animate-spin" /> : <PlugZap className="size-4" />}
+                      Probar conexión
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">{TEXTO_AYUDA_PRUEBA_AGENTE}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Button
+              size="sm"
+              className="gap-1.5"
+              onClick={guardarAgente}
+              disabled={bloqueado || cargando || guardando || incompleta}
+            >
+              {guardando ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+              Guardar
+            </Button>
+          </div>
+        ) : (
         <div className="ml-auto flex gap-2">
           <Button
             variant="outline"
@@ -244,7 +334,32 @@ export function ConexionSoftland({
             Probar y guardar
           </Button>
         </div>
+        )}
       </div>
+
+      {porAgente ? (() => {
+        const vista = presentarPruebaAgente(prueba);
+        if (!vista) return null;
+        const clases =
+          vista.tono === "proceso"
+            ? "border-primary/40 bg-primary/10 text-primary"
+            : vista.tono === "exito"
+              ? "border-exito/40 bg-exito-suave text-exito"
+              : "border-destructive/40 bg-destructive-suave text-destructive";
+        return (
+          <div role="status" className={`rounded-md border px-3 py-2 text-xs ${clases}`}>
+            <p className="flex items-center gap-1.5 font-medium">
+              {vista.tono === "proceso" ? <Loader2 className="size-3.5 animate-spin" /> : null}
+              {vista.etiqueta}
+            </p>
+            {vista.tono === "proceso" ? (
+              <p className="mt-0.5">Esperando que el agente local valide las credenciales…</p>
+            ) : prueba?.mensaje ? (
+              <p className="mt-0.5">{prueba.mensaje}</p>
+            ) : null}
+          </div>
+        );
+      })() : null}
 
       {resultado ? (
         <p

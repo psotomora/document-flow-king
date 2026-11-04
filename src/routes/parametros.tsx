@@ -447,17 +447,19 @@ function PaginaParametros() {
             </SelectContent>
           </Select>
         </div>
-        {verConexionDirecta && pedidosFuenteOrigen === "SoftlandERP" ? (
+        {pedidosFuenteOrigen === "SoftlandERP" ? (
           <>
             <ConexionSoftland
               habilitado={algunaFuenteExterna}
               fuente="softland"
               titulo="Conexión 1 a fuente externa"
+              porAgente={!verConexionDirecta}
             />
             <ConexionSoftland
               habilitado={algunaFuenteExterna}
               fuente="softland2"
               titulo="Conexión 2 a fuente externa"
+              porAgente={!verConexionDirecta}
             />
           </>
         ) : null}
