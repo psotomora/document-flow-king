@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.75
+- Conciliación de estados de cuenta (pagos recibidos y emitidos): columna «Previo» con ícono cuando ya existe un movimiento registrado del mismo banco, moneda y monto dentro de ±15 días; el tooltip muestra monto, fecha y descripción.
+
 ## 1.38.74 — 2026-11-04
 - API y agente 1.38.74: se retiran AssemblyVersion y FileVersion fijos; el SDK .NET los deriva de Version para que salud, encabezados, diagnóstico y ZIP coincidan.
 - Pruebas de regresión verifican la fuente única de versión de cada componente.
