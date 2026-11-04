@@ -232,7 +232,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </p>
           <p>Fecha de corte: {formatearFecha(hoy)}</p>
           {licencia && detalleLicencia ? (
-            <div className="my-2 border-y border-sidebar-border py-2">
+            <Link
+              to="/licencia"
+              onClick={() => alNavegar?.()}
+              className="my-2 block border-y border-sidebar-border py-2 hover:text-sidebar-foreground"
+            >
               <p className="flex items-center gap-1.5 text-xs font-medium text-sidebar-foreground/90">
                 <ShieldCheck className="size-3.5 shrink-0" />
                 Licencia
@@ -241,7 +245,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 Estado: {detalleLicencia.etiqueta}
               </p>
               {licencia.vence ? <p>Vence: {formatearFecha(licencia.vence)}</p> : null}
-            </div>
+            </Link>
           ) : null}
           <VersionApp />
           <Button

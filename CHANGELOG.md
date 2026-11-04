@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.71 — 2026-11-04
+- Pantalla propia de Licencia en Administración (retirada de Parámetros); el estado de licencia del pie del menú la abre.
+- «Cerrar sesión» se mueve al pie del menú lateral, como en NotifyHub y e-Invoice.
+
 ## 1.38.70 — 2026-11-04
 - Sesión única por usuario: el segundo ingreso con credenciales en uso se rechaza con un diálogo; la sesión se libera al salir o tras 3 minutos sin actividad. Script `database/26_sesion_unica.sql`.
 
