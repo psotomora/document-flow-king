@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { estadoSoftland } from "@/lib/estado-softland";
 import { useSesionSaas } from "@/lib/empresas";
+import { useCompaniaValida } from "@/hooks/use-compania-valida";
 
 interface ConexionErp { companiaId: number; modo: "directa" | "agente"; intervaloMinutos: number }
 
@@ -62,6 +63,7 @@ export function TarjetaAgente() {
     return () => clearInterval(t);
   }, [cargar]);
 
+  useCompaniaValida(companias, compania, setCompania);
   const conexion = conexiones.find((c) => String(c.companiaId) === compania);
   useEffect(() => setIntervalo(String(conexion?.intervaloMinutos ?? 5)), [conexion?.intervaloMinutos, compania]);
   useEffect(() => { const t = setInterval(() => setAhora(Date.now()), 1000); return () => clearInterval(t); }, []);
@@ -170,7 +172,7 @@ export function TarjetaAgente() {
                 </div>
               </div>
             </div>
-            {!conexion ? <p className="text-xs text-destructive">Compañía sin configuración de Fase 3. Ejecute el script SQL 20.</p> : null}
+            {companias.length === 0 ? <p className="text-xs text-destructive">Su empresa aún no tiene compañías registradas. Registre la compañía en Administración → Compañías para configurar el agente.</p> : !conexion ? <p className="text-xs text-destructive">La compañía seleccionada aún no tiene modo de conexión registrado. Actualice la página; si persiste, solicite a Aplix asociarla a su empresa.</p> : null}
           </div>
         </div>
       )}
