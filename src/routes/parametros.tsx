@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/table";
 import { ConexionSoftland } from "@/components/parametros/ConexionSoftland";
 import { ServidorCorreo } from "@/components/parametros/ServidorCorreo";
-import { TarjetaLicencia } from "@/components/parametros/TarjetaLicencia";
 import { TarjetaAgente } from "@/components/parametros/TarjetaAgente";
 
 import {
@@ -262,8 +261,6 @@ function PaginaParametros() {
           <p className="text-xs break-words">{avisoFuenteExterna}</p>
         </div>
       ) : null}
-
-      <TarjetaLicencia />
 
       <TarjetaAgente />
 
