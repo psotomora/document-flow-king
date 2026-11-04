@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.66 — 2026-11-04
+- Parámetros: ambas conexiones directas a Softland se ocultan para empresas secundarias según la empresa de la sesión, no el perfil ni la compañía seleccionada; el agente sigue disponible.
+- La instalación principal conserva las conexiones directas; no se muestran mientras se identifica la empresa. Se conservan las configuraciones guardadas y el funcionamiento de la API.
+- Producción: actualizar solo aplicación web (`npm run package:node`); sin cambios en API, agente ni scripts SQL.
+
 ## 1.38.65 — 2026-11-04
 - Conexión: barra superior y Parámetros usan la misma consulta por usuario y la misma verificación del agente, incluyendo lecturas ERP más recientes, fallos y vencimiento de cinco minutos.
 - Actualizar en Parámetros refresca también el indicador superior; un fallo al consultar la sincronización no descarta un diagnóstico disponible del agente.

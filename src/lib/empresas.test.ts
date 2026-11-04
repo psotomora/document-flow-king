@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
-import { nivelCupo, porcentajeCupo } from "./empresas";
+import { mostrarConexionDirecta, nivelCupo, porcentajeCupo } from "./empresas";
 
 test("3 de 5 activos es normal (60 %)", () => {
   assert.equal(nivelCupo(3, 5), "normal");
@@ -14,4 +14,24 @@ test("5 de 5 activos se marca como lleno", () => {
 
 test("sin cupo propio no tiene límite", () => {
   assert.equal(nivelCupo(40, null), "sinLimite");
+});
+
+test("empresa cliente no muestra conexión directa, incluso si su usuario es Súper Administrador", () => {
+  for (const superAdministrador of [false, true]) {
+    assert.equal(mostrarConexionDirecta(true, { disponible: true, superAdministrador, inquilino: { id: 2, codigo: "gsit", nombre: "GSTI" } }), false);
+  }
+});
+
+test("instalación principal conserva conexión directa", () => {
+  assert.equal(mostrarConexionDirecta(true, { disponible: true, superAdministrador: true, inquilino: { id: 1, codigo: "principal", nombre: "Aplix" } }), true);
+});
+
+test("sesión pendiente o sin empresa identificada no muestra conexión directa", () => {
+  assert.equal(mostrarConexionDirecta(true, null), false);
+  assert.equal(mostrarConexionDirecta(true, { disponible: true, superAdministrador: true }), false);
+});
+
+test("demostración e instalación sin SaaS conservan conexión directa", () => {
+  assert.equal(mostrarConexionDirecta(false, null), true);
+  assert.equal(mostrarConexionDirecta(true, { disponible: false, superAdministrador: false }), true);
 });
