@@ -13,7 +13,9 @@ test("alta deriva empresa del usuario, sin aceptar reasignación en el cuerpo", 
 test("edición rechaza compañías ajenas y acota el UPDATE por empresa", () => {
   assert.match(handler, /WHERE CompaniaId=@id AND InquilinoId=@inquilino[\s\S]*?statusCode: 403/);
   assert.match(handler, /UPDATE flujo.Compania SET Codigo=@codigo, Nombre=@nombre WHERE CompaniaId=@id AND InquilinoId=@inquilino/);
-  assert.doesNotMatch(handler, /UPDATE flujo.Compania SET[^"\n]*InquilinoId=/);
+  const asignaciones = handler.match(/UPDATE flujo.Compania SET (.*?) WHERE/)?.[1];
+  assert.ok(asignaciones);
+  assert.doesNotMatch(asignaciones, /InquilinoId=/);
 });
 test("alta y edición exigen el mismo permiso de catálogos que los bancos", () => {
   assert.match(handler, /!ctx.User.EsAdministrador\(\) && !PuedeEditarCatalogos\(ctx, db\)/);
