@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.78 - 2026-11-04
+- Conciliaciones de pagos recibidos y emitidos: aviso «Ref. en uso» en la línea cuando la referencia ya está registrada (ignora espacios, guiones y mayúsculas; mínimo 4 caracteres).
+- «Sin documento»: el diálogo sugiere el banco, compañía y moneda de la conciliación y agrega «Omitir» si la referencia ya existe. Solo web.
+
 ## 1.38.77 - 2026-11-04
 - Documentos por pagar: marca «Pagado (Cash Flow)» (fecha y nota) guardada en `flujo.DocumentoPagarMarca` sin escribir en el ERP; saldo en 0 en pendientes y totales. Requiere `database/27_marca_pago_documentos.sql`.
 
