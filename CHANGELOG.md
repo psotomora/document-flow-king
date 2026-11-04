@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.62 — 2026-11-04
+- Agente local: selección automática de compañía y aviso rojo con la causa real (sin compañías o compañía sin asociar).
+
 ## 1.38.61 — 2026-11-04
 - Token del agente: registrar «Modificación», operación admitida por CK_Bitacora_Operacion, y conservar el detalle de la generación sin guardar el token en la bitácora.
 - Ambas rutas de generación guardan hash y auditoría en una misma transacción; un fallo revierte el cambio y conserva el token anterior.
