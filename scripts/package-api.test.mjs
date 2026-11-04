@@ -13,8 +13,8 @@ function fixture(t) {
     mkdirSync(dirname(ruta), { recursive: true });
     writeFileSync(ruta, texto);
   };
-  escribir(join(raiz, "package.json"), JSON.stringify({ version: "1.38.43" }));
-  escribir(join(raiz, "api/FlujoEfectivo.Api/FlujoEfectivo.Api.csproj"));
+  escribir(join(raiz, "package.json"), JSON.stringify({ version: "1.38.68" }));
+  escribir(join(raiz, "api/FlujoEfectivo.Api/FlujoEfectivo.Api.csproj"), "<Project><PropertyGroup><Version>1.38.64</Version></PropertyGroup></Project>");
   let salida;
   const publicar = (comando, args, opciones) => {
     assert.equal(comando, "dotnet");
@@ -40,7 +40,7 @@ function entradas(zip) {
 test("compila Release y crea ZIP versionado con DLL, dependencias e IIS en la raíz", t => {
   const f = fixture(t);
   const zip = empaquetarApi(f.raiz, f.publicar);
-  assert.equal(zip, join(f.raiz, "cashflow-api-1.38.43.zip"));
+  assert.equal(zip, join(f.raiz, "cashflow-api-1.38.64.zip"));
   const archivos = entradas(zip);
   for (const ruta of ["FlujoEfectivo.Api.dll", "FlujoEfectivo.Api.deps.json", "FlujoEfectivo.Api.runtimeconfig.json", "web.config", "Dapper.dll"]) assert.ok(archivos.includes(ruta), ruta);
   assert.equal(existsSync(f.salida()), false);
@@ -60,7 +60,7 @@ test("excluye configuraciones privadas, certificados, logs, SQL y Git a cualquie
 
 test("si falla dotnet conserva el ZIP anterior y limpia los temporales", t => {
   const f = fixture(t);
-  const previo = join(f.raiz, "cashflow-api-1.38.43.zip");
+  const previo = join(f.raiz, "cashflow-api-1.38.64.zip");
   f.escribir(previo, "ZIP anterior");
   assert.throws(() => empaquetarApi(f.raiz, (...args) => { f.publicar(...args); return { status: 1 }; }), /No se pudo compilar/);
   assert.equal(readFileSync(previo, "utf8"), "ZIP anterior");
@@ -74,11 +74,19 @@ test("rechaza publicación incompleta antes de crear ZIP", t => {
     rmSync(join(f.salida(), "FlujoEfectivo.Api.runtimeconfig.json"));
     return resultado;
   }), /falta FlujoEfectivo.Api.runtimeconfig.json/);
-  assert.equal(existsSync(join(f.raiz, "cashflow-api-1.38.43.zip")), false);
+  assert.equal(existsSync(join(f.raiz, "cashflow-api-1.38.64.zip")), false);
 });
 
 test("explica SDK ausente y no crea ZIP", t => {
   const f = fixture(t);
   assert.throws(() => empaquetarApi(f.raiz, () => ({ status: null, error: new Error("ENOENT") })), /SDK de .NET 8/);
-  assert.equal(existsSync(join(f.raiz, "cashflow-api-1.38.43.zip")), false);
+  assert.equal(existsSync(join(f.raiz, "cashflow-api-1.38.64.zip")), false);
+});
+
+test("rechaza versión ausente o inválida de API sin usar la versión web ni compilar", t => {
+  const f = fixture(t);
+  for (const contenido of ["<Project />", "<Version>$(VersionWeb)</Version>", "<Version>1.38</Version>"]) {
+    f.escribir(join(f.raiz, "api/FlujoEfectivo.Api/FlujoEfectivo.Api.csproj"), contenido);
+    assert.throws(() => empaquetarApi(f.raiz, () => assert.fail("No debe compilar")), /única <Version>/);
+  }
 });

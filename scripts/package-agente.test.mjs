@@ -13,8 +13,8 @@ function fixture(t) {
     mkdirSync(dirname(ruta), { recursive: true });
     writeFileSync(ruta, texto);
   };
-  escribir(join(raiz, "package.json"), JSON.stringify({ version: "1.38.46" }));
-  escribir(join(raiz, "agente/AplixCashFlowAgente/AplixCashFlowAgente.csproj"));
+  escribir(join(raiz, "package.json"), JSON.stringify({ version: "1.38.68" }));
+  escribir(join(raiz, "agente/AplixCashFlowAgente/AplixCashFlowAgente.csproj"), "<Project><PropertyGroup><Version>1.38.57</Version></PropertyGroup></Project>");
   for (const b of ["instalar-servicio.bat", "desinstalar-servicio.bat", "probar-consola.bat", "LEAME.txt"]) escribir(join(raiz, "agente/AplixCashFlowAgente/distribucion", b));
   let salida;
   const publicar = (comando, args, opciones) => {
@@ -44,7 +44,7 @@ function entradas(zip) {
 test("compila win-x64 autocontenido y crea ZIP versionado con el ejecutable único, scripts .bat y la plantilla de configuración", t => {
   const f = fixture(t);
   const zip = empaquetarAgente(f.raiz, f.publicar);
-  assert.equal(zip, join(f.raiz, "cashflow-agente-1.38.46.zip"));
+  assert.equal(zip, join(f.raiz, "cashflow-agente-1.38.57.zip"));
   const archivos = entradas(zip);
   assert.deepEqual(archivos.filter(Boolean).sort(), ["AplixCashFlowAgente.exe", "LEAME.txt", "appsettings.json", "desinstalar-servicio.bat", "instalar-servicio.bat", "probar-consola.bat"]);
   assert.equal(existsSync(f.salida()), false);
@@ -64,7 +64,7 @@ test("excluye configuraciones privadas, certificados, logs, SQL y Git a cualquie
 
 test("si falla dotnet conserva el ZIP anterior y limpia los temporales", t => {
   const f = fixture(t);
-  const previo = join(f.raiz, "cashflow-agente-1.38.46.zip");
+  const previo = join(f.raiz, "cashflow-agente-1.38.57.zip");
   f.escribir(previo, "ZIP anterior");
   assert.throws(() => empaquetarAgente(f.raiz, (...args) => { f.publicar(...args); return { status: 1 }; }), /No se pudo compilar/);
   assert.equal(readFileSync(previo, "utf8"), "ZIP anterior");
@@ -78,11 +78,19 @@ test("rechaza publicación incompleta antes de crear ZIP", t => {
     rmSync(join(f.salida(), "AplixCashFlowAgente.exe"));
     return resultado;
   }), /falta AplixCashFlowAgente.exe/);
-  assert.equal(existsSync(join(f.raiz, "cashflow-agente-1.38.46.zip")), false);
+  assert.equal(existsSync(join(f.raiz, "cashflow-agente-1.38.57.zip")), false);
 });
 
 test("explica SDK ausente y no crea ZIP", t => {
   const f = fixture(t);
   assert.throws(() => empaquetarAgente(f.raiz, () => ({ status: null, error: new Error("ENOENT") })), /SDK de .NET 8/);
-  assert.equal(existsSync(join(f.raiz, "cashflow-agente-1.38.46.zip")), false);
+  assert.equal(existsSync(join(f.raiz, "cashflow-agente-1.38.57.zip")), false);
+});
+
+test("rechaza versión ausente o inválida del agente sin usar la versión web ni compilar", t => {
+  const f = fixture(t);
+  for (const contenido of ["<Project />", "<Version>$(VersionWeb)</Version>", "<Version>1.38</Version>"]) {
+    f.escribir(join(f.raiz, "agente/AplixCashFlowAgente/AplixCashFlowAgente.csproj"), contenido);
+    assert.throws(() => empaquetarAgente(f.raiz, () => assert.fail("No debe compilar")), /única <Version>/);
+  }
 });
