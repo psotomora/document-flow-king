@@ -30,6 +30,8 @@ import type { FacturaCalculada } from "@/lib/calculos";
 import { formatearMoneda } from "@/lib/formato";
 import { IndicadorPrevio } from "@/components/comunes/IndicadorPrevio";
 import { movimientosPrevios, type MovimientoRegistrado } from "@/lib/movimientos-previos";
+import { referenciasEnUso, type RegistroConReferencia } from "@/lib/referencias-en-uso";
+import { IndicadorReferenciaEnUso } from "@/components/comunes/IndicadorReferenciaEnUso";
 
 /** Movimiento de crédito leído del estado de cuenta. */
 interface Movimiento {
@@ -116,6 +118,10 @@ export function ConciliacionEstadoCuenta({ mostrarPagadas = false }: { mostrarPa
       return { id: p.id, fecha: p.fecha, bancoId: p.bancoId, moneda: p.moneda, monto: p.monto, descripcion: partes.filter(Boolean).join(" · ") };
     });
   }, [pagos, facturasCalculadas]);
+  const conReferencia = useMemo<RegistroConReferencia[]>(
+    () => pagos.map((p) => ({ id: p.id, referencias: [p.referencia], fecha: p.fecha, monto: p.monto, moneda: p.moneda, descripcion: [p.referencia, p.metodo].filter(Boolean).join(" · ") })),
+    [pagos],
+  );
   const bancosActivos = filtrarPorCompania(
     bancos.filter((b) => b.activo),
     companiaActiva,
@@ -361,7 +367,7 @@ export function ConciliacionEstadoCuenta({ mostrarPagadas = false }: { mostrarPa
                   return (
                     <TableRow key={m.clave} className={fila.aplicado || fila.omitido ? "opacity-60" : ""}>
                       <TableCell className="whitespace-nowrap">{m.fecha}</TableCell>
-                      <TableCell className="max-w-48 truncate" title={m.referencia}>{m.referencia || "—"}</TableCell>
+                      <TableCell className="max-w-56" title={m.referencia}><span className="inline-block max-w-40 truncate align-middle">{m.referencia || "—"}</span>{!fila.aplicado && <IndicadorReferenciaEnUso registros={referenciasEnUso(m.referencia, conReferencia)} />}</TableCell>
                       <TableCell className="whitespace-nowrap text-right font-medium">{formatearMoneda(m.monto, moneda)}</TableCell>
                       <TableCell className="text-center">{fila.aplicado ? <span className="text-muted-foreground">—</span> : <IndicadorPrevio previos={movimientosPrevios(m, bancoId, moneda, registrados)} />}</TableCell>
                       <TableCell>{etiqueta}</TableCell>

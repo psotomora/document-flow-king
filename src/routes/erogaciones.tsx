@@ -14,7 +14,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { ConciliacionErogaciones, type Movimiento } from "@/components/erogaciones/ConciliacionErogaciones";
+import { ConciliacionErogaciones, type ContextoSinDocumento, type Movimiento } from "@/components/erogaciones/ConciliacionErogaciones";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { SelectorFilas } from "@/components/comunes/SelectorFilas";
@@ -89,7 +89,7 @@ function PaginaErogaciones() {
   const [abierto, setAbierto] = useState(false);
   const [mostrarPagados, setMostrarPagados] = useFiltroGuardado("erogaciones", "mostrarPagados", false);
   const [editando, setEditando] = useState<Erogacion | null>(null);
-  const [precarga, setPrecarga] = useState<Movimiento | null>(null);
+  const [precarga, setPrecarga] = useState<{ m: Movimiento; ctx: ContextoSinDocumento } | null>(null);
   const puedeEditarErogaciones = esAdministrador || (puedeEditar && usuario.editarErogaciones !== false);
 
   const textoProveedor = proveedor.trim().toLowerCase();
@@ -194,7 +194,7 @@ function PaginaErogaciones() {
         </div>
       </div>
 
-      {puedeEditar ? <ConciliacionErogaciones onSinDocumento={setPrecarga} /> : null}
+      {puedeEditar ? <ConciliacionErogaciones onSinDocumento={(m, ctx) => setPrecarga({ m, ctx })} /> : null}
 
       <div className="flex justify-end">
         <SelectorFilas id="filas-erogaciones" filas={filasVisibles} onCambio={establecerFilas} />
@@ -285,12 +285,13 @@ function PaginaErogaciones() {
       ) : null}
       {precarga ? (
         <DialogoErogacion
-          key={precarga.clave}
+          key={precarga.m.clave}
           abierto={true}
           setAbierto={(valor) => {
             if (!valor) setPrecarga(null);
           }}
-          precarga={precarga}
+          precarga={precarga.m}
+          contexto={precarga.ctx}
         />
       ) : null}
     </div>
@@ -303,6 +304,7 @@ function DialogoErogacion({
   erogacion,
   mostrarPagados = false,
   precarga,
+  contexto,
 }: {
   abierto: boolean;
   setAbierto: (v: boolean) => void;
@@ -311,19 +313,22 @@ function DialogoErogacion({
   mostrarPagados?: boolean;
   /** Datos de un movimiento del estado de cuenta para precargar el formulario (sin documento). */
   precarga?: Movimiento;
+  /** Banco, moneda y referencia en uso según la conciliación que abrió el diálogo. */
+  contexto?: ContextoSinDocumento;
 }) {
   const { companias, bancos, agregarErogacion, actualizarErogacion, erogaciones, documentosPorPagar, hoy } = useApp();
   const [documentoPagoId, setDocumentoPagoId] = useState(erogacion?.documentoPagoId ?? "sin");
   const [comboAbierto, setComboAbierto] = useState(false);
-  const [companiaId, setCompaniaId] = useState(erogacion?.companiaId ?? companias[0]?.id ?? "");
+  const bancoSugerido = contexto ? bancos.find((b) => b.id === contexto.bancoId) : undefined;
+  const [companiaId, setCompaniaId] = useState(erogacion?.companiaId ?? bancoSugerido?.companiaId ?? companias[0]?.id ?? "");
   useCompaniaValida(companias, companiaId, setCompaniaId);
   const [numeroTransferencia, setNumero] = useState(
     erogacion?.numeroTransferencia ?? (precarga?.referencia ?? "").slice(0, 40),
   );
   const [proveedor, setProveedor] = useState(erogacion?.proveedor ?? (precarga?.descripcion || precarga?.referencia || ""));
   const [fecha, setFecha] = useState(erogacion?.fecha ?? precarga?.fecha ?? hoy);
-  const [bancoId, setBancoId] = useState(erogacion?.bancoId ?? bancos[0]?.id ?? "");
-  const [moneda, setMoneda] = useState<Moneda>(erogacion?.moneda ?? "USD");
+  const [bancoId, setBancoId] = useState(erogacion?.bancoId ?? bancoSugerido?.id ?? bancos[0]?.id ?? "");
+  const [moneda, setMoneda] = useState<Moneda>(erogacion?.moneda ?? contexto?.moneda ?? "USD");
   const [monto, setMonto] = useState(erogacion ? String(erogacion.monto) : precarga ? String(precarga.monto) : "");
   const [notas, setNotas] = useState(
     erogacion?.notas ?? (precarga ? `Registrado desde estado de cuenta · ${precarga.descripcion || precarga.referencia || precarga.fecha}` : ""),
@@ -565,10 +570,28 @@ function DialogoErogacion({
             <Textarea id="e-notas" value={notas} onChange={(e) => setNotas(e.target.value)} />
           </div>
         </div>
+        {contexto?.referenciaEnUso.length ? (
+          <p className="rounded-md bg-advertencia-suave px-3 py-2 text-sm text-advertencia">
+            La referencia de este movimiento ya está registrada
+            {contexto.referenciaEnUso.slice(0, 3).map((r) => ` · ${r.fecha.slice(0, 10)} ${r.descripcion}`).join("")}.
+            Puede omitirlo si ya fue registrado.
+          </p>
+        ) : null}
         <DialogFooter>
           <Button variant="outline" onClick={() => setAbierto(false)}>
             Cancelar
           </Button>
+          {contexto?.referenciaEnUso.length ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                contexto.omitir();
+                setAbierto(false);
+              }}
+            >
+              Omitir
+            </Button>
+          ) : null}
           <Button onClick={guardar}>{erogacion ? "Guardar cambios" : "Guardar erogación"}</Button>
         </DialogFooter>
       </DialogContent>

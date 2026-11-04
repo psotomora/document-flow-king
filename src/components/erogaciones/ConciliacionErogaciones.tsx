@@ -28,6 +28,8 @@ import type { DocumentoPorPagar, Moneda } from "@/data/tipos";
 import { formatearMoneda } from "@/lib/formato";
 import { IndicadorPrevio } from "@/components/comunes/IndicadorPrevio";
 import { movimientosPrevios, type MovimientoRegistrado } from "@/lib/movimientos-previos";
+import { referenciasEnUso, type RegistroConReferencia } from "@/lib/referencias-en-uso";
+import { IndicadorReferenciaEnUso } from "@/components/comunes/IndicadorReferenciaEnUso";
 
 /** Movimiento de débito (pago emitido) leído del estado de cuenta. */
 export interface Movimiento {
@@ -102,6 +104,16 @@ function saldoEnMoneda(d: DocumentoPorPagar, moneda: Moneda, tc: number): number
 
 const MARGEN_CRUZADO = 0.03;
 
+/** Datos de la conciliación que acompañan el registro «Sin documento». */
+export interface ContextoSinDocumento {
+  bancoId: string;
+  moneda: Moneda;
+  /** Erogaciones que ya usan la referencia del movimiento. */
+  referenciaEnUso: RegistroConReferencia[];
+  /** Marca la fila como omitida en la conciliación. */
+  omitir: () => void;
+}
+
 /**
  * Concilia los débitos del estado de cuenta con los documentos por pagar:
  * sugiere el documento por monto y, al aplicar, registra la erogación.
@@ -110,7 +122,7 @@ export function ConciliacionErogaciones({
   onSinDocumento,
 }: {
   /** Abre el diálogo de nueva erogación precargado con los datos del movimiento. */
-  onSinDocumento?: (m: Movimiento) => void;
+  onSinDocumento?: (m: Movimiento, contexto: ContextoSinDocumento) => void;
 }) {
   const { documentosPorPagar, bancos, companiaActiva, agregarErogacion, erogaciones, tipoCambio, puedeEditar } =
     useApp();
@@ -119,6 +131,14 @@ export function ConciliacionErogaciones({
       erogaciones.map((e) => ({
         id: e.id, fecha: e.fecha, bancoId: e.bancoId, moneda: e.moneda, monto: e.monto,
         descripcion: [e.proveedor, e.numeroTransferencia ? `Transf: ${e.numeroTransferencia}` : "", e.documentoPagoNumero ? `Doc: ${e.documentoPagoNumero}` : "", e.notas ?? ""].filter(Boolean).join(" · "),
+      })),
+    [erogaciones],
+  );
+  const conReferencia = useMemo<RegistroConReferencia[]>(
+    () =>
+      erogaciones.map((e) => ({
+        id: e.id, referencias: [e.numeroTransferencia, e.documentoPagoNumero], fecha: e.fecha, monto: e.monto, moneda: e.moneda,
+        descripcion: [e.proveedor, e.numeroTransferencia ? `Transf: ${e.numeroTransferencia}` : ""].filter(Boolean).join(" · "),
       })),
     [erogaciones],
   );
@@ -361,7 +381,7 @@ export function ConciliacionErogaciones({
                   return (
                     <TableRow key={m.clave} className={fila.aplicado || fila.omitido ? "opacity-60" : ""}>
                       <TableCell className="whitespace-nowrap">{m.fecha}</TableCell>
-                      <TableCell className="max-w-48 truncate" title={m.descripcion || m.referencia}>{m.descripcion || m.referencia || "—"}</TableCell>
+                      <TableCell className="max-w-56" title={m.descripcion || m.referencia}><span className="inline-block max-w-40 truncate align-middle">{m.descripcion || m.referencia || "—"}</span>{!fila.aplicado && <IndicadorReferenciaEnUso registros={referenciasEnUso(m.referencia, conReferencia)} />}</TableCell>
                       <TableCell className="whitespace-nowrap text-right font-medium">{formatearMoneda(m.monto, moneda)}</TableCell>
                       <TableCell className="text-center">{fila.aplicado ? <span className="text-muted-foreground">—</span> : <IndicadorPrevio previos={movimientosPrevios(m, bancoId, moneda, registrados)} />}</TableCell>
                       <TableCell>{etiqueta}</TableCell>
@@ -413,7 +433,7 @@ export function ConciliacionErogaciones({
                                 variant="outline"
                                 disabled={!puedeEditar}
                                 title="Registrar como erogación sin documento, con los datos del movimiento"
-                                onClick={() => onSinDocumento(m)}
+                                onClick={() => onSinDocumento(m, { bancoId, moneda, referenciaEnUso: referenciasEnUso(m.referencia, conReferencia), omitir: () => actualizar(m, { omitido: true }) })}
                               >
                                 Sin documento
                               </Button>
