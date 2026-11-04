@@ -44,7 +44,7 @@ test("las lecturas del agente vencen a los cinco minutos y no verifican otra com
   const viejo = { ...agente, ultimoDiagnostico: "2026-11-03T23:59:00Z" };
   const filas = [{ companiaId: "1", ultimaVerificacion: "2026-11-04T00:01:00Z", resultado: "ok" }];
   assert.equal(verificarConexion("agente", "1", filas, viejo, Date.parse("2026-11-04T00:06:00Z")).estado, "error");
-  assert.equal(verificarConexion("agente", "2", filas, viejo, ahora).estado, "error");
+  assert.deepEqual(verificarConexion("agente", "2", filas, viejo, Date.parse("2026-11-04T00:06:00Z")), { estado: "error", fecha: viejo.ultimoDiagnostico });
 });
 test("una lectura reciente no pone verde un agente desconectado", () => {
   const filas = [{ companiaId: "1", ultimaVerificacion: agente.ultimoDiagnostico, resultado: "ok" }];
