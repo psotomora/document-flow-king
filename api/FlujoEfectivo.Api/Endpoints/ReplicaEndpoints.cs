@@ -107,7 +107,9 @@ public static class ReplicaEndpoints
                 ?? (r.ContratosOk ? ReplicaDocumentos.ValidarContratos(r.Contratos) : null)
                 ?? (r.DocumentosPagarOk ? ReplicaDocumentos.ValidarDocumentosPagar(r.DocumentosPagar) : null);
             // Sin el script 22 un agente nuevo no rompe el envío: se ignoran los documentos por pagar.
-            var conPagar = r.DocumentosPagarOk && ReplicaDocumentos.ListaPagar(cn);
+            // Se consulta antes de abrir la transacción: Dapper no puede usar la conexión sin ella después.
+            var soportaPagar = ReplicaDocumentos.ListaPagar(cn);
+            var conPagar = r.DocumentosPagarOk && soportaPagar;
             if (error is not null || r.DuracionMs < 0) return Results.BadRequest(new { mensaje = error ?? "Duración inválida." });
             using var tx = cn.BeginTransaction(IsolationLevel.Serializable);
             var existe = cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.ConexionErpCompania WITH (UPDLOCK) WHERE InquilinoId=@id AND CompaniaId=@CompaniaId AND Modo='agente' AND TrabajoId=@TrabajoId", new { id, r.CompaniaId, r.TrabajoId }, tx);
@@ -136,7 +138,7 @@ public static class ReplicaEndpoints
             Guardar("facturas", r.FacturasOk, r.FacturasOk ? JsonSerializer.Serialize(r.Facturas, ReplicaPedidos.Json) : null, r.Facturas?.Count ?? 0);
             Guardar("contratos", r.ContratosOk, r.ContratosOk ? JsonSerializer.Serialize(r.Contratos, ReplicaPedidos.Json) : null, r.Contratos?.Count ?? 0);
             if (conPagar && r.DocumentosPagar is { } p) ReplicaDocumentos.Normalizar(p, r.CompaniaId);
-            if (ReplicaDocumentos.ListaPagar(cn))
+            if (soportaPagar)
                 Guardar("documentosPagar", conPagar, conPagar ? JsonSerializer.Serialize(r.DocumentosPagar, ReplicaPedidos.Json) : null, r.DocumentosPagar?.Count ?? 0);
             tx.Commit();
             return Results.Ok(new { ok = true });

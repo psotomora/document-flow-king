@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.58 - 2026-11-04
+
+- API: comprobar soporte de documentos por pagar antes de iniciar la transacción y reutilizar el resultado durante el guardado; elimina el ExecuteScalar sin transacción que causaba HTTP 500 en `/api/public/agente/documentos`.
+- Barra superior: indicador por compañía de Modo Agente o Conexión directa, verde tras conexión verificada y rojo ante fallo o verificación vencida. En modo Agente muestra la última verificación de Softland, independiente de la recepción de documentos; el latido por sí solo no implica éxito.
+- Actualizar aplicación web y API; agente y SQL sin cambios.
+
 ## 1.38.57 - 2026-11-03
 
 - Réplica por agente: `DOCUMENTOS_CC` se cruza con `OUTER APPLY TOP 1` para no duplicar facturas; unicidad de documentos por pagar por proveedor + tipo + número; mensajes de rechazo indican el documento; el agente imprime el cuerpo de los rechazos HTTP. Agente 1.38.57.
