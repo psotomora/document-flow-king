@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.65 — 2026-11-04
+- Conexión: barra superior y Parámetros usan la misma consulta por usuario y la misma verificación del agente, incluyendo lecturas ERP más recientes, fallos y vencimiento de cinco minutos.
+- Actualizar en Parámetros refresca también el indicador superior; un fallo al consultar la sincronización no descarta un diagnóstico disponible del agente.
+- Producción: actualizar solo aplicación web; sin cambios en API, agente ni scripts SQL.
+
 ## 1.38.64 — 2026-11-04
 - Catálogos: creación y edición de compañías con código y razón social; se asignan a la empresa del usuario actual, sin SQL manual.
 - API: permiso de catálogos, aislamiento en alta y edición, validación de longitudes y código único; guardado y bitácora en una transacción. No permite reasignar una compañía a otra empresa.

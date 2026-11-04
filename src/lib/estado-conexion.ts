@@ -11,11 +11,11 @@ export interface DiagnosticoAgente {
   enLinea: boolean;
 }
 
-export function verificarConexion(modo: "agente" | "directa", companiaId: string, filas: VerificacionConexion[], agente: DiagnosticoAgente | null, ahora: number) {
+export function verificarConexion(modo: "agente" | "directa", companiaId: string | null, filas: VerificacionConexion[], agente: DiagnosticoAgente | null, ahora: number) {
   if (modo === "agente") {
     // Las lecturas del ERP también verifican la conexión, pero el latido no.
     const diagnostico = agente?.ultimoDiagnostico ?? null;
-    const propias = filas.filter((f) => f.companiaId === companiaId);
+    const propias = filas.filter((f) => companiaId !== null && String(f.companiaId) === companiaId);
     const comprobaciones = propias.length > 0 ? propias.map((f) => {
       const lecturaMasNueva = f.ultimaVerificacion && (!diagnostico || fechaUtc(f.ultimaVerificacion) > fechaUtc(diagnostico));
       return lecturaMasNueva

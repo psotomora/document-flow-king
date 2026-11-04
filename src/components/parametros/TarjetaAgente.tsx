@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { KeyRound, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -7,23 +7,10 @@ import { api, hayApi } from "@/lib/api";
 import { useApp } from "@/contexto/AppContexto";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { estadoSoftland } from "@/lib/estado-softland";
+import { verificarConexion } from "@/lib/estado-conexion";
+import { useEstadoConexion } from "@/hooks/use-estado-conexion";
 import { useSesionSaas } from "@/lib/empresas";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
-
-interface ConexionErp { companiaId: number; modo: "directa" | "agente"; intervaloMinutos: number }
-
-interface EstadoAgente {
-  tokenConfigurado: boolean;
-  ultimoLatido: string | null;
-  versionAgente: string | null;
-  equipo: string | null;
-  ultimoDiagnostico: string | null;
-  softlandOk: boolean | null;
-  softlandLatenciaMs: number | null;
-  softlandMensaje: string | null;
-  enLinea: boolean;
-}
 
 function formatear(utc: string | null): string {
   if (!utc) return "—";
@@ -34,39 +21,25 @@ function formatear(utc: string | null): string {
 /** Fase 2 SaaS: estado del agente local y su conexión con Softland. */
 export function TarjetaAgente() {
   const { modoApi, esAdministrador, companias, companiaActiva, recargar } = useApp();
-  const [estado, setEstado] = useState<EstadoAgente | null>(null);
-  const [conexiones, setConexiones] = useState<ConexionErp[]>([]);
+  const { data: datosConexion, refetch: cargar, ahora } = useEstadoConexion();
+  const estado = datosConexion?.agente;
+  const conexiones = datosConexion?.conexiones ?? [];
   const [compania, setCompania] = useState(companiaActiva === "todas" ? companias[0]?.id ?? "" : companiaActiva);
   const [guardando, setGuardando] = useState(false);
   const [intervalo, setIntervalo] = useState("5");
-  const [ahora, setAhora] = useState(() => Date.now());
   const sesionSaas = useSesionSaas();
   // Sin esquema SaaS (sesión nula) se mantiene el comportamiento anterior para el administrador.
   const puedeGenerarToken = esAdministrador && (sesionSaas ? sesionSaas.superAdministrador : true);
   const [token, setToken] = useState<string | null>(null);
   const [conApi, setConApi] = useState(false);
 
-  const cargar = useCallback(async () => {
-    if (!modoApi || !hayApi()) return;
-    try {
-      setEstado(await api<EstadoAgente>("/agente/estado"));
-      setConexiones(await api<ConexionErp[]>("/sincronizacion/conexiones"));
-    } catch {
-      setEstado(null);
-    }
-  }, [modoApi]);
-
   useEffect(() => {
     setConApi(modoApi && hayApi());
-    void cargar();
-    const t = setInterval(() => void cargar(), 30000);
-    return () => clearInterval(t);
-  }, [cargar]);
+  }, [modoApi]);
 
   useCompaniaValida(companias, compania, setCompania);
   const conexion = conexiones.find((c) => String(c.companiaId) === compania);
   useEffect(() => setIntervalo(String(conexion?.intervaloMinutos ?? 5)), [conexion?.intervaloMinutos, compania]);
-  useEffect(() => { const t = setInterval(() => setAhora(Date.now()), 1000); return () => clearInterval(t); }, []);
   async function guardar(modo: "directa" | "agente") {
     if (!conexion || !esAdministrador) return;
     setGuardando(true);
@@ -78,7 +51,9 @@ export function TarjetaAgente() {
     } catch (e) { toast.error(e instanceof Error ? e.message : "No se pudo guardar."); }
     finally { setGuardando(false); }
   }
-  const verificacion = estadoSoftland(estado?.ultimoDiagnostico ?? null, estado?.softlandOk ?? null, ahora);
+  const comprobacion = verificarConexion("agente", compania || null,
+    conexion?.modo === "directa" ? [] : datosConexion?.verificaciones ?? [], estado ?? null, ahora);
+  const verificacion = comprobacion.estado;
 
   async function generar() {
     if (estado?.tokenConfigurado && !confirm("Se generará un token nuevo y el agente actual dejará de conectarse hasta actualizarlo. ¿Continuar?")) return;
@@ -125,9 +100,9 @@ export function TarjetaAgente() {
               <span>
                 {verificacion === "exito" ? "Conexión a Softland verificada" : verificacion === "error" ? "Softland: error o verificación vencida" : "Sin diagnóstico de Softland"}
                 <span className="block break-words text-xs text-muted-foreground">
-                  {formatear(estado?.ultimoDiagnostico ?? null)}
-                  {estado?.softlandLatenciaMs != null ? ` · ${estado.softlandLatenciaMs} ms` : ""}
-                  {estado?.softlandOk === false && estado.softlandMensaje ? ` · ${estado.softlandMensaje}` : ""}
+                  {formatear(comprobacion.fecha)}
+                  {comprobacion.fecha === estado?.ultimoDiagnostico && estado?.softlandLatenciaMs != null ? ` · ${estado.softlandLatenciaMs} ms` : ""}
+                  {verificacion === "error" && comprobacion.fecha === estado?.ultimoDiagnostico && estado?.softlandOk === false && estado.softlandMensaje ? ` · ${estado.softlandMensaje}` : ""}
                 </span>
               </span>
             </div>
