@@ -13,9 +13,20 @@ export interface DiagnosticoAgente {
 
 export function verificarConexion(modo: "agente" | "directa", companiaId: string, filas: VerificacionConexion[], agente: DiagnosticoAgente | null, ahora: number) {
   if (modo === "agente") {
+    // Las lecturas del ERP también verifican la conexión, pero el latido no.
+    const diagnostico = agente?.ultimoDiagnostico ?? null;
+    const propias = filas.filter((f) => f.companiaId === companiaId);
+    const comprobaciones = propias.length > 0 ? propias.map((f) => {
+      const lecturaMasNueva = f.ultimaVerificacion && (!diagnostico || fechaUtc(f.ultimaVerificacion) > fechaUtc(diagnostico));
+      return lecturaMasNueva
+        ? { fecha: f.ultimaVerificacion, ok: f.resultado === "ok" ? true : f.resultado === "error" ? false : null }
+        : { fecha: diagnostico, ok: agente?.softlandOk ?? null };
+    }) : [{ fecha: diagnostico, ok: agente?.softlandOk ?? null }];
+    const estados = comprobaciones.map((c) => estadoSoftland(c.fecha, c.ok, ahora));
+    const fechas = comprobaciones.map((c) => c.fecha).filter((f): f is string => !!f).sort((a, b) => fechaUtc(a) - fechaUtc(b));
     return {
-      fecha: agente?.ultimoDiagnostico ?? null,
-      estado: agente && !agente.enLinea ? "error" as const : estadoSoftland(agente?.ultimoDiagnostico ?? null, agente?.softlandOk ?? null, ahora),
+      fecha: fechas[0] ?? null,
+      estado: (agente && !agente.enLinea) || estados.includes("error") ? "error" as const : estados.every((e) => e === "exito") ? "exito" as const : "pendiente" as const,
     };
   }
   const propias = filas.filter((f) => f.companiaId === companiaId || f.companiaId === null);
