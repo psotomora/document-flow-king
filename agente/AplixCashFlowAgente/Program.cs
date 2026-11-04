@@ -58,6 +58,13 @@ sealed class Agente(IConfiguration config, IHttpClientFactory http, ILogger<Agen
                 else
                 {
                     var respuesta = await resp.Content.ReadFromJsonAsync<SincronizarPedidos.LatidoRespuesta>(ct);
+                    foreach (var prueba in respuesta?.Pruebas ?? [])
+                    {
+                        var (ok, mensaje) = ProbarFuente(prueba);
+                        var rp = await cliente.PostAsJsonAsync($"{apiUrl}/public/agente/prueba-fuente",
+                            new { fuente = prueba.Fuente, ok, mensaje }, ct);
+                        log.LogInformation("Comprobación de {Fuente}: {Ok} -> nube {Estado}", prueba.Fuente, ok, (int)rp.StatusCode);
+                    }
                     foreach (var trabajo in respuesta?.Trabajos ?? [])
                     {
                         try { await SincronizarPedidos.Ejecutar(cliente, apiUrl, config, trabajo, log, ct); }
@@ -75,6 +82,25 @@ sealed class Agente(IConfiguration config, IHttpClientFactory http, ILogger<Agen
             ciclo++;
             try { await Task.Delay(intervalo, ct); } catch (TaskCanceledException) { }
         }
+    }
+
+    /// <summary>Prueba las credenciales registradas en Parámetros desde la red local del cliente.</summary>
+    private static (bool ok, string mensaje) ProbarFuente(FlujoEfectivo.Api.Datos.PruebaSolicitud p)
+    {
+        try
+        {
+            // Llave efímera: la contraseña solo se cifra en memoria para reutilizar la prueba compartida.
+            var llave = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+            var cfg = new FlujoEfectivo.Api.Datos.ConfigSoftland
+            {
+                Servidor = p.Servidor, BaseDatos = p.BaseDatos, Esquema = p.Esquema, Usuario = p.Usuario,
+                ClaveCifrada = string.IsNullOrEmpty(p.Clave) ? "" : FlujoEfectivo.Api.Datos.Softland.Cifrar(p.Clave, llave),
+                Encriptar = p.Encriptar,
+            };
+            var (ok, mensaje, _) = FlujoEfectivo.Api.Datos.Softland.Probar(cfg, llave);
+            return (ok, mensaje);
+        }
+        catch (Exception ex) { return (false, ex.Message); }
     }
 
     private static async Task<DiagnosticoSoftland> ProbarSoftland(string cadena, CancellationToken ct)

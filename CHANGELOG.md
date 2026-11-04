@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.73 — 2026-11-04
+- Empresas cliente vuelven a ver Conexión 1 y Conexión 2 en Parámetros; guardan sin prueba directa desde la nube.
+- Botón «Probar conexión» delegado al agente local, con estado en proceso (azul), fallida (rojo) o exitosa (verde).
+- Sin falso aviso de credenciales en modo agente. API y agente 1.38.73.
+
 ## 1.38.72 — 2026-11-04
 - Grupos del menú lateral colapsables, colapsados la primera vez y recordados por usuario.
 
