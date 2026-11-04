@@ -109,7 +109,7 @@ public static class InquilinosEndpoints
                 return Results.BadRequest(new { mensaje = "Primero asigne el perfil Administrador al usuario." });
             cn.Execute("UPDATE flujo.Usuario SET SuperAdministrador = @v WHERE UsuarioId = @id", new { v = d.Valor, id });
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Usuarios", u.Value.NombreUsuario,
-                d.Valor ? "Asignar Súper Administrador" : "Retirar Súper Administrador");
+                "Modificación", valorNuevo: d.Valor ? "Asignar Súper Administrador" : "Retirar Súper Administrador");
             return Results.Ok(new { valor = d.Valor });
         });
 
@@ -194,10 +194,12 @@ public static class InquilinosEndpoints
             var codigo = cn.QueryFirstOrDefault<string>("SELECT Codigo FROM flujo.Inquilino WHERE InquilinoId = @id", new { id });
             if (codigo is null) return Results.NotFound(new { mensaje = "Empresa no encontrada." });
             var token = "agt_" + Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
+            using var tx = cn.BeginTransaction();
             cn.Execute("UPDATE flujo.Inquilino SET TokenAgenteHash = @hash WHERE InquilinoId = @id",
-                new { id, hash = AgenteEndpoints.Hash(token) });
-            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Empresas", codigo, "Token de agente",
-                valorNuevo: "Se generó un token nuevo; el anterior quedó invalidado.");
+                new { id, hash = AgenteEndpoints.Hash(token) }, tx);
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Empresas", codigo, "Modificación",
+                valorNuevo: "Token de agente: se generó un token nuevo; el anterior quedó invalidado.", tx: tx);
+            tx.Commit();
             return Results.Ok(new { token });
         });
 
@@ -231,7 +233,7 @@ public static class InquilinosEndpoints
                     correo = string.IsNullOrWhiteSpace(d.Correo) ? null : d.Correo.Trim(),
                     hash = Contrasenas.Crear(d.Contrasena),
                 });
-            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Empresas", inq.Codigo, "Administrador",
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Empresas", inq.Codigo, "Creación",
                 valorNuevo: $"Usuario: {d.NombreUsuario.Trim()}");
             return Results.Ok(new { mensaje = "Administrador creado." });
         });

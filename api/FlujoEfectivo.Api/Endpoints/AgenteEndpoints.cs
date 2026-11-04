@@ -144,9 +144,12 @@ public static class AgenteEndpoints
             if (Saas.Listo(cn) && Saas.Contexto(cn, ctx.User.UsuarioId()) is not { SuperAdministrador: true })
                 return Results.Json(new { mensaje = "Solo el Súper Administrador de Aplix puede generar el token del agente, desde Administración → Empresas." }, statusCode: 403);
             var token = "agt_" + Convert.ToHexString(RandomNumberGenerator.GetBytes(24)).ToLowerInvariant();
-            cn.Execute("UPDATE flujo.Inquilino SET TokenAgenteHash = @hash WHERE InquilinoId = @id", new { hash = Hash(token), id = Saas.InquilinoActual(cn) });
-            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "principal", "Token de agente",
-                valorNuevo: "Se generó un token nuevo; el anterior quedó invalidado.");
+            var id = Saas.InquilinoActual(cn);
+            using var tx = cn.BeginTransaction();
+            cn.Execute("UPDATE flujo.Inquilino SET TokenAgenteHash = @hash WHERE InquilinoId = @id", new { hash = Hash(token), id }, tx);
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Parámetros", "principal", "Modificación",
+                valorNuevo: "Token de agente: se generó un token nuevo; el anterior quedó invalidado.", tx: tx);
+            tx.Commit();
             return Results.Ok(new { token });
         });
     }
