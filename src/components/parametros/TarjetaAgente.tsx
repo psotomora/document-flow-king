@@ -11,6 +11,7 @@ import { verificarConexion } from "@/lib/estado-conexion";
 import { useEstadoConexion } from "@/hooks/use-estado-conexion";
 import { useSesionSaas } from "@/lib/empresas";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
+import { ConfiguracionCompaniasAgente } from "./ConfiguracionCompaniasAgente";
 
 function formatear(utc: string | null): string {
   if (!utc) return "—";
@@ -147,8 +148,9 @@ export function TarjetaAgente() {
                 </div>
               </div>
             </div>
-            {companias.length === 0 ? <p className="text-xs text-destructive">Su empresa aún no tiene compañías registradas. Registre la compañía en Administración → Compañías para configurar el agente.</p> : !conexion ? <p className="text-xs text-destructive">La compañía seleccionada aún no tiene modo de conexión registrado. Actualice la página; si persiste, solicite a Aplix asociarla a su empresa.</p> : null}
+            {companias.length === 0 ? <p className="text-xs text-destructive">Su empresa aún no tiene compañías registradas. Registre la compañía en Administración → Catálogos para configurar el agente.</p> : !conexion ? <p className="text-xs text-destructive">La compañía seleccionada aún no tiene modo de conexión registrado. Actualice la página; si persiste, solicite a Aplix asociarla a su empresa.</p> : null}
           </div>
+          <ConfiguracionCompaniasAgente key={companias.map((c) => `${c.id}:${c.codigo}`).join("|")} companias={companias} />
         </div>
       )}
     </div>

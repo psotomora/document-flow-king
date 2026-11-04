@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.67 — 2026-11-04
+- Catálogos: columna ID y botón para copiar el número de compañía del agente.
+- Parámetros → Agente local: bloque JSON copiable con todas las compañías visibles de la empresa y esquemas editables; el código es una propuesta que debe confirmarse contra Softland.
+- El bloque reemplaza únicamente Companias dentro de Agente; no contiene ni sobrescribe tokens, direcciones o credenciales SQL. Datos inválidos y listas vacías no se exportan.
+- Producción: actualizar solo aplicación web (`npm run package:node`); sin cambios en API, agente ni scripts SQL.
+
 ## 1.38.66 — 2026-11-04
 - Parámetros: ambas conexiones directas a Softland se ocultan para empresas secundarias según la empresa de la sesión, no el perfil ni la compañía seleccionada; el agente sigue disponible.
 - La instalación principal conserva las conexiones directas; no se muestran mientras se identifica la empresa. Se conservan las configuraciones guardadas y el funcionamiento de la API.

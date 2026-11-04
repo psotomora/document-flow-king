@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useState } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Copy, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { Button } from "@/components/ui/button";
@@ -89,6 +89,7 @@ function PaginaCatalogos() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>ID</TableHead>
                 <TableHead>Código</TableHead>
                 <TableHead>Razón social</TableHead>
                 <TableHead className="text-right">Cuentas bancarias</TableHead>
@@ -98,6 +99,7 @@ function PaginaCatalogos() {
             <TableBody>
               {companias.map((c) => (
                 <TableRow key={c.id}>
+                  <TableCell><div className="flex items-center gap-1"><span className="font-mono tabular-nums">{c.id}</span><Button variant="ghost" size="icon" aria-label={`Copiar ID de compañía ${c.codigo}`} title={`Copiar ID de compañía ${c.codigo}`} onClick={async () => { try { await navigator.clipboard.writeText(c.id); toast.success("ID de compañía copiado."); } catch { toast.error("No se pudo copiar el ID. Seleccione el número y cópielo manualmente."); } }}><Copy className="size-4" /></Button></div></TableCell>
                   <TableCell className="font-medium">{c.codigo}</TableCell>
                   <TableCell>{c.nombre}</TableCell>
                   <TableCell className="text-right tabular-nums">
@@ -106,7 +108,7 @@ function PaginaCatalogos() {
                   {esAdministrador ? <TableCell className="text-right"><Button size="icon" variant="ghost" aria-label={`Editar compañía ${c.codigo}`} title={`Editar compañía ${c.codigo}`} onClick={() => setCompania(c)}><Pencil className="size-4" /></Button></TableCell> : null}
                 </TableRow>
               ))}
-              {companias.length === 0 ? <TableRow><TableCell colSpan={esAdministrador ? 4 : 3} className="py-8 text-center text-muted-foreground">No hay compañías registradas para su empresa.</TableCell></TableRow> : null}
+              {companias.length === 0 ? <TableRow><TableCell colSpan={esAdministrador ? 5 : 4} className="py-8 text-center text-muted-foreground">No hay compañías registradas para su empresa.</TableCell></TableRow> : null}
             </TableBody>
           </Table>
         </div>
