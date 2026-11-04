@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.63 — 2026-11-04
+- Barra superior: estado del agente visible para empresas secundarias aunque sus compañías no tengan conexión asociada.
+
 ## 1.38.62 — 2026-11-04
 - Agente local: selección automática de compañía y aviso rojo con la causa real (sin compañías o compañía sin asociar).
 
