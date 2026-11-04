@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { test } from "node:test";
+import assert from "node:assert/strict";
 import type { DocumentoPorPagar } from "@/data/tipos";
 import { marcarPagado, puedeMarcarPagado, quitarMarcaPagado } from "./pago-cash-flow";
 
@@ -7,24 +8,22 @@ const doc: DocumentoPorPagar = {
   fecha: "2026-10-01", fechaVence: "2026-10-31", moneda: "USD", monto: 1500, saldo: 800,
 };
 
-describe("marca Pagado (Cash Flow)", () => {
-  it("deja el saldo en 0 y conserva el saldo del origen", () => {
-    const m = marcarPagado(doc, "2026-11-04", null, "pedro");
-    expect(m.saldo).toBe(0);
-    expect(m.saldoOrigen).toBe(800);
-    expect(m.pagadoCashFlow).toBe(true);
-  });
+test("marcar deja el saldo en 0 y conserva el saldo del origen", () => {
+  const m = marcarPagado(doc, "2026-11-04", null, "pedro");
+  assert.equal(m.saldo, 0);
+  assert.equal(m.saldoOrigen, 800);
+  assert.equal(m.pagadoCashFlow, true);
+});
 
-  it("al volver a marcar no pierde el saldo del origen", () => {
-    const m = marcarPagado(marcarPagado(doc, "2026-11-04", null, "a"), "2026-11-05", "x", "b");
-    expect(m.saldoOrigen).toBe(800);
-  });
+test("volver a marcar no pierde el saldo del origen", () => {
+  const m = marcarPagado(marcarPagado(doc, "2026-11-04", null, "a"), "2026-11-05", "x", "b");
+  assert.equal(m.saldoOrigen, 800);
+});
 
-  it("al quitar la marca restaura el saldo del origen", () => {
-    expect(quitarMarcaPagado(marcarPagado(doc, "2026-11-04", null, "p")).saldo).toBe(800);
-  });
+test("quitar la marca restaura el saldo del origen", () => {
+  assert.equal(quitarMarcaPagado(marcarPagado(doc, "2026-11-04", null, "p")).saldo, 800);
+});
 
-  it("no permite marcar un documento ya cancelado en el origen", () => {
-    expect(puedeMarcarPagado({ ...doc, saldo: 0 })).toBe(false);
-  });
+test("no se marca un documento ya cancelado en el origen", () => {
+  assert.equal(puedeMarcarPagado({ ...doc, saldo: 0 }), false);
 });
