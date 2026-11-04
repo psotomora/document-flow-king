@@ -14,6 +14,7 @@ internal static class SincronizarPedidos
     internal sealed class LatidoRespuesta
     {
         public List<Trabajo> Trabajos { get; set; } = [];
+        public List<FlujoEfectivo.Api.Datos.PruebaSolicitud> Pruebas { get; set; } = [];
     }
     internal sealed class Fila
     {
