@@ -1,16 +1,16 @@
 // Empaqueta el agente local (AplixCashFlowAgente) en un ZIP versionado listo para
 // copiar al servidor del cliente. Patrón equivalente a package-api.mjs.
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
+import { versionProyecto } from "./version-proyecto.mjs";
 
 export function empaquetarAgente(raiz = process.cwd(), publicar = spawnSync) {
   const proyecto = join(raiz, "agente/AplixCashFlowAgente/AplixCashFlowAgente.csproj");
   if (!existsSync(proyecto)) throw new Error("Falta agente/AplixCashFlowAgente/AplixCashFlowAgente.csproj. Ejecute desde la raíz del proyecto.");
-  const { version } = JSON.parse(readFileSync(join(raiz, "package.json"), "utf8"));
-  if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version)) throw new Error("La versión debe tener el formato mayor.menor.parche.");
+  const version = versionProyecto(proyecto);
   const nombre = `cashflow-agente-${version}.zip`;
   const temporal = mkdtempSync(join(tmpdir(), "cashflow-agente-package-"));
   const salida = join(temporal, "publicado");

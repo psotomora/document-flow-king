@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.68 — 2026-11-04
+- `package:api` toma la versión de FlujoEfectivo.Api.csproj: `cashflow-api-1.38.64.zip`.
+- `package:agente` toma la versión de AplixCashFlowAgente.csproj: `cashflow-agente-1.38.57.zip`.
+- Ambos rechazan versiones ausentes o inválidas antes de compilar, sin recurrir a la versión web; se conservan el contenido y las exclusiones de los paquetes.
+- Producción: no requiere actualizar API, agente ni SQL. Solo web si se desea mostrar la versión 1.38.68; actualizar los scripts locales antes del siguiente empaquetado.
+
 ## 1.38.67 — 2026-11-04
 - Catálogos: columna ID y botón para copiar el número de compañía del agente.
 - Parámetros → Agente local: bloque JSON copiable con todas las compañías visibles de la empresa y esquemas editables; el código es una propuesta que debe confirmarse contra Softland.
