@@ -100,6 +100,13 @@ public class FacturaDto
     public string? FechaVence { get; set; }
     /// <summary>Fecha en que se creó el registro en el sistema.</summary>
     public string? FechaCreacion { get; set; }
+    /// <summary>Marcada «Saldada / N/C (Cash Flow)»: SaldoErp pasa a 0 sin escribir en el ERP.</summary>
+    public bool SaldadaCashFlow { get; set; }
+    public decimal? SaldoErpOrigen { get; set; }
+    public bool CobradaOrigen { get; set; }
+    public string? FechaSaldadaCashFlow { get; set; }
+    public string? NotaSaldadaCashFlow { get; set; }
+    public string? SaldadaPor { get; set; }
 }
 
 public class LineaFacturaDto
@@ -428,6 +435,12 @@ public record NuevoDocumentoPorCobrar(
     decimal Monto,
     decimal Saldo,
     string? Notas);
+
+public record MarcaSaldadaFactura(
+    string CompaniaId,
+    string Numero,
+    string? Fecha,
+    string? Nota);
 
 public record MarcaPagoDocumento(
     string CompaniaId,

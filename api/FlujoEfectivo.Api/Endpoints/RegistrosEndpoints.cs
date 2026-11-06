@@ -496,6 +496,30 @@ public static class RegistrosEndpoints
             return Results.Ok(new { mensaje = "Marca de pago retirada." });
         });
 
+        g.MapPost("/facturas/marca-saldada", (MarcaSaldadaFactura m, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            if (string.IsNullOrWhiteSpace(m.Numero)) return Results.BadRequest(new { mensaje = "Factura inválida." });
+            using var cn = db.Abrir();
+            if (!MarcasFacturaCashFlow.Disponible(cn))
+                return Results.BadRequest(new { mensaje = "Ejecute el script SQL 28 para habilitar la marca de saldada." });
+            MarcasFacturaCashFlow.Marcar(cn, m, ctx.User.NombreUsuario());
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Facturas por cobrar",
+                m.Numero, "Modificación", valorNuevo: $"Saldada / N/C (Cash Flow) {m.Fecha} {m.Nota}".Trim());
+            return Results.Ok(new { mensaje = "Factura marcada como saldada." });
+        });
+
+        g.MapPost("/facturas/desmarcar-saldada", (MarcaSaldadaFactura m, HttpContext ctx, Db db) =>
+        {
+            if (!ctx.User.PuedeEditar()) return SinPermiso();
+            using var cn = db.Abrir();
+            if (!MarcasFacturaCashFlow.Disponible(cn)) return Results.Ok(new { mensaje = "Sin marcas." });
+            MarcasFacturaCashFlow.Quitar(cn, m);
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Facturas por cobrar",
+                m.Numero, "Modificación", valorNuevo: "Se quitó la marca Saldada / N/C (Cash Flow)");
+            return Results.Ok(new { mensaje = "Marca retirada." });
+        });
+
         /* ----------------------- Documentos por cobrar ---------------------- */
         g.MapPost("/documentos-cobrar", (NuevoDocumentoPorCobrar d, HttpContext ctx, Db db) =>
         {

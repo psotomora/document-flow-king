@@ -250,6 +250,9 @@ public static class EstadoEndpoints
                     avisoFuente = (avisoFuente is null ? "" : avisoFuente + " ") + $"Facturas compañía {c}: pendiente de la primera sincronización del agente.";
             }
 
+            // Marca «Saldada / N/C (Cash Flow)»: notas de crédito aún no aplicadas en el ERP.
+            facturas = MarcasFacturaCashFlow.Aplicar(cn, facturas.ToList());
+
             // Documentos por pagar: registro interno o fuente externa (DOCUMENTOS_CP).
             IEnumerable<DocumentoPorPagarDto> documentosPorPagar;
             var cpSoftland = parametros.GetValueOrDefault("documentosPagoFuenteExterna") == "1"
