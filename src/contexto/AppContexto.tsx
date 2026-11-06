@@ -1,4 +1,5 @@
 import { marcarPagado, quitarMarcaPagado } from "@/lib/pago-cash-flow";
+import { marcarSaldada, quitarMarcaSaldada } from "@/lib/saldada-cash-flow";
 import {
   createContext,
   useCallback,
@@ -247,6 +248,8 @@ interface EstadoApp {
   actualizarDocumentoPorPagar: (id: string, cambios: Partial<DocumentoPorPagar>) => void;
   eliminarDocumentoPorPagar: (id: string) => void;
   marcarPagoDocumento: (id: string, fechaPago: string, nota: string | null) => Promise<boolean>;
+  marcarFacturaSaldada: (id: string, fecha: string, nota: string | null) => Promise<boolean>;
+  quitarFacturaSaldada: (id: string) => Promise<boolean>;
   quitarPagoDocumento: (id: string) => Promise<boolean>;
   agregarDocumentoPorCobrar: (d: Omit<DocumentoPorCobrar, "id">) => void;
   actualizarDocumentoPorCobrar: (id: string, cambios: Partial<DocumentoPorCobrar>) => void;
@@ -1283,6 +1286,22 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           setDocumentosPorCobrar((prev) => prev.filter((x) => x.id !== id));
           if (d) anotar("Documentos por cobrar", d.numero, "Eliminación");
         }),
+      marcarFacturaSaldada: (id, fecha, nota) => {
+        const f = facturas.find((x) => x.id === id);
+        if (!f) return Promise.resolve(false);
+        return mutar("/facturas/marca-saldada", "POST", { companiaId: f.companiaId, numero: f.numero, fecha, nota }, () => {
+          setFacturas((prev) => prev.map((x) => (x.id === id ? marcarSaldada(x, fecha, nota, usuario.nombre) : x)));
+          anotar("Facturas por cobrar", f.numero, "Modificación", `Saldada / N/C (Cash Flow) ${fecha}`);
+        });
+      },
+      quitarFacturaSaldada: (id) => {
+        const f = facturas.find((x) => x.id === id);
+        if (!f) return Promise.resolve(false);
+        return mutar("/facturas/desmarcar-saldada", "POST", { companiaId: f.companiaId, numero: f.numero }, () => {
+          setFacturas((prev) => prev.map((x) => (x.id === id ? quitarMarcaSaldada(x) : x)));
+          anotar("Facturas por cobrar", f.numero, "Modificación", "Se quitó la marca Saldada / N/C (Cash Flow)");
+        });
+      },
       marcarPagoDocumento: (id, fechaPago, nota) => {
         const d = documentosPorPagar.find((x) => x.id === id);
         if (!d) return Promise.resolve(false);
