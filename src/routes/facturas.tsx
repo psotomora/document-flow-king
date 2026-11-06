@@ -3,7 +3,7 @@ import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useMemo, useState } from "react";
-import { Database, FileDown, Plus, Trash2, Banknote } from "lucide-react";
+import { Database, FileDown, Plus, Trash2, Banknote, FileMinus } from "lucide-react";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { BarraEstadoSincronizacion } from "@/components/comunes/BarraEstadoSincronizacion";
@@ -100,6 +100,7 @@ function PaginaFacturas() {
   const [estados, setEstados] = useFiltroGuardado<EstadoFactura[]>("facturas", "estados", []);
   const [facturaDetalle, setFacturaDetalle] = useState<Factura | null>(null);
   const [facturaPagoId, setFacturaPagoId] = useState<string | null>(null);
+  const [facturaSaldar, setFacturaSaldar] = useState<Factura | null>(null);
   const alternarEstado = (e: EstadoFactura, marcado: boolean) =>
     setEstados((prev) => {
       const siguiente = marcado ? [...prev, e] : prev.filter((x) => x !== e);
@@ -327,11 +328,24 @@ function PaginaFacturas() {
                 </TableCell>
                 <TableCell>
                   <EstadoBadge estado={f.estado} />
+                  {f.saldadaCashFlow ? (
+                    <span
+                      className="ml-1.5 rounded bg-accent px-1.5 py-0.5 text-[10px] font-medium text-accent-foreground"
+                      title={`Saldada / N/C (Cash Flow) el ${formatearFecha(f.fechaSaldadaCashFlow ?? "")} por ${f.saldadaPor ?? "—"}. Saldo ERP: ${formatearMoneda(f.saldoErpOrigen ?? f.monto, f.moneda)}${f.notaSaldadaCashFlow ? `. ${f.notaSaldadaCashFlow}` : ""}`}
+                    >
+                      N/C
+                    </span>
+                  ) : null}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
                   {puedeEditar ? (
                     <Button variant="ghost" size="icon" title={`Registrar pago de ${f.numero}`} aria-label={`Registrar pago de ${f.numero}`} onClick={() => setFacturaPagoId(f.id)}>
                       <Banknote className="size-4" />
+                    </Button>
+                  ) : null}
+                  {puedeEditar && (f.saldadaCashFlow || f.saldoPendiente > 0.009) ? (
+                    <Button variant="ghost" size="icon" title={f.saldadaCashFlow ? "Editar o quitar marca Saldada / N/C" : "Marcar saldada por N/C (Cash Flow)"} aria-label={`Marcar saldada ${f.numero}`} onClick={() => setFacturaSaldar(f)}>
+                      <FileMinus className={f.saldadaCashFlow ? "size-4 text-primary" : "size-4"} />
                     </Button>
                   ) : null}
                   {f.origen ? (
@@ -373,6 +387,9 @@ function PaginaFacturas() {
           />
         ) : null}
       </div>
+      {facturaSaldar ? (
+        <DialogoSaldada factura={facturaSaldar} onCerrar={() => setFacturaSaldar(null)} />
+      ) : null}
       {puedeEditar && facturaPagoId ? (
         <DialogoPago key={facturaPagoId} abierto sinDisparador mostrarPagadas facturaInicialId={facturaPagoId} setAbierto={(valor) => { if (!valor) setFacturaPagoId(null); }} />
       ) : null}
@@ -574,6 +591,58 @@ function DialogoFactura({
             Cancelar
           </Button>
           <Button onClick={guardar}>Guardar factura</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DialogoSaldada({ factura: f, onCerrar }: { factura: Factura; onCerrar: () => void }) {
+  const { hoy, marcarFacturaSaldada, quitarFacturaSaldada } = useApp();
+  const [fecha, setFecha] = useState(f.fechaSaldadaCashFlow ?? hoy);
+  const [nota, setNota] = useState(f.notaSaldadaCashFlow ?? "");
+  const [guardando, setGuardando] = useState(false);
+  const saldo = f.saldadaCashFlow ? (f.saldoErpOrigen ?? f.monto) : (f.saldoErp ?? f.monto);
+  const ejecutar = async (accion: () => Promise<boolean>, mensaje: string) => {
+    setGuardando(true);
+    const ok = await accion();
+    setGuardando(false);
+    if (ok) {
+      toast.success(mensaje);
+      onCerrar();
+    }
+  };
+  return (
+    <Dialog open onOpenChange={(v) => (v ? undefined : onCerrar())}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Marcar saldada por N/C (Cash Flow)</DialogTitle>
+          <DialogDescription>
+            {f.cliente} · {f.numero} · saldo {formatearMoneda(saldo, f.moneda)}. Use esta marca cuando
+            la nota de crédito existe en el ERP pero aún no se aplica en cuentas por cobrar. Se guarda
+            solo en Cash Flow: la factura sale de pendientes, del Tablero y de las proyecciones.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="ms-fecha">Fecha</Label>
+            <Input id="ms-fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ms-nota">Nota (opcional)</Label>
+            <Textarea id="ms-nota" placeholder="Ej.: N/C 00012345" value={nota} onChange={(e) => setNota(e.target.value)} />
+          </div>
+        </div>
+        <DialogFooter className="gap-2">
+          {f.saldadaCashFlow ? (
+            <Button variant="outline" className="sm:mr-auto" disabled={guardando} onClick={() => ejecutar(() => quitarFacturaSaldada(f.id), "Marca retirada")}>
+              Quitar marca
+            </Button>
+          ) : null}
+          <Button variant="outline" onClick={onCerrar} disabled={guardando}>Cancelar</Button>
+          <Button disabled={guardando || !fecha} onClick={() => ejecutar(() => marcarFacturaSaldada(f.id, fecha, nota.trim() || null), "Factura marcada como saldada")}>
+            Guardar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

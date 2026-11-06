@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.79 - 2026-11-06
+- Facturas por cobrar: marca «Saldada / N/C (Cash Flow)» (SQL 28). Actualizar web y API.
+
 ## 1.38.78 - 2026-11-04
 - Conciliaciones de pagos recibidos y emitidos: aviso «Ref. en uso» en la línea cuando la referencia ya está registrada (ignora espacios, guiones y mayúsculas; mínimo 4 caracteres).
 - «Sin documento»: el diálogo sugiere el banco, compañía y moneda de la conciliación y agrega «Omitir» si la referencia ya existe. Solo web.

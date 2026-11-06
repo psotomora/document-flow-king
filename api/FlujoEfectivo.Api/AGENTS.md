@@ -1,2 +1,3 @@
 - Agent-mode Conexión 1/2 checks go through Datos/PruebaFuenteAgente.cs (tenant Parametro keys, heartbeat delivery) so the cloud never connects to client SQL.
 - Payable 'Pagado (Cash Flow)' marks live in Datos/MarcasPagoCashFlow.cs keyed by company+supplier+type+number and are applied inside /api/estado, so every consumer sees saldo 0 without writing to the ERP.
+- Receivable 'Saldada / N/C (Cash Flow)' marks live in Datos/MarcasFacturaCashFlow.cs keyed by company+invoice number and set SaldoErp 0 inside /api/estado, so all receivable totals agree without writing to the ERP.

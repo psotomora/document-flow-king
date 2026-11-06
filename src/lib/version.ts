@@ -1,6 +1,6 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.38.78";
-export const APP_FECHA_VERSION = "2026-11-04";
+export const APP_VERSION = "1.38.79";
+export const APP_FECHA_VERSION = "2026-11-06";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
 
@@ -12,6 +12,11 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.38.79",
+    fecha: "2026-11-06",
+    cambios: ["Facturas por cobrar: marca «Saldada / N/C (Cash Flow)» con fecha y nota para notas de crédito aún no aplicadas en el ERP; la factura sale de pendientes, Tablero y proyecciones sin escribir en el ERP."],
+  },
   {
     version: "1.38.78",
     fecha: "2026-11-04",
