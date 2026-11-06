@@ -41,6 +41,13 @@ export interface Factura {
   fechaVence?: string | null;
   /** Fecha en que se creó el registro en el sistema. */
   fechaCreacion?: string | null;
+  /** Marcada «Saldada / N/C (Cash Flow)»; no modifica el ERP. */
+  saldadaCashFlow?: boolean;
+  saldoErpOrigen?: number | null;
+  cobradaOrigen?: boolean | null;
+  fechaSaldadaCashFlow?: string | null;
+  notaSaldadaCashFlow?: string | null;
+  saldadaPor?: string | null;
 }
 
 export interface LineaFactura {
