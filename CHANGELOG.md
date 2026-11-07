@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.82 - 2026-11-07
+- Conciliaciones: «Ref. en uso» compara por raíz de referencia e incluye registros con sufijo (-2, -3…).
+
 ## 1.38.81 - 2026-11-07
 - Erogaciones: referencia repetida permitida con aviso y sufijo sugerido (-2, -3…). Actualizar web + SQL 29.
 
