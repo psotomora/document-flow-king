@@ -535,7 +535,7 @@ function DialogoErogacion({
               onChange={(e) => { setNumero(e.target.value); setAceptarRepetida(false); }}
             />
             {refRepetida && !aceptarRepetida ? (
-              <div className="rounded-md border border-warning/40 bg-warning/10 p-2 text-xs space-y-2">
+              <div className="rounded-md border border-accent bg-accent/40 p-2 text-xs space-y-2">
                 <p>⚠️ Esta referencia ya está registrada. Si el banco la repitió (lote o cargo desglosado), puede:</p>
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" size="sm" variant="outline" onClick={() => setNumero(sufijoSugerido)}>
@@ -614,7 +614,7 @@ function DialogoErogacion({
               Omitir
             </Button>
           ) : null}
-          <Button onClick={guardar}>{erogacion ? "Guardar cambios" : "Guardar erogación"}</Button>
+          <Button onClick={() => guardar()}>{erogacion ? "Guardar cambios" : "Guardar erogación"}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
