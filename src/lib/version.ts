@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.38.81";
+export const APP_VERSION = "1.38.82";
 export const APP_FECHA_VERSION = "2026-11-07";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,11 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.38.82",
+    fecha: "2026-11-07",
+    cambios: ["Conciliaciones: el aviso «Ref. en uso» compara por la raíz de la referencia, así una referencia del extracto reconoce también los registros guardados con sufijo (-2, -3…)."],
+  },
   {
     version: "1.38.81",
     fecha: "2026-11-07",

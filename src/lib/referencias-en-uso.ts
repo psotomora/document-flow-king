@@ -16,13 +16,19 @@ export function normalizarReferencia(valor: string | null | undefined): string {
 /** Mínimo de caracteres significativos para considerar una referencia comparable. */
 export const MINIMO_REFERENCIA = 4;
 
+/** Raíz de la referencia: quita el sufijo correlativo de Cash Flow (485921-2 → 485921). */
+export function raizReferencia(valor: string | null | undefined): string {
+  return normalizarReferencia((valor ?? "").trim().replace(/-\d{1,2}$/, ""));
+}
+
+/** Coincide por raíz, así el extracto (485921) encuentra 485921, 485921-2, 485921-3… */
 export function referenciasEnUso(
   referencia: string | null | undefined,
   registros: RegistroConReferencia[],
 ): RegistroConReferencia[] {
-  const ref = normalizarReferencia(referencia);
+  const ref = raizReferencia(referencia);
   if (ref.length < MINIMO_REFERENCIA) return [];
-  return registros.filter((r) => r.referencias.some((x) => normalizarReferencia(x) === ref));
+  return registros.filter((r) => r.referencias.some((x) => raizReferencia(x) === ref));
 }
 
 /** Sugiere la referencia con sufijo correlativo libre: 123456 → 123456-2, 123456-3... */
