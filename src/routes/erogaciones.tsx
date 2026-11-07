@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useMemo, useState } from "react";
+import { normalizarReferencia, siguienteReferenciaConSufijo } from "@/lib/referencias-en-uso";
 import { Check, ChevronsUpDown, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -356,7 +357,15 @@ function DialogoErogacion({
     }
   };
 
-  const guardar = () => {
+  const [aceptarRepetida, setAceptarRepetida] = useState(false);
+  const refsMismaCompania = erogaciones
+    .filter((e) => e.id !== erogacion?.id && e.companiaId === companiaId)
+    .map((e) => e.numeroTransferencia);
+  const refRepetida = normalizarReferencia(numeroTransferencia).length > 0
+    && refsMismaCompania.some((r) => normalizarReferencia(r) === normalizarReferencia(numeroTransferencia));
+  const sufijoSugerido = refRepetida ? siguienteReferenciaConSufijo(numeroTransferencia, refsMismaCompania) : "";
+
+  const guardar = (forzarRepetida = false) => {
     if (!numeroTransferencia || !proveedor || !bancoId) {
       toast.error("Complete número de transferencia, proveedor y banco.");
       return;
@@ -365,8 +374,8 @@ function DialogoErogacion({
       toast.error("El monto debe ser mayor que cero.");
       return;
     }
-    if (erogaciones.some((e) => e.id !== erogacion?.id && e.numeroTransferencia === numeroTransferencia)) {
-      toast.error("El número de transferencia ya fue registrado.");
+    if (refRepetida && !aceptarRepetida && !forzarRepetida) {
+      toast.warning("El número de transferencia ya existe. Use el sufijo sugerido o confirme la misma referencia.");
       return;
     }
     const documentoPagoIdFinal: string | null = documentoElegido?.id
@@ -523,8 +532,21 @@ function DialogoErogacion({
             <Input
               id="e-num"
               value={numeroTransferencia}
-              onChange={(e) => setNumero(e.target.value)}
+              onChange={(e) => { setNumero(e.target.value); setAceptarRepetida(false); }}
             />
+            {refRepetida && !aceptarRepetida ? (
+              <div className="rounded-md border border-warning/40 bg-warning/10 p-2 text-xs space-y-2">
+                <p>⚠️ Esta referencia ya está registrada. Si el banco la repitió (lote o cargo desglosado), puede:</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" size="sm" variant="outline" onClick={() => setNumero(sufijoSugerido)}>
+                    Usar {sufijoSugerido}
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setAceptarRepetida(true)}>
+                    Mantener la misma referencia
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="e-prov">Proveedor</Label>
