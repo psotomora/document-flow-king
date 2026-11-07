@@ -51,9 +51,9 @@ export function construirReporteHtml(d: DatosReporte): string {
 export function leerTablaVisible(tabla: HTMLTableElement): { columnas: string[]; filas: string[][]; derecha: number[] } {
   const ths = Array.from(tabla.querySelectorAll("thead tr:last-child th"));
   const indices = ths.map((th, i) => ((th.textContent ?? "").trim() ? i : -1)).filter((i) => i >= 0);
-  const columnas = indices.map((i) => (ths[i].textContent ?? "").trim());
+  const columnas = indices.map((i) => (ths[i]?.textContent ?? "").trim());
   const derecha = indices
-    .map((i, pos) => (ths[i].className.includes("text-right") ? pos : -1))
+    .map((i, pos) => ((ths[i]?.className ?? "").includes("text-right") ? pos : -1))
     .filter((p) => p >= 0);
   const filas = Array.from(tabla.querySelectorAll("tbody tr"))
     .filter((tr) => tr.children.length === ths.length)
