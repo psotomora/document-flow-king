@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.80 - 2026-11-07
+- Pagos recibidos: «Enviar informe» por correo (HTML con filtros y columnas visibles, destinatarios por coma, comentarios al final). Actualizar web y API.
+
 ## 1.38.79 - 2026-11-06
 - Facturas por cobrar: marca «Saldada / N/C (Cash Flow)» (SQL 28). Actualizar web y API.
 

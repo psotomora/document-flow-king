@@ -647,6 +647,14 @@ public record EnvioEstadoCuenta(
     string? Mensaje = null);
 
 
+/// <summary>Informe HTML (tabla visible en pantalla) enviado en el cuerpo del correo.</summary>
+public record EnvioReporte(
+    string Destinatario,
+    string Asunto,
+    string Html,
+    string? Comentarios,
+    int? Registros);
+
 /// <summary>Alta de una transferencia de fondos entre dos cuentas bancarias.</summary>
 public record NuevaTransferencia(
     string Fecha,

@@ -1,5 +1,6 @@
 import { FiltroFechas } from "@/components/comunes/FiltroFechas";
-import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
+import { fechaEnPeriodo, PERIODOS_FECHA, type PeriodoFecha } from "@/lib/filtros-fecha";
+import { DialogoReportePagos } from "@/components/pagos/DialogoReportePagos";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { FileDown, Trash2 } from "lucide-react";
@@ -150,6 +151,23 @@ function PaginaPagos() {
             <Button variant="outline" size="sm" onClick={exportar} className="gap-1.5">
               <FileDown className="size-4" /> Exportar Excel
             </Button>
+            <DialogoReportePagos
+              tablaId="tabla-pagos"
+              filtros={[
+                `Banco: ${banco === "todos" ? "Todos" : (bancos.find((b) => b.id === banco)?.nombre ?? banco)}`,
+                ...(busqueda.trim() ? [`Búsqueda: ${busqueda.trim()}`] : []),
+                `Periodo: ${PERIODOS_FECHA.find((p) => p.valor === periodo)?.etiqueta ?? periodo}${
+                  periodo === "rango" && (fechaInicio || fechaFin)
+                    ? ` (${fechaInicio ? formatearFecha(fechaInicio) : "…"} – ${fechaFin ? formatearFecha(fechaFin) : "…"})`
+                    : ""
+                }`,
+                `Registros: ${filas.length}`,
+              ]}
+              totales={[
+                `Total USD: ${formatearMoneda(totales.USD, "USD")}`,
+                `Total CRC: ${formatearMoneda(totales.CRC, "CRC")}`,
+              ]}
+            />
             {puedeEditar ? (
               <DialogoPago
                 key={mostrarPagadas ? "con-pagadas" : "solo-pendientes"}
@@ -222,6 +240,7 @@ function PaginaPagos() {
       </div>
 
       <div
+        id="tabla-pagos"
         style={estiloTabla}
         className="max-h-[var(--alto-tabla)] overflow-auto rounded-lg border border-border bg-card [&>div]:overflow-visible"
       >
