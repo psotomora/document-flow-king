@@ -24,3 +24,12 @@ export function referenciasEnUso(
   if (ref.length < MINIMO_REFERENCIA) return [];
   return registros.filter((r) => r.referencias.some((x) => normalizarReferencia(x) === ref));
 }
+
+/** Sugiere la referencia con sufijo correlativo libre: 123456 → 123456-2, 123456-3... */
+export function siguienteReferenciaConSufijo(referencia: string, existentes: string[]): string {
+  const base = referencia.trim().replace(/-\d+$/, "");
+  const usadas = new Set(existentes.map((e) => e.trim().toUpperCase()));
+  let n = 2;
+  while (usadas.has(`${base}-${n}`.toUpperCase())) n++;
+  return `${base}-${n}`;
+}

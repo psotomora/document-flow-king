@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.81 - 2026-11-07
+- Erogaciones: referencia repetida permitida con aviso y sufijo sugerido (-2, -3…). Actualizar web + SQL 29.
+
 ## 1.38.80 - 2026-11-07
 - Pagos recibidos: «Enviar informe» por correo (HTML con filtros y columnas visibles, destinatarios por coma, comentarios al final). Actualizar web y API.
 
