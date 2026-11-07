@@ -192,7 +192,7 @@ CREATE TABLE flujo.Erogacion (
     CONSTRAINT FK_Erogacion_Cuenta    FOREIGN KEY (CuentaBancariaId) REFERENCES flujo.CuentaBancaria(CuentaBancariaId),
     CONSTRAINT FK_Erogacion_Proveedor FOREIGN KEY (ProveedorId) REFERENCES flujo.Proveedor(ProveedorId),
     CONSTRAINT FK_Erogacion_Moneda    FOREIGN KEY (Moneda) REFERENCES flujo.Moneda(Codigo),
-    CONSTRAINT UQ_Erogacion_Transf    UNIQUE (CompaniaId, NumeroTransferencia),
+    -- Referencia repetible (ver 29_referencia_erogacion_repetible.sql)
     CONSTRAINT CK_Erogacion_Monto     CHECK (Monto > 0)
 );
 GO

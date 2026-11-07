@@ -13,3 +13,11 @@ test("no compara referencias de menos de 4 caracteres", () => {
 test("no marca referencias distintas", () => {
   assert.deepEqual(referenciasEnUso("TR999", [reg("1", "TR12345")]), []);
 });
+
+import { siguienteReferenciaConSufijo } from "./referencias-en-uso";
+test("sufijo: primera repetición sugiere -2", () => {
+  assert.equal(siguienteReferenciaConSufijo("123456", ["123456"]), "123456-2");
+});
+test("sufijo: salta los sufijos ya usados", () => {
+  assert.equal(siguienteReferenciaConSufijo("123456", ["123456", "123456-2", "123456-3"]), "123456-4");
+});
