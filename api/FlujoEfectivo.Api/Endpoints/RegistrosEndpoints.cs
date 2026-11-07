@@ -1217,6 +1217,42 @@ public static class RegistrosEndpoints
             return Results.Ok(new { mensaje });
         });
 
+        // Informe de pantalla (HTML en el cuerpo) con comentarios del usuario al final.
+        g.MapPost("/correo/reporte", (EnvioReporte e, HttpContext ctx, Db db, IConfiguration config) =>
+        {
+            if (string.IsNullOrWhiteSpace(e.Destinatario) || string.IsNullOrWhiteSpace(e.Html))
+                return Results.BadRequest(new { mensaje = "Indique los destinatarios del informe." });
+            if (e.Html.Length > 2_000_000)
+                return Results.BadRequest(new { mensaje = "El informe es demasiado grande; aplique más filtros." });
+            // Solo se acepta HTML sin scripts; el informe se genera en la web con estilos en línea.
+            if (System.Text.RegularExpressions.Regex.IsMatch(e.Html, @"<\s*(script|iframe|object|embed)|on\w+\s*=",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+                return Results.BadRequest(new { mensaje = "El contenido del informe no es válido." });
+
+            using var cn = db.Abrir();
+            var cfg = Correo.Leer(cn);
+            if (cfg is null || string.IsNullOrWhiteSpace(cfg.Servidor))
+                return Results.BadRequest(new
+                {
+                    mensaje = "Falta configurar el servidor de correo en Parámetros → Servidor de correo.",
+                });
+
+            var comentarios = string.IsNullOrWhiteSpace(e.Comentarios)
+                ? ""
+                : "<div style=\"font-family:Arial,sans-serif;font-size:13px;margin-top:16px;\"><strong>Comentarios</strong><p style=\"white-space:pre-wrap;margin:4px 0 0 0;\">" +
+                  System.Net.WebUtility.HtmlEncode(e.Comentarios.Trim()[..Math.Min(e.Comentarios.Trim().Length, 2000)]) +
+                  "</p></div>";
+            var cuerpo = e.Html + comentarios +
+                $"<p style=\"font-family:Arial,sans-serif;font-size:11px;color:#64748b;margin-top:16px;\">Enviado por {System.Net.WebUtility.HtmlEncode(ctx.User.NombreUsuario())} desde Aplix Cash Flow Insights.</p>";
+            var asunto = string.IsNullOrWhiteSpace(e.Asunto) ? "Informe · Aplix Cash Flow Insights" : e.Asunto.Trim();
+            var (ok, mensaje) = Correo.Enviar(cfg, config["Jwt:Llave"] ?? "", e.Destinatario, asunto, cuerpo);
+            if (!ok) return Results.BadRequest(new { mensaje });
+
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Pagos", asunto,
+                "Exportación", null, $"Envío por correo → {e.Destinatario} ({e.Registros ?? 0} registros)");
+            return Results.Ok(new { mensaje });
+        });
+
         /* --------------------------- Carga inicial --------------------------- */
         g.MapPost("/importacion/lote", (LoteImportacion lote, HttpContext ctx, Db db) =>
         {

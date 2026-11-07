@@ -112,7 +112,7 @@ export function DialogoReportePagos({
               onChange={(e) => setComentarios(e.target.value)}
             />
           </div>
-          {error ? <MensajeCorreo texto={error} /> : null}
+          {error ? <MensajeCorreo ok={false} mensaje={error} /> : null}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setAbierto(false)}>
