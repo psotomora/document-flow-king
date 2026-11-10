@@ -1,7 +1,26 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import type { Factura, Pago } from "../data/tipos";
-import { calcularFacturas, calcularSaldoProyectado, indicadoresPorMoneda } from "./calculos";
+import type { ContratoDelMes } from "./contratos";
+import {
+  calcularFacturas,
+  calcularSaldoProyectado,
+  contratosPendientesEnUsd,
+  indicadoresPorMoneda,
+} from "./calculos";
+
+const contrato: ContratoDelMes = {
+  contratoId: "c1",
+  companiaId: "ax",
+  numero: "CON-001",
+  cliente: "Cliente",
+  periodicidad: "Mensual",
+  fecha: "2026-11-15",
+  moneda: "USD",
+  monto: 1000,
+  fechaCreacion: "2026-01-10",
+  yaDocumentado: false,
+};
 
 const factura: Factura = {
   id: "f1", companiaId: "ax", numero: "FAC-001", cliente: "Cliente",
