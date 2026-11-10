@@ -1,5 +1,8 @@
 # Historial de cambios
 
+## 1.38.83 - 2026-11-10
+- Tablero: «Saldo proyectado (USD)» como primera tarjeta, con el mismo monto de «Saldo proyectado consolidado». Solo web.
+
 ## 1.38.82 - 2026-11-07
 - Conciliaciones: «Ref. en uso» compara por raíz de referencia e incluye registros con sufijo (-2, -3…).
 

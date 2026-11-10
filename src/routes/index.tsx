@@ -6,6 +6,7 @@ import {
   CalendarClock,
   CircleDollarSign,
   ClipboardList,
+  Target,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -35,6 +36,7 @@ import type { Moneda } from "@/data/tipos";
 import {
   calcularSaldoProyectado,
   calcularSaldosPorBanco,
+  contratosPendientesEnUsd,
   indicadoresPorMoneda,
   inicioDePeriodo,
   proyeccionPorTramos,
@@ -87,19 +89,15 @@ function Tablero() {
   const indicadores = useMemo(() => indicadoresPorMoneda(facturas, moneda), [facturas, moneda]);
 
   // Contratos del mes pendientes: sin pedido ni factura y sin marca de pagado.
-  const contratosMes = useMemo(() => {
-    const pendientes = filtrarPorCompania(contratosDelMes, companiaActiva).filter(
-      (c) => !c.yaDocumentado && !contratosMesPagados.has(`${c.contratoId}|${c.fecha}`),
-    );
-    return {
-      usd:
-        pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
-        (tipoCambio > 0
-          ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
-          : 0),
-      cantidad: pendientes.length,
-    };
-  }, [contratosDelMes, contratosMesPagados, companiaActiva, tipoCambio]);
+  const contratosMes = useMemo(
+    () =>
+      contratosPendientesEnUsd(
+        filtrarPorCompania(contratosDelMes, companiaActiva),
+        contratosMesPagados,
+        tipoCambio,
+      ),
+    [contratosDelMes, contratosMesPagados, companiaActiva, tipoCambio],
+  );
 
   const pedidosPendientes = useMemo(
     () => filtrarPorCompania(pedidos, companiaActiva).filter((p) => p.estado === "Pendiente"),
@@ -178,6 +176,13 @@ function Tablero() {
       />
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <TarjetaIndicador
+          titulo="Saldo proyectado (USD)"
+          valor={formatearMoneda(proyeccion.saldoProyectadoTotalUSD, "USD")}
+          detalle="Mismo monto de «Saldo proyectado consolidado»: bancos + facturas + pedidos + contratos del mes"
+          icono={<Target className="size-4" />}
+          tono="primario"
+        />
         <TarjetaIndicador
           titulo="Disponible en bancos (USD)"
           valor={formatearMoneda(

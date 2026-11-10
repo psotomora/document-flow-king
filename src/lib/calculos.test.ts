@@ -1,7 +1,26 @@
 import { test } from "node:test";
 import { strict as assert } from "node:assert";
 import type { Factura, Pago } from "../data/tipos";
-import { calcularFacturas, calcularSaldoProyectado, indicadoresPorMoneda } from "./calculos";
+import type { ContratoDelMes } from "./contratos";
+import {
+  calcularFacturas,
+  calcularSaldoProyectado,
+  contratosPendientesEnUsd,
+  indicadoresPorMoneda,
+} from "./calculos";
+
+const contrato: ContratoDelMes = {
+  contratoId: "c1",
+  companiaId: "ax",
+  numero: "CON-001",
+  cliente: "Cliente",
+  periodicidad: "Mensual",
+  fecha: "2026-11-15",
+  moneda: "USD",
+  monto: 1000,
+  fechaCreacion: "2026-01-10",
+  yaDocumentado: false,
+};
 
 const factura: Factura = {
   id: "f1", companiaId: "ax", numero: "FAC-001", cliente: "Cliente",
@@ -46,4 +65,19 @@ test("el consolidado conserva el saldo ERP menos pagos locales y convierte colon
   assert.equal(proyectado.porCobrarUSD, 8000);
   assert.equal(proyectado.porCobrarCRC, 500000);
   assert.equal(proyectado.consolidadoUSD, 9000);
+});
+test("la primera tarjeta del Tablero y el Consolidado suman los contratos pendientes del mes una sola vez", () => {
+  const contratos: ContratoDelMes[] = [
+    contrato,
+    { ...contrato, contratoId: "c2", moneda: "CRC", monto: 500000 },
+    { ...contrato, contratoId: "c3", yaDocumentado: true },
+    { ...contrato, contratoId: "c4", fecha: "2026-11-20" },
+  ];
+  const pagados = new Set(["c4|2026-11-20"]);
+  const pendientes = contratosPendientesEnUsd(contratos, pagados, 500);
+  assert.equal(pendientes.cantidad, 2);
+  assert.equal(pendientes.usd, 2000);
+  const facturas = calcularFacturas([factura], [], "2026-11-10");
+  const proyectado = calcularSaldoProyectado([], [], facturas, [], 500, pendientes.usd);
+  assert.equal(proyectado.saldoProyectadoTotalUSD, 12000);
 });

@@ -1,3 +1,4 @@
+import type { ContratoDelMes } from "@/lib/contratos";
 import type {
   Banco,
   EstadoFactura,
@@ -292,6 +293,28 @@ export function saldoPorCliente(
   return [...mapa.entries()]
     .map(([cliente, saldo]) => ({ cliente, saldo }))
     .sort((a, b) => b.saldo - a.saldo);
+}
+
+/**
+ * Contratos del mes que aún no tienen pedido ni factura y no están marcados como
+ * pagados, expresados en dólares. Único cálculo válido para Tablero y Consolidado.
+ */
+export function contratosPendientesEnUsd(
+  contratos: readonly ContratoDelMes[],
+  pagados: Set<string>,
+  tipoCambio: number,
+): { usd: number; cantidad: number } {
+  const pendientes = contratos.filter(
+    (c) => !c.yaDocumentado && !pagados.has(`${c.contratoId}|${c.fecha}`),
+  );
+  return {
+    usd:
+      pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
+      (tipoCambio > 0
+        ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
+        : 0),
+    cantidad: pendientes.length,
+  };
 }
 
 export interface SaldoProyectado {
