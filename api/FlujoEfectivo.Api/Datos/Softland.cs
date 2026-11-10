@@ -360,6 +360,14 @@ public static partial class Softland
             ? $"OUTER APPLY (SELECT TOP 1 x.SALDO, x.FECHA_VENCE, x.FECHA_ANUL FROM [{e}].[DOCUMENTOS_CC] x WHERE x.DOCUMENTO = f.FACTURA AND x.TIPO = '{TipoDocCxc}' ORDER BY CASE WHEN x.FECHA_ANUL IS NULL THEN 0 ELSE 1 END, x.SALDO DESC) cc"
             : "";
 
+        // Clientes inactivos en Softland (CLIENTE.ACTIVO = 'N') no forman parte de la cartera viva.
+        var tieneCliente = cn.ExecuteScalar<int>(
+            "SELECT CASE WHEN OBJECT_ID(@t, 'U') IS NOT NULL THEN 1 ELSE 0 END",
+            new { t = $"{e}.CLIENTE" }) == 1;
+        var filtroCliente = tieneCliente
+            ? $"AND NOT EXISTS (SELECT 1 FROM [{e}].[CLIENTE] ci WHERE ci.CLIENTE = f.CLIENTE AND ISNULL(ci.ACTIVO, 'S') = 'N')"
+            : "";
+
         var filas = cn.Query(
             $"""
             SELECT f.FACTURA AS Numero,
@@ -377,6 +385,7 @@ public static partial class Softland
             FROM [{e}].[FACTURA] f
             {joinCxc}
             WHERE f.TIPO_DOCUMENTO = 'F' AND ISNULL(f.ANULADA, 'N') <> 'S'
+              {filtroCliente}
             ORDER BY f.FECHA DESC, f.FACTURA DESC
             """);
 
@@ -437,6 +446,10 @@ public static partial class Softland
         var nombre = tieneProveedor
             ? $"ISNULL((SELECT TOP 1 pr.NOMBRE FROM [{e}].[PROVEEDOR] pr WHERE pr.PROVEEDOR = d.PROVEEDOR), d.PROVEEDOR)"
             : "d.PROVEEDOR";
+        // Proveedores inactivos en Softland (PROVEEDOR.ACTIVO = 'N') no suman a cuentas por pagar.
+        var filtroProveedor = tieneProveedor
+            ? $"AND NOT EXISTS (SELECT 1 FROM [{e}].[PROVEEDOR] pi WHERE pi.PROVEEDOR = d.PROVEEDOR AND ISNULL(pi.ACTIVO, 'S') = 'N')"
+            : "";
 
         var filas = cn.Query(
             $"""
@@ -454,6 +467,7 @@ public static partial class Softland
             WHERE d.SALDO > 0
               AND d.FECHA_ANUL IS NULL
               AND ISNULL(d.ANULADO, 'N') <> 'S'
+              {filtroProveedor}
             ORDER BY ISNULL(d.FECHA_DOCUMENTO, d.FECHA) DESC, d.DOCUMENTO DESC
             """);
 
