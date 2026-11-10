@@ -1,3 +1,4 @@
+import type { ContratoDelMes } from "@/lib/contratos";
 import type {
   Banco,
   EstadoFactura,
