@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>AplixCashFlowAgente</RootNamespace>
-    <Version>1.38.74</Version>
+    <Version>1.38.75</Version>
   </PropertyGroup>
 
   <ItemGroup>
