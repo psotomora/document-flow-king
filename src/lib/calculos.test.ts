@@ -66,3 +66,18 @@ test("el consolidado conserva el saldo ERP menos pagos locales y convierte colon
   assert.equal(proyectado.porCobrarCRC, 500000);
   assert.equal(proyectado.consolidadoUSD, 9000);
 });
+test("la primera tarjeta del Tablero y el Consolidado suman los contratos pendientes del mes una sola vez", () => {
+  const contratos: ContratoDelMes[] = [
+    contrato,
+    { ...contrato, contratoId: "c2", moneda: "CRC", monto: 500000 },
+    { ...contrato, contratoId: "c3", yaDocumentado: true },
+    { ...contrato, contratoId: "c4", fecha: "2026-11-20" },
+  ];
+  const pagados = new Set(["c4|2026-11-20"]);
+  const pendientes = contratosPendientesEnUsd(contratos, pagados, 500);
+  assert.equal(pendientes.cantidad, 2);
+  assert.equal(pendientes.usd, 2000);
+  const facturas = calcularFacturas([factura], [], "2026-11-10");
+  const proyectado = calcularSaldoProyectado([], [], facturas, [], 500, pendientes.usd);
+  assert.equal(proyectado.saldoProyectadoTotalUSD, 12000);
+});
