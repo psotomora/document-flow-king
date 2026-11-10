@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { filtrarPorCompania, useApp } from "@/contexto/AppContexto";
-import { calcularSaldoProyectado, calcularSaldosPorBanco } from "@/lib/calculos";
+import { calcularSaldoProyectado, calcularSaldosPorBanco, contratosPendientesEnUsd } from "@/lib/calculos";
 import { formatearFecha, formatearMoneda, formatearNumero } from "@/lib/formato";
 import { exportarPdf } from "@/lib/exportar";
 
@@ -60,17 +60,15 @@ function PaginaConsolidado() {
   const origenFacturas = facturasFuenteExterna ? "SoftlandERP" : "registro local";
 
   // Contratos del mes que aún no tienen pedido ni factura, en dólares.
-  const contratosMesUSD = useMemo(() => {
-    const pendientes = filtrarPorCompania(contratosDelMes, companiaActiva).filter(
-      (c) => !c.yaDocumentado && !contratosMesPagados.has(`${c.contratoId}|${c.fecha}`),
-    );
-    return (
-      pendientes.filter((c) => c.moneda === "USD").reduce((s, c) => s + c.monto, 0) +
-      (tipoCambio > 0
-        ? pendientes.filter((c) => c.moneda === "CRC").reduce((s, c) => s + c.monto, 0) / tipoCambio
-        : 0)
-    );
-  }, [contratosDelMes, contratosMesPagados, companiaActiva, tipoCambio]);
+  const contratosMesUSD = useMemo(
+    () =>
+      contratosPendientesEnUsd(
+        filtrarPorCompania(contratosDelMes, companiaActiva),
+        contratosMesPagados,
+        tipoCambio,
+      ).usd,
+    [contratosDelMes, contratosMesPagados, companiaActiva, tipoCambio],
+  );
 
   const proyeccion = useMemo(() => {
     const bancosVisibles = filtrarPorCompania(bancos, companiaActiva).filter((b) => b.activo);
