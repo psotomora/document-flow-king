@@ -1,5 +1,5 @@
 /** Control de versiones de la aplicación. Actualizar en cada entrega. */
-export const APP_VERSION = "1.38.86";
+export const APP_VERSION = "1.38.87";
 export const APP_FECHA_VERSION = "2026-11-11";
 export const APP_NOMBRE = "Aplix Cash Flow Insights";
 
@@ -12,6 +12,11 @@ export interface EntradaVersion {
 
 /** Historial de versiones mostrado en el pie del menú lateral. */
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
+  {
+    version: "1.38.87",
+    fecha: "2026-11-11",
+    cambios: ["Softland: facturas por cobrar y documentos por pagar incluyen únicamente clientes y proveedores con ACTIVO = S en su compañía (API 1.38.83, Agente 1.38.77)."],
+  },
   {
     version: "1.38.86",
     fecha: "2026-11-11",

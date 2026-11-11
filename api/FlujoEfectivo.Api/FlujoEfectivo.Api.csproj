@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>FlujoEfectivo.Api</RootNamespace>
     <InvariantGlobalization>false</InvariantGlobalization>
-    <Version>1.38.82</Version>
+    <Version>1.38.83</Version>
   </PropertyGroup>
 
   <ItemGroup>
