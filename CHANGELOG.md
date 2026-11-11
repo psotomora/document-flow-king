@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.87 - 2026-11-11
+
+- Facturas por cobrar y documentos por pagar: solo se incluyen clientes y proveedores existentes con ACTIVO = 'S' en el esquema de la compañía consultada; cualquier otro valor queda excluido. Conserva la compatibilidad de fuentes sin tabla de clientes/proveedores y no modifica el histórico de documentos ni el ERP.
+- API 1.38.83 y Agente 1.38.77 comparten el filtro. Actualizar API y, donde se utilice, agente y sincronizar nuevamente todas las compañías; web solo para mostrar la versión. Sin scripts SQL nuevos.
+
 ## 1.38.86 - 2026-11-11
 
 - Contratos del mes: columna con pagos sugeridos por compañía, cliente, moneda y mes; factura asociada o suma equivalente, detalles de referencias y marca manual de pagado con confirmación.
