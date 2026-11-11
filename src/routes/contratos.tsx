@@ -404,7 +404,7 @@ function FacturacionProximoMes() {
   );
   return (
     <TarjetaIndicador
-      titulo={`Facturación de contratos · ${formatearFecha(`${previsto.mes}-01`).slice(3)}`}
+      titulo={`Facturación de contratos · próximo mes (${formatearFecha(`${previsto.mes}-01`).slice(3)})`}
       valor={formatearMoneda(previsto.equivalenteUsd, "USD")}
       tono="primario"
       icono={<CalendarDays className="size-4" />}

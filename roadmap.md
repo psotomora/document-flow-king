@@ -1,4 +1,5 @@
-- [ ] 1.38.86: sugerir pagos recibidos en Contratos del mes y mostrar facturación recurrente del próximo mes; probar y verificar.
+- [x] 1.38.86: sugerencias manuales de pagos y previsión del próximo mes implementadas; 21 pruebas pasan y pantalla revisada en demostración. Solo web; sin API, agente ni SQL.
+- [ ] 1.38.86: comprobar hallazgos y guardado con datos productivos — bloqueado por ausencia de API/SQL Server real en este entorno.
 - [x] 1.38.69: cupo de compañías por empresa (Empresas, Catálogos, API, SQL 25); 8 pruebas pasan. Compilación .NET pendiente: no hay SDK aquí.
 - [ ] Paso 2: sesión única por usuario — si las credenciales ya están en uso, mostrar diálogo emergente y NO permitir el ingreso (decisión de Pedro).
 - [ ] Paso 3: pantalla Licencia dedicada y Cerrar sesión en el pie del menú, como NotifyHub/e-Invoice.
