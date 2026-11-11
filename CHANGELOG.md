@@ -1,5 +1,9 @@
 # Historial de cambios
 
+## 1.38.85 - 2026-11-11
+
+- Corrige compilación del agente: la configuración Softland por inquilino pasa a un archivo solo de la API. API 1.38.82 y Agente 1.38.76; sin SQL.
+
 ## 1.38.84 - 2026-11-10
 
 - Facturas por cobrar y documentos por pagar excluyen clientes y proveedores marcados inactivos (ACTIVO = 'N') en Softland. API 1.38.81 y Agente 1.38.75; sin SQL.
