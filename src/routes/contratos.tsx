@@ -3,7 +3,9 @@ import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCompaniaValida } from "@/hooks/use-compania-valida";
 import { useEffect, useMemo, useState } from "react";
-import { Archive, Check, ChevronsUpDown, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { Archive, CalendarDays, Check, ChevronsUpDown, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
+import { facturacionContratosProximoMes, sugerirPagosContrato } from "@/lib/contratos-pagos";
+import { TarjetaIndicador } from "@/components/comunes/TarjetaIndicador";
 import { BotonActualizar } from "@/components/comunes/BotonActualizar";
 import { BarraEstadoSincronizacion } from "@/components/comunes/BarraEstadoSincronizacion";
 import { DialogoLineasContrato } from "@/components/contratos/DialogoLineasContrato";
@@ -195,6 +197,8 @@ function PaginaContratos() {
           </>
         }
       />
+
+      <FacturacionProximoMes />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <TotalMes titulo="Por facturar en dólares" valor={formatearMoneda(totalUSD, "USD")} />
@@ -392,6 +396,23 @@ function PaginaContratos() {
 }
 
 /** Subsección: contratos que deben facturarse en el mes corriente. */
+function FacturacionProximoMes() {
+  const { contratos, companiaActiva, hoy, tipoCambio } = useApp();
+  const previsto = useMemo(
+    () => facturacionContratosProximoMes(filtrarPorCompania(contratos, companiaActiva), hoy, tipoCambio),
+    [contratos, companiaActiva, hoy, tipoCambio],
+  );
+  return (
+    <TarjetaIndicador
+      titulo={`Facturación de contratos · próximo mes (${formatearFecha(`${previsto.mes}-01`).slice(3)})`}
+      valor={formatearMoneda(previsto.equivalenteUsd, "USD")}
+      tono="primario"
+      icono={<CalendarDays className="size-4" />}
+      detalle={`${previsto.cantidad} contratos · ${formatearMoneda(previsto.usd, "USD")} + ${formatearMoneda(previsto.crc, "CRC")} · ${previsto.grupos.map((g) => `${g.periodicidad}: ${g.cantidad} (${formatearMoneda(g.usd, "USD")} + ${formatearMoneda(g.crc, "CRC")})`).join(" · ")}`}
+    />
+  );
+}
+
 function ContratosDelMes() {
   const {
     filas: filasMes,
@@ -402,6 +423,7 @@ function ContratosDelMes() {
     contratosDelMes,
     contratos,
     facturas,
+    pagos,
     companias,
     companiaActiva,
     tipoCambio,
@@ -468,6 +490,11 @@ function ContratosDelMes() {
 
   /** Factura vigente de la línea: la asignada manualmente o la sugerida. */
   const facturaDeLinea = (clave: string) => asignaciones[clave] ?? facturaPorLinea.get(clave) ?? "";
+
+  const hallazgosPorLinea = useMemo(() => new Map(contratosDelMes.map((c) => {
+    const clave = `${c.contratoId}|${c.fecha}`;
+    return [clave, sugerirPagosContrato(c, pagos, facturas, asignaciones[clave] ?? c.factura ?? "")];
+  })), [contratosDelMes, pagos, facturas, asignaciones]);
 
   const puedeTrasladar =
     esAdministrador || (puedeEditar && usuario.trasladarContratosHistorico === true);
@@ -567,6 +594,9 @@ function ContratosDelMes() {
             ? "Ya facturado o con pedido"
             : "Por facturar",
         Pagado: pagados.has(`${c.contratoId}|${c.fecha}`) ? "Sí" : "No",
+        "Hallazgos de pagos": (hallazgosPorLinea.get(`${c.contratoId}|${c.fecha}`) ?? []).map((h) =>
+          `${h.factura}: ${formatearMoneda(h.monto, c.moneda)} (${h.completo ? "Monto cubierto" : "Pago parcial"}; ${h.motivo}) — ${h.pagos.map((p) => `${formatearFecha(p.fecha)} Ref. ${p.referencia || "—"}`).join(", ")}`,
+        ).join("; "),
       })),
       usuario.nombre,
     );
@@ -696,6 +726,7 @@ function ContratosDelMes() {
               <TableHead className="text-right">Monto</TableHead>
               <TableHead className="min-w-72">Factura asociada</TableHead>
               <TableHead>Situación</TableHead>
+              <TableHead className="min-w-72">Hallazgos de pagos</TableHead>
               <TableHead className="text-center">Pagado</TableHead>
               <TableHead className="w-24 text-right">Acciones</TableHead>
             </TableRow>
@@ -799,6 +830,28 @@ function ContratosDelMes() {
                       ? `Ya documentado${c.documento ? ` (${c.documento})` : ""}`
                       : "Por facturar"}
                 </TableCell>
+                <TableCell className="text-xs">
+                  <div className="min-w-64 space-y-2">
+                    {(hallazgosPorLinea.get(clave) ?? []).map((h) => (
+                      <div key={h.factura} className="space-y-1">
+                        <p className="font-medium">{h.factura} · {formatearMoneda(h.monto, c.moneda)}</p>
+                        <p className="text-muted-foreground">{h.motivo} · {h.completo ? "Monto cubierto" : "Pago parcial"}</p>
+                        {h.pagos.map((p) => (
+                          <p key={p.id} className="text-muted-foreground">{formatearFecha(p.fecha)} · Ref. {p.referencia || "—"} · {formatearMoneda(p.monto, p.moneda)}</p>
+                        ))}
+                      </div>
+                    ))}
+                    {!hallazgosPorLinea.get(clave)?.length ? <span className="text-muted-foreground">Sin coincidencias</span> : (
+                      pagados.has(clave) ? <span className="text-exito">Marcado como pagado</span> : (
+                        <Button variant="outline" size="sm" disabled={!puedeEditar} onClick={() => {
+                          if (window.confirm(`¿Marcar el contrato ${c.numero} como pagado? Revise los hallazgos: un pago puede coincidir con más de un contrato. Esta marca no modifica Softland.`)) marcarPagado(clave, true);
+                        }} className="gap-1.5">
+                          <Check className="size-4" /> Marcar pagado
+                        </Button>
+                      )
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="text-center">
                   <Switch
                     checked={pagados.has(`${c.contratoId}|${c.fecha}`)}
@@ -839,7 +892,7 @@ function ContratosDelMes() {
             })}
             {filtrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={12} className="py-10 text-center text-muted-foreground">
                   No hay contratos por facturar este mes con los filtros aplicados.
                 </TableCell>
               </TableRow>
