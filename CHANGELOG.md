@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.86 - 2026-11-11
+
+- Contratos del mes: columna con pagos sugeridos por compañía, cliente, moneda y mes; factura asociada o suma equivalente, detalles de referencias y marca manual de pagado con confirmación.
+- Primera tarjeta de Contratos: facturación prevista del próximo mes, importes USD/CRC y desglose por recurrencia. Respeta la compañía seleccionada sin aplicar filtros del mes actual. Solo web; sin API, agente ni SQL.
+
 ## 1.38.85 - 2026-11-11
 
 - Corrige compilación del agente: la configuración Softland por inquilino pasa a un archivo solo de la API. API 1.38.82 y Agente 1.38.76; sin SQL.
