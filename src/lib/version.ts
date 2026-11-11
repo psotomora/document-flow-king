@@ -14,6 +14,11 @@ export interface EntradaVersion {
 export const HISTORIAL_VERSIONES: EntradaVersion[] = [
   {
     version: "1.38.85",
+    fecha: "2026-11-11",
+    cambios: ["Corrige la compilación del agente local (configuración Softland solo en la API)."],
+  },
+  {
+    version: "1.38.84",
     fecha: "2026-11-10",
     cambios: ["Facturas por cobrar y documentos por pagar excluyen clientes y proveedores inactivos en Softland (API 1.38.81, Agente 1.38.75)."],
   },
