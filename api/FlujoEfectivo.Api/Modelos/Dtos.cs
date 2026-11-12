@@ -214,6 +214,7 @@ public class DocumentoPorPagarDto
     public string? FechaPagoCashFlow { get; set; }
     public string? NotaPagoCashFlow { get; set; }
     public string? MarcadoPor { get; set; }
+    public string? ErogacionPagoId { get; set; }
 }
 
 /// <summary>Documento de cuentas por cobrar del cliente (FAC o DEV), cobrado o pendiente.</summary>
@@ -448,7 +449,12 @@ public record MarcaPagoDocumento(
     string Tipo,
     string Numero,
     string? FechaPago,
-    string? Nota);
+    string? Nota,
+    string? BancoId = null,
+    string? NumeroTransferencia = null,
+    string? Moneda = null,
+    decimal? Monto = null,
+    string? DocumentoId = null);
 
 public record NuevoDocumentoPorPagar(
     string CompaniaId,

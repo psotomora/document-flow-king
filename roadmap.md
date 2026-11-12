@@ -1,3 +1,4 @@
+- [ ] 1.38.88: registrar erogación y transferencia al marcar documentos pagados; retirar conjuntamente, probar y entregar web/API/SQL 30.
 - [x] 1.38.86: sugerencias manuales de pagos y previsión del próximo mes implementadas; 21 pruebas pasan y pantalla revisada en demostración. Solo web; sin API, agente ni SQL.
 - [ ] 1.38.86: comprobar hallazgos y guardado con datos productivos — bloqueado por ausencia de API/SQL Server real en este entorno.
 - [x] 1.38.69: cupo de compañías por empresa (Empresas, Catálogos, API, SQL 25); 8 pruebas pasan. Compilación .NET pendiente: no hay SDK aquí.

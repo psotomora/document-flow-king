@@ -1,4 +1,5 @@
 import { marcarPagado, quitarMarcaPagado } from "@/lib/pago-cash-flow";
+import { erogacionDeDocumento, validarPagoDocumento, type DatosPagoDocumento } from "@/lib/pago-documento-erogacion";
 import { marcarSaldada, quitarMarcaSaldada } from "@/lib/saldada-cash-flow";
 import {
   createContext,
@@ -247,7 +248,7 @@ interface EstadoApp {
   agregarDocumentoPorPagar: (d: Omit<DocumentoPorPagar, "id">) => void;
   actualizarDocumentoPorPagar: (id: string, cambios: Partial<DocumentoPorPagar>) => void;
   eliminarDocumentoPorPagar: (id: string) => void;
-  marcarPagoDocumento: (id: string, fechaPago: string, nota: string | null) => Promise<boolean>;
+  marcarPagoDocumento: (id: string, fechaPago: string, nota: string | null, pago: DatosPagoDocumento) => Promise<boolean>;
   marcarFacturaSaldada: (id: string, fecha: string, nota: string | null) => Promise<boolean>;
   quitarFacturaSaldada: (id: string) => Promise<boolean>;
   quitarPagoDocumento: (id: string) => Promise<boolean>;
@@ -1302,17 +1303,24 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           anotar("Facturas por cobrar", f.numero, "Modificación", "Se quitó la marca Saldada / N/C (Cash Flow)");
         });
       },
-      marcarPagoDocumento: (id, fechaPago, nota) => {
+      marcarPagoDocumento: (id, fechaPago, nota, pago) => {
         const d = documentosPorPagar.find((x) => x.id === id);
         if (!d) return Promise.resolve(false);
+        const error = validarPagoDocumento(d, pago, bancos);
+        if (error) { toast.error(error); return Promise.resolve(false); }
+        const erogacionId = d.erogacionPagoId ?? nuevoId("e");
+        const erogacion = { ...erogacionDeDocumento(d, pago, fechaPago, nota), id: erogacionId };
         return mutar(
           "/documentos-pagar/marca-pago",
           "POST",
-          { companiaId: d.companiaId, proveedor: d.proveedor, tipo: d.tipo, numero: d.numero, fechaPago, nota },
+          { companiaId: d.companiaId, proveedor: d.proveedor, tipo: d.tipo, numero: d.numero, fechaPago, nota,
+            ...pago, moneda: d.moneda, documentoId: d.id },
           () => {
+            setErogaciones((prev) => [erogacion, ...prev.filter((e) => e.id !== erogacionId)]);
             setDocumentosPorPagar((prev) =>
-              prev.map((x) => (x.id === id ? marcarPagado(x, fechaPago, nota, usuario.nombre) : x)),
+              prev.map((x) => (x.id === id ? { ...marcarPagado(x, fechaPago, nota, usuario.nombre), erogacionPagoId: erogacionId } : x)),
             );
+            anotar("Erogaciones", pago.numeroTransferencia, d.erogacionPagoId ? "Modificación" : "Creación", `${d.moneda} ${pago.monto}; documento ${d.numero}`);
             anotar("Documentos por pagar", d.numero, "Modificación", `Pagado (Cash Flow) ${fechaPago}`);
           },
         );
@@ -1325,6 +1333,7 @@ export function ProveedorApp({ children }: { children: ReactNode }) {
           "POST",
           { companiaId: d.companiaId, proveedor: d.proveedor, tipo: d.tipo, numero: d.numero },
           () => {
+            if (d.erogacionPagoId) setErogaciones((prev) => prev.filter((e) => e.id !== d.erogacionPagoId));
             setDocumentosPorPagar((prev) => prev.map((x) => (x.id === id ? quitarMarcaPagado(x) : x)));
             anotar("Documentos por pagar", d.numero, "Modificación", "Se quitó la marca Pagado (Cash Flow)");
           },
