@@ -252,6 +252,8 @@ public static class RegistrosEndpoints
         {
             if (!ctx.User.PuedeEditar()) return SinPermiso();
             using var cn = db.Abrir();
+            if (MarcasPagoCashFlow.ErogacionDisponible(cn) && cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.DocumentoPagarMarca WHERE ErogacionId=@id", new { id = Id(id) }) > 0)
+                return Results.BadRequest(new { mensaje = "Edite este pago desde Documentos por pagar." });
             var puedeEditarErogaciones = ctx.User.EsAdministrador() || cn.ExecuteScalar<bool>(
                 "SELECT ISNULL(EditarErogaciones, 0) FROM flujo.Usuario WHERE UsuarioId=@id",
                 new { id = ctx.User.UsuarioId() });
@@ -472,16 +474,67 @@ public static class RegistrosEndpoints
             return Results.Ok(new { mensaje = "Documento eliminado." });
         });
 
-        g.MapPost("/documentos-pagar/marca-pago", (MarcaPagoDocumento m, HttpContext ctx, Db db) =>
+        g.MapPost("/documentos-pagar/marca-pago", (MarcaPagoDocumento m, HttpContext ctx, Db db, IConfiguration config) =>
         {
             if (!ctx.User.PuedeEditar()) return SinPermiso();
             if (string.IsNullOrWhiteSpace(m.Numero)) return Results.BadRequest(new { mensaje = "Documento inválido." });
             using var cn = db.Abrir();
-            if (!MarcasPagoCashFlow.Disponible(cn))
-                return Results.BadRequest(new { mensaje = "Ejecute el script SQL 27 para habilitar la marca de pagado." });
-            MarcasPagoCashFlow.Marcar(cn, m, ctx.User.NombreUsuario());
+            if (!MarcasPagoCashFlow.Disponible(cn) || !MarcasPagoCashFlow.ErogacionDisponible(cn))
+                return Results.BadRequest(new { mensaje = "Ejecute los scripts SQL 27 y 30 para registrar el pago con su erogación." });
+            if (!int.TryParse(m.CompaniaId, out var compania) || !int.TryParse(m.BancoId, out var banco)
+                || string.IsNullOrWhiteSpace(m.NumeroTransferencia) || m.NumeroTransferencia.Trim().Length > 40
+                || m.Monto is null or <= 0 || m.Moneda is not ("USD" or "CRC") || !DateTime.TryParse(m.FechaPago, out var fecha))
+                return Results.BadRequest(new { mensaje = "Indique cuenta bancaria, transferencia, fecha y monto válidos." });
+            var alcance = Saas.AlcanceUsuario(cn, ctx.User.UsuarioId());
+            if (alcance is not null && (!alcance.Companias.Contains(compania) || !alcance.Bancos.Contains(banco))) return SinPermiso();
+            if (cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.CuentaBancaria WHERE CuentaBancariaId=@banco AND CompaniaId=@compania AND Activo=1", new { banco, compania }) != 1)
+                return Results.BadRequest(new { mensaje = "La cuenta debe estar activa y pertenecer a la compañía del documento." });
+            // Validar el documento en la fuente, no aceptar el saldo ni la identidad enviados por el navegador.
+            DocumentoPorPagarDto? documento;
+            if (int.TryParse(m.DocumentoId, out var interno))
+                documento = cn.QueryFirstOrDefault<DocumentoPorPagarDto>("SELECT CAST(DocumentoPorPagarId AS NVARCHAR(20)) AS Id, CAST(CompaniaId AS NVARCHAR(20)) AS CompaniaId, Proveedor, Tipo, Numero, Moneda, Saldo FROM flujo.DocumentoPorPagar WHERE DocumentoPorPagarId=@interno AND CompaniaId=@compania AND Anulado=0", new { interno, compania });
+            else
+            {
+                var modo = ReplicaPedidos.Lista(cn) ? cn.QueryFirstOrDefault<string>("SELECT Modo FROM flujo.ConexionErpCompania WHERE CompaniaId=@compania", new { compania }) : "directa";
+                if (modo == "agente") documento = ReplicaDocumentos.DocumentosPagar(cn, compania).FirstOrDefault(d => d.Id == m.DocumentoId);
+                else
+                {
+                    var cfg = Softland.Leer(cn);
+                    if (cfg?.CompaniaId != compania) cfg = Softland.Leer(cn, Softland.Fuente2);
+                    if (cfg is null || cfg.CompaniaId != compania)
+                        return Results.BadRequest(new { mensaje = "No se pudo verificar el documento en la fuente de su compañía." });
+                    documento = Softland.DocumentosPorPagar(cfg, config["Jwt:Llave"] ?? "", m.CompaniaId).FirstOrDefault(d => d.Id == m.DocumentoId);
+                }
+            }
+            if (documento is null || documento.CompaniaId != m.CompaniaId || !string.Equals(documento.Proveedor.Trim(), m.Proveedor.Trim(), StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(documento.Numero.Trim(), m.Numero.Trim(), StringComparison.OrdinalIgnoreCase) || !string.Equals(documento.Tipo.Trim(), m.Tipo.Trim(), StringComparison.OrdinalIgnoreCase)
+                || documento.Moneda != m.Moneda || documento.Saldo <= 0 || Math.Abs(documento.Saldo - m.Monto.Value) > 0.005m)
+                return Results.BadRequest(new { mensaje = "El documento o su saldo cambió. Actualice la lista antes de registrar el pago completo." });
+            using var tx = cn.BeginTransaction();
+            // Bloqueo por compañía serializa doble clic y solicitudes simultáneas, incluso sin marca previa.
+            cn.ExecuteScalar<int>("SELECT CompaniaId FROM flujo.Compania WITH (UPDLOCK, HOLDLOCK) WHERE CompaniaId=@compania", new { compania }, tx);
+            var vinculada = MarcasPagoCashFlow.Vinculada(cn, m, tx);
+            if (vinculada is not null && cn.ExecuteScalar<decimal>("SELECT Monto FROM flujo.Erogacion WHERE ErogacionId=@vinculada", new { vinculada }, tx) != documento.Saldo)
+                return Results.BadRequest(new { mensaje = "El saldo de origen cambió después del pago. Revise el registro antes de editarlo." });
+            if (documento.Proveedor.Length > 150 || (m.Nota?.Length ?? 0) > 500)
+                return Results.BadRequest(new { mensaje = "El proveedor admite 150 caracteres y la nota 500." });
+            if (vinculada is not null && !ctx.User.EsAdministrador() && !cn.ExecuteScalar<bool>("SELECT ISNULL(EditarErogaciones,0) FROM flujo.Usuario WHERE UsuarioId=@id", new { id = ctx.User.UsuarioId() }, tx)) return SinPermiso();
+            var referencia = m.NumeroTransferencia.Trim();
+            if (cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.Erogacion WITH (UPDLOCK, HOLDLOCK) WHERE CompaniaId=@compania AND NumeroTransferencia=@referencia AND (@vinculada IS NULL OR ErogacionId<>@vinculada)", new { compania, referencia, vinculada }, tx) > 0)
+                return Results.BadRequest(new { mensaje = "La transferencia ya existe. Use una referencia distinta o agregue un sufijo." });
+            var proveedor = Db.ObtenerProveedor(cn, documento.Proveedor, tx);
+            var valores = new { compania, banco, referencia, proveedor, fecha, moneda = documento.Moneda, monto = documento.Saldo, nota = m.Nota, numero = documento.Numero,
+                documentoId = int.TryParse(documento.Id, out var docId) ? (int?)docId : null, vinculada };
+            var erogacion = vinculada ?? cn.ExecuteScalar<int>("INSERT INTO flujo.Erogacion (CompaniaId,CuentaBancariaId,NumeroTransferencia,ProveedorId,Fecha,Moneda,Monto,Notas,DocumentoPorPagarId,DocumentoPagoNumero) OUTPUT INSERTED.ErogacionId VALUES (@compania,@banco,@referencia,@proveedor,@fecha,@moneda,@monto,@nota,@documentoId,@numero)", valores, tx);
+            if (vinculada is not null)
+                cn.Execute("UPDATE flujo.Erogacion SET CuentaBancariaId=@banco, NumeroTransferencia=@referencia, Fecha=@fecha, Notas=@nota WHERE ErogacionId=@vinculada AND CompaniaId=@compania", valores, tx);
+            // No rebajar el documento interno: la marca establece saldo cero y conserva el saldo para revertir.
+            MarcasPagoCashFlow.Marcar(cn, m, ctx.User.NombreUsuario(), erogacion, tx);
+            Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Erogaciones", referencia,
+                vinculada is null ? "Creación" : "Modificación", valorNuevo: $"{documento.Moneda} {documento.Saldo}; documento {m.Numero}", tx: tx);
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Documentos por pagar",
-                m.Numero, "Modificación", valorNuevo: $"Pagado (Cash Flow) {m.FechaPago} {m.Nota}".Trim());
+                m.Numero, "Modificación", valorNuevo: $"Pagado (Cash Flow) {m.FechaPago}; erogación {erogacion}".Trim(), tx: tx);
+            tx.Commit();
             return Results.Ok(new { mensaje = "Documento marcado como pagado." });
         });
 
@@ -490,9 +543,19 @@ public static class RegistrosEndpoints
             if (!ctx.User.PuedeEditar()) return SinPermiso();
             using var cn = db.Abrir();
             if (!MarcasPagoCashFlow.Disponible(cn)) return Results.Ok(new { mensaje = "Sin marcas." });
-            MarcasPagoCashFlow.Quitar(cn, m);
+            using var tx = cn.BeginTransaction();
+            cn.ExecuteScalar<int>("SELECT CompaniaId FROM flujo.Compania WITH (UPDLOCK, HOLDLOCK) WHERE CompaniaId=@id", new { id = Id(m.CompaniaId) }, tx);
+            var vinculada = MarcasPagoCashFlow.ErogacionDisponible(cn) ? MarcasPagoCashFlow.Vinculada(cn, m, tx) : null;
+            if (vinculada is not null && !ctx.User.EsAdministrador()) return SoloAdministrador();
+            MarcasPagoCashFlow.Quitar(cn, m, tx);
+            if (vinculada is not null)
+            {
+                cn.Execute("DELETE FROM flujo.Erogacion WHERE ErogacionId=@vinculada AND CompaniaId=@compania", new { vinculada, compania = Id(m.CompaniaId) }, tx);
+                Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Erogaciones", vinculada.ToString(), "Eliminación", valorNuevo: $"Pago revertido del documento {m.Numero}", tx: tx);
+            }
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Documentos por pagar",
-                m.Numero, "Modificación", valorNuevo: "Se quitó la marca Pagado (Cash Flow)");
+                m.Numero, "Modificación", valorNuevo: "Se quitó la marca Pagado (Cash Flow)", tx: tx);
+            tx.Commit();
             return Results.Ok(new { mensaje = "Marca de pago retirada." });
         });
 
@@ -501,6 +564,8 @@ public static class RegistrosEndpoints
             if (!ctx.User.PuedeEditar()) return SinPermiso();
             if (string.IsNullOrWhiteSpace(m.Numero)) return Results.BadRequest(new { mensaje = "Factura inválida." });
             using var cn = db.Abrir();
+            if (MarcasPagoCashFlow.ErogacionDisponible(cn) && cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.DocumentoPagarMarca WHERE ErogacionId=@id", new { id = Id(id) }) > 0)
+                return Results.BadRequest(new { mensaje = "Quite el pago desde Documentos por pagar para revertir ambos registros." });
             if (!MarcasFacturaCashFlow.Disponible(cn))
                 return Results.BadRequest(new { mensaje = "Ejecute el script SQL 28 para habilitar la marca de saldada." });
             MarcasFacturaCashFlow.Marcar(cn, m, ctx.User.NombreUsuario());

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { CheckCircle2, FileDown, Pencil, Plus, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { puedeMarcarPagado } from "@/lib/pago-cash-flow";
+import { validarPagoDocumento } from "@/lib/pago-documento-erogacion";
 import { toast } from "sonner";
 import { EncabezadoPagina } from "@/components/comunes/EncabezadoPagina";
 import { BarraEstadoSincronizacion } from "@/components/comunes/BarraEstadoSincronizacion";
@@ -405,11 +406,18 @@ function DialogoMarcaPago({
   documento: DocumentoPorPagar;
   onCerrar: () => void;
 }) {
-  const { hoy, marcarPagoDocumento, quitarPagoDocumento } = useApp();
+  const { hoy, bancos, erogaciones, esAdministrador, usuario, marcarPagoDocumento, quitarPagoDocumento } = useApp();
+  const vinculada = erogaciones.find((e) => e.id === d.erogacionPagoId);
+  const cuentas = bancos.filter((b) => b.companiaId === d.companiaId && b.activo);
+  const [bancoId, setBancoId] = useState(vinculada?.bancoId ?? cuentas[0]?.id ?? "");
+  const [numeroTransferencia, setNumeroTransferencia] = useState(vinculada?.numeroTransferencia ?? "");
   const [fecha, setFecha] = useState(d.fechaPagoCashFlow ?? hoy);
   const [nota, setNota] = useState(d.notaPagoCashFlow ?? "");
   const [guardando, setGuardando] = useState(false);
   const saldo = d.pagadoCashFlow ? (d.saldoOrigen ?? 0) : d.saldo;
+  const monto = vinculada?.monto ?? saldo;
+  const puedeModificar = !vinculada || esAdministrador || usuario.editarErogaciones !== false;
+  const repetida = erogaciones.some((e) => e.companiaId === d.companiaId && e.id !== vinculada?.id && e.numeroTransferencia === numeroTransferencia.trim());
 
   const ejecutar = async (accion: () => Promise<boolean>, mensaje: string) => {
     setGuardando(true);
@@ -425,14 +433,29 @@ function DialogoMarcaPago({
     <Dialog open onOpenChange={(v) => (v ? undefined : onCerrar())}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Marcar como pagado (Cash Flow)</DialogTitle>
+          <DialogTitle>{d.pagadoCashFlow ? "Pago del documento" : "Registrar pago del documento"}</DialogTitle>
           <DialogDescription>
-            {d.proveedor} · {d.tipo} {d.numero} · saldo {formatearMoneda(saldo, d.moneda)}. La marca
-            se guarda solo en Cash Flow y no modifica el ERP: el documento sale de pendientes y de
-            los saldos hasta que el ERP registre el pago.
+            {d.proveedor} · {d.tipo} {d.numero}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="mp-banco">Cuenta bancaria</Label>
+            <Select value={bancoId} onValueChange={setBancoId} disabled={!puedeModificar}>
+              <SelectTrigger id="mp-banco" className="w-full"><SelectValue placeholder="Seleccione cuenta" /></SelectTrigger>
+              <SelectContent>{cuentas.map((b) => <SelectItem key={b.id} value={b.id}>{b.nombre}</SelectItem>)}</SelectContent>
+            </Select>
+            {!cuentas.length ? <p className="text-sm text-destructive">No hay cuentas bancarias activas en esta compañía.</p> : null}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="mp-transferencia">Número de transferencia</Label>
+            <Input id="mp-transferencia" maxLength={40} value={numeroTransferencia} disabled={!puedeModificar} onChange={(e) => setNumeroTransferencia(e.target.value)} />
+            {repetida ? <p className="text-sm text-destructive">La referencia ya está registrada; indique una distinta o agregue un sufijo.</p> : null}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="mp-monto">Monto a pagar ({d.moneda})</Label>
+            <Input id="mp-monto" value={monto.toFixed(2)} readOnly />
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="mp-fecha">Fecha de pago</Label>
             <Input id="mp-fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
@@ -441,6 +464,7 @@ function DialogoMarcaPago({
             <Label htmlFor="mp-nota">Nota (opcional)</Label>
             <Textarea
               id="mp-nota"
+              maxLength={500}
               placeholder="Ej.: transferencia 80120, banco BAC"
               value={nota}
               onChange={(e) => setNota(e.target.value)}
@@ -448,12 +472,15 @@ function DialogoMarcaPago({
           </div>
         </div>
         <DialogFooter className="gap-2">
-          {d.pagadoCashFlow ? (
+          {d.pagadoCashFlow && (!d.erogacionPagoId || esAdministrador) ? (
             <Button
               variant="outline"
               className="sm:mr-auto"
               disabled={guardando}
-              onClick={() => ejecutar(() => quitarPagoDocumento(d.id), "Marca de pago retirada")}
+              onClick={() => {
+                if (d.erogacionPagoId && !window.confirm("¿Quitar el pago y eliminar su erogación? Se restablecerá el saldo bancario.")) return;
+                void ejecutar(() => quitarPagoDocumento(d.id), "Pago retirado");
+              }}
             >
               Quitar marca
             </Button>
@@ -462,11 +489,11 @@ function DialogoMarcaPago({
             Cancelar
           </Button>
           <Button
-            disabled={guardando || !fecha}
+            disabled={guardando || !fecha || !puedeModificar || repetida || Boolean(validarPagoDocumento(d, { bancoId, numeroTransferencia, monto }, bancos))}
             onClick={() =>
               ejecutar(
-                () => marcarPagoDocumento(d.id, fecha, nota.trim() || null),
-                "Documento marcado como pagado",
+                () => marcarPagoDocumento(d.id, fecha, nota.trim() || null, { bancoId, numeroTransferencia, monto }),
+                "Pago guardado y erogación registrada",
               )
             }
           >

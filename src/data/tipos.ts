@@ -135,6 +135,7 @@ export interface DocumentoPorPagar {
   fechaPagoCashFlow?: string | null;
   notaPagoCashFlow?: string | null;
   marcadoPor?: string | null;
+  erogacionPagoId?: string | null;
 }
 
 /**

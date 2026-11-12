@@ -13,6 +13,9 @@ public static class MarcasPagoCashFlow
     public static bool Disponible(IDbConnection cn) =>
         cn.ExecuteScalar<int>("SELECT CASE WHEN OBJECT_ID('flujo.DocumentoPagarMarca','U') IS NULL THEN 0 ELSE 1 END") == 1;
 
+    public static bool ErogacionDisponible(IDbConnection cn) =>
+        cn.ExecuteScalar<int>("SELECT CASE WHEN COL_LENGTH('flujo.DocumentoPagarMarca','ErogacionId') IS NULL THEN 0 ELSE 1 END") == 1;
+
     private sealed class Fila
     {
         public string CompaniaId { get; set; } = "";
@@ -22,6 +25,7 @@ public static class MarcasPagoCashFlow
         public string? FechaPago { get; set; }
         public string? Nota { get; set; }
         public string? MarcadoPor { get; set; }
+        public string? ErogacionId { get; set; }
     }
 
     private static string Clave(string compania, string proveedor, string tipo, string numero) =>
@@ -30,10 +34,11 @@ public static class MarcasPagoCashFlow
     public static List<DocumentoPorPagarDto> Aplicar(IDbConnection cn, List<DocumentoPorPagarDto> docs)
     {
         if (docs.Count == 0 || !Disponible(cn)) return docs;
+        var columna = ErogacionDisponible(cn) ? "CAST(ErogacionId AS NVARCHAR(20))" : "CAST(NULL AS NVARCHAR(20))";
         var marcas = cn.Query<Fila>(
-            """
+            $"""
             SELECT CAST(CompaniaId AS NVARCHAR(20)) AS CompaniaId, Proveedor, Tipo, Numero,
-                   CONVERT(CHAR(10), FechaPago, 23) AS FechaPago, Nota, MarcadoPor
+                   CONVERT(CHAR(10), FechaPago, 23) AS FechaPago, Nota, MarcadoPor, {columna} AS ErogacionId
             FROM flujo.DocumentoPagarMarca
             """).GroupBy(m => Clave(m.CompaniaId, m.Proveedor, m.Tipo, m.Numero))
             .ToDictionary(g => g.Key, g => g.First());
@@ -46,17 +51,23 @@ public static class MarcasPagoCashFlow
             d.FechaPagoCashFlow = m.FechaPago;
             d.NotaPagoCashFlow = m.Nota;
             d.MarcadoPor = m.MarcadoPor;
+            d.ErogacionPagoId = m.ErogacionId;
         }
         return docs;
     }
 
-    public static void Marcar(IDbConnection cn, MarcaPagoDocumento m, string usuario)
+    public static int? Vinculada(IDbConnection cn, MarcaPagoDocumento m, IDbTransaction tx) =>
+        cn.QueryFirstOrDefault<int?>(
+            "SELECT ErogacionId FROM flujo.DocumentoPagarMarca WITH (UPDLOCK, HOLDLOCK) WHERE CompaniaId=@c AND UPPER(Proveedor)=UPPER(@p) AND UPPER(Tipo)=UPPER(@t) AND UPPER(Numero)=UPPER(@n)",
+            new { c = int.Parse(m.CompaniaId), p = m.Proveedor.Trim(), t = m.Tipo.Trim(), n = m.Numero.Trim() }, tx);
+
+    public static void Marcar(IDbConnection cn, MarcaPagoDocumento m, string usuario, int erogacionId, IDbTransaction tx)
     {
-        Quitar(cn, m);
+        Quitar(cn, m, tx);
         cn.Execute(
             """
-            INSERT INTO flujo.DocumentoPagarMarca (CompaniaId, Proveedor, Tipo, Numero, FechaPago, Nota, MarcadoPor)
-            VALUES (@CompaniaId, @Proveedor, @Tipo, @Numero, @FechaPago, @Nota, @Usuario)
+            INSERT INTO flujo.DocumentoPagarMarca (CompaniaId, Proveedor, Tipo, Numero, FechaPago, Nota, MarcadoPor, ErogacionId)
+            VALUES (@CompaniaId, @Proveedor, @Tipo, @Numero, @FechaPago, @Nota, @Usuario, @erogacionId)
             """,
             new
             {
@@ -65,14 +76,15 @@ public static class MarcasPagoCashFlow
                 FechaPago = string.IsNullOrWhiteSpace(m.FechaPago) ? DateTime.Today : DateTime.Parse(m.FechaPago),
                 Nota = string.IsNullOrWhiteSpace(m.Nota) ? null : m.Nota.Trim(),
                 Usuario = usuario,
-            });
+                erogacionId,
+            }, tx);
     }
 
-    public static void Quitar(IDbConnection cn, MarcaPagoDocumento m) =>
+    public static void Quitar(IDbConnection cn, MarcaPagoDocumento m, IDbTransaction? tx = null) =>
         cn.Execute(
             """
             DELETE FROM flujo.DocumentoPagarMarca
             WHERE CompaniaId=@c AND UPPER(Proveedor)=UPPER(@p) AND UPPER(Tipo)=UPPER(@t) AND UPPER(Numero)=UPPER(@n)
             """,
-            new { c = int.Parse(m.CompaniaId), p = m.Proveedor.Trim(), t = m.Tipo.Trim(), n = m.Numero.Trim() });
+            new { c = int.Parse(m.CompaniaId), p = m.Proveedor.Trim(), t = m.Tipo.Trim(), n = m.Numero.Trim() }, tx);
 }

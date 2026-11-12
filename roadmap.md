@@ -1,3 +1,5 @@
+- [x] 1.38.88: erogación vinculada con transferencia, edición sin duplicar y reversión conjunta; 20 pruebas pasan, recorrido controlado y móvil verificados. Actualizar web/API/SQL 30.
+- [ ] 1.38.88: compilar API y verificar guardado real — bloqueado por ausencia de SDK .NET y SQL Server/Softland en este entorno.
 - [x] 1.38.86: sugerencias manuales de pagos y previsión del próximo mes implementadas; 21 pruebas pasan y pantalla revisada en demostración. Solo web; sin API, agente ni SQL.
 - [ ] 1.38.86: comprobar hallazgos y guardado con datos productivos — bloqueado por ausencia de API/SQL Server real en este entorno.
 - [x] 1.38.69: cupo de compañías por empresa (Empresas, Catálogos, API, SQL 25); 8 pruebas pasan. Compilación .NET pendiente: no hay SDK aquí.

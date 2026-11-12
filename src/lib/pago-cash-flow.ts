@@ -33,6 +33,7 @@ export function quitarMarcaPagado(d: DocumentoPorPagar): DocumentoPorPagar {
     fechaPagoCashFlow: null,
     notaPagoCashFlow: null,
     marcadoPor: null,
+    erogacionPagoId: null,
   };
 }
 

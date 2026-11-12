@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.88 - 2026-11-12
+
+- Documentos por pagar: registrar saldo completo con cuenta bancaria activa de la misma compañía, transferencia obligatoria y fecha; crea una erogación vinculada sin modificar el ERP.
+- Edición sin duplicar erogación; reversión conjunta exclusiva del administrador, auditoría y guardado transaccional. Marcas antiguas no generan movimientos retroactivos: solicitan los datos al guardar.
+- Actualizar aplicación web y API 1.38.84; ejecutar SQL 30 después del 27. Sin cambios de agente.
+
 ## 1.38.87 - 2026-11-11
 
 - Facturas por cobrar y documentos por pagar: solo se incluyen clientes y proveedores existentes con ACTIVO = 'S' en el esquema de la compañía consultada; cualquier otro valor queda excluido. Conserva la compatibilidad de fuentes sin tabla de clientes/proveedores y no modifica el histórico de documentos ni el ERP.
