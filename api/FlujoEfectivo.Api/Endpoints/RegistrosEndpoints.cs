@@ -495,11 +495,12 @@ public static class RegistrosEndpoints
                 documento = cn.QueryFirstOrDefault<DocumentoPorPagarDto>("SELECT CAST(DocumentoPorPagarId AS NVARCHAR(20)) AS Id, CAST(CompaniaId AS NVARCHAR(20)) AS CompaniaId, Proveedor, Tipo, Numero, Moneda, Saldo FROM flujo.DocumentoPorPagar WHERE DocumentoPorPagarId=@interno AND CompaniaId=@compania AND Anulado=0", new { interno, compania });
             else
             {
-                var modo = cn.QueryFirstOrDefault<string>("SELECT Modo FROM flujo.ConexionErpCompania WHERE CompaniaId=@compania", new { compania });
+                var modo = ReplicaPedidos.Lista(cn) ? cn.QueryFirstOrDefault<string>("SELECT Modo FROM flujo.ConexionErpCompania WHERE CompaniaId=@compania", new { compania }) : "directa";
                 if (modo == "agente") documento = ReplicaDocumentos.DocumentosPagar(cn, compania).FirstOrDefault(d => d.Id == m.DocumentoId);
                 else
                 {
                     var cfg = Softland.Leer(cn);
+                    if (cfg?.CompaniaId != compania) cfg = Softland.Leer(cn, Softland.Fuente2);
                     if (cfg is null || cfg.CompaniaId != compania)
                         return Results.BadRequest(new { mensaje = "No se pudo verificar el documento en la fuente de su compañía." });
                     documento = Softland.DocumentosPorPagar(cfg, config["Jwt:Llave"] ?? "", m.CompaniaId).FirstOrDefault(d => d.Id == m.DocumentoId);
@@ -513,6 +514,10 @@ public static class RegistrosEndpoints
             // Bloqueo por compañía serializa doble clic y solicitudes simultáneas, incluso sin marca previa.
             cn.ExecuteScalar<int>("SELECT CompaniaId FROM flujo.Compania WITH (UPDLOCK, HOLDLOCK) WHERE CompaniaId=@compania", new { compania }, tx);
             var vinculada = MarcasPagoCashFlow.Vinculada(cn, m, tx);
+            if (vinculada is not null && cn.ExecuteScalar<decimal>("SELECT Monto FROM flujo.Erogacion WHERE ErogacionId=@vinculada", new { vinculada }, tx) != documento.Saldo)
+                return Results.BadRequest(new { mensaje = "El saldo de origen cambió después del pago. Revise el registro antes de editarlo." });
+            if (documento.Proveedor.Length > 150 || (m.Nota?.Length ?? 0) > 500)
+                return Results.BadRequest(new { mensaje = "El proveedor admite 150 caracteres y la nota 500." });
             if (vinculada is not null && !ctx.User.EsAdministrador() && !cn.ExecuteScalar<bool>("SELECT ISNULL(EditarErogaciones,0) FROM flujo.Usuario WHERE UsuarioId=@id", new { id = ctx.User.UsuarioId() }, tx)) return SinPermiso();
             var referencia = m.NumeroTransferencia.Trim();
             if (cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.Erogacion WITH (UPDLOCK, HOLDLOCK) WHERE CompaniaId=@compania AND NumeroTransferencia=@referencia AND (@vinculada IS NULL OR ErogacionId<>@vinculada)", new { compania, referencia, vinculada }, tx) > 0)

@@ -464,6 +464,7 @@ function DialogoMarcaPago({
             <Label htmlFor="mp-nota">Nota (opcional)</Label>
             <Textarea
               id="mp-nota"
+              maxLength={500}
               placeholder="Ej.: transferencia 80120, banco BAC"
               value={nota}
               onChange={(e) => setNota(e.target.value)}
