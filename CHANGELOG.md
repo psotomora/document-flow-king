@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.89 - 2026-11-12
+
+- API 1.38.85: mueve la protección de erogaciones vinculadas al endpoint de eliminación y retira la referencia a una variable inexistente del marcado de facturas saldadas.
+- Auditoría de reversión: usa el valor no nulo del ID vinculado y admite número de documento ausente sin advertencias de nulabilidad.
+- Actualizar solo la API; web opcional para mostrar versión, sin cambios de agente ni SQL nuevo. El pago vinculado sigue requiriendo SQL 30 si aún no se aplicó.
+
 ## 1.38.88 - 2026-11-12
 
 - Documentos por pagar: registrar saldo completo con cuenta bancaria activa de la misma compañía, transferencia obligatoria y fecha; crea una erogación vinculada sin modificar el ERP.
