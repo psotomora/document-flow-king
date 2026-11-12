@@ -313,6 +313,8 @@ public static class RegistrosEndpoints
         {
             if (!ctx.User.EsAdministrador()) return SoloAdministrador();
             using var cn = db.Abrir();
+            if (MarcasPagoCashFlow.ErogacionDisponible(cn) && cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.DocumentoPagarMarca WHERE ErogacionId=@id", new { id = Id(id) }) > 0)
+                return Results.BadRequest(new { mensaje = "Quite el pago desde Documentos por pagar para revertir ambos registros." });
             var numero = cn.QueryFirstOrDefault<string>(
                 "SELECT NumeroTransferencia FROM flujo.Erogacion WHERE ErogacionId=@id", new { id = Id(id) });
             var filas = cn.Execute("DELETE FROM flujo.Erogacion WHERE ErogacionId=@id", new { id = Id(id) });
@@ -551,10 +553,10 @@ public static class RegistrosEndpoints
             if (vinculada is not null)
             {
                 cn.Execute("DELETE FROM flujo.Erogacion WHERE ErogacionId=@vinculada AND CompaniaId=@compania", new { vinculada, compania = Id(m.CompaniaId) }, tx);
-                Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Erogaciones", vinculada.ToString(), "Eliminación", valorNuevo: $"Pago revertido del documento {m.Numero}", tx: tx);
+                Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Erogaciones", vinculada.Value.ToString(), "Eliminación", valorNuevo: $"Pago revertido del documento {m.Numero}", tx: tx);
             }
             Db.Auditar(cn, ctx.User.UsuarioId(), ctx.User.NombreUsuario(), "Documentos por pagar",
-                m.Numero, "Modificación", valorNuevo: "Se quitó la marca Pagado (Cash Flow)", tx: tx);
+                m.Numero ?? "", "Modificación", valorNuevo: "Se quitó la marca Pagado (Cash Flow)", tx: tx);
             tx.Commit();
             return Results.Ok(new { mensaje = "Marca de pago retirada." });
         });
@@ -564,8 +566,6 @@ public static class RegistrosEndpoints
             if (!ctx.User.PuedeEditar()) return SinPermiso();
             if (string.IsNullOrWhiteSpace(m.Numero)) return Results.BadRequest(new { mensaje = "Factura inválida." });
             using var cn = db.Abrir();
-            if (MarcasPagoCashFlow.ErogacionDisponible(cn) && cn.ExecuteScalar<int>("SELECT COUNT(*) FROM flujo.DocumentoPagarMarca WHERE ErogacionId=@id", new { id = Id(id) }) > 0)
-                return Results.BadRequest(new { mensaje = "Quite el pago desde Documentos por pagar para revertir ambos registros." });
             if (!MarcasFacturaCashFlow.Disponible(cn))
                 return Results.BadRequest(new { mensaje = "Ejecute el script SQL 28 para habilitar la marca de saldada." });
             MarcasFacturaCashFlow.Marcar(cn, m, ctx.User.NombreUsuario());
