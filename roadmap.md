@@ -1,4 +1,5 @@
-- [ ] 1.38.89: corregir compilación de API, mover protección de eliminación y verificar regresiones; API 1.38.85, sin SQL nuevo.
+- [x] 1.38.89: corregida variable fuera de alcance y advertencia de auditoría; protección en eliminación de erogaciones. Trece pruebas pasan; API 1.38.85, sin SQL nuevo.
+- [ ] 1.38.89: comprobar empaquetado y pago real — bloqueado por ausencia de SDK .NET y SQL Server/Softland en este entorno.
 - [x] 1.38.88: erogación vinculada con transferencia, edición sin duplicar y reversión conjunta; 20 pruebas pasan, recorrido controlado y móvil verificados. Actualizar web/API/SQL 30.
 - [ ] 1.38.88: compilar API y verificar guardado real — bloqueado por ausencia de SDK .NET y SQL Server/Softland en este entorno.
 - [x] 1.38.86: sugerencias manuales de pagos y previsión del próximo mes implementadas; 21 pruebas pasan y pantalla revisada en demostración. Solo web; sin API, agente ni SQL.
