@@ -33,7 +33,7 @@ import { formatearFecha, formatearMoneda, formatearNumero } from "@/lib/formato"
 import { montoPagoEnMonedaFactura } from "@/lib/calculos";
 import { exportarExcel } from "@/lib/exportar";
 import { DialogoPago } from "@/components/pagos/DialogoPago";
-import { ConciliacionEstadoCuenta } from "@/components/pagos/ConciliacionEstadoCuenta";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/pagos")({
   head: () => ({
@@ -220,7 +220,11 @@ function PaginaPagos() {
         </div>
       </div>
 
-      {puedeEditar && <ConciliacionEstadoCuenta mostrarPagadas={mostrarPagadas} />}
+      {puedeEditar && (
+        <div className="flex justify-end">
+          <Button asChild variant="outline" size="sm"><Link to="/movimientos">Conciliar estado de cuenta en Movimientos bancarios</Link></Button>
+        </div>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         {(["USD", "CRC"] as Moneda[]).map((m) => (

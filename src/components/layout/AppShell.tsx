@@ -3,6 +3,7 @@ import {
   Briefcase,
   ChevronDown,
   BarChart3,
+  ArrowLeftRight,
   Banknote,
   BookLock,
   Building2,
@@ -74,6 +75,7 @@ const navegacion = [
     items: [
       { to: "/bancos", etiqueta: "Saldo por banco", icono: Landmark },
       { to: "/consolidado", etiqueta: "Saldo consolidado", icono: PiggyBank },
+      { to: "/movimientos", etiqueta: "Movimientos bancarios", icono: ArrowLeftRight },
       { to: "/documentos-cobrar", etiqueta: "Reporte de documentos", icono: FileText },
     ],
   },

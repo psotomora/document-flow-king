@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.90 - 2026-11-21
+
+- Nueva pantalla Información → Movimientos bancarios: cobros y erogaciones filtrados por banco, moneda y fechas, con totales.
+- Las cargas de estado de cuenta (cobros y erogaciones) se trasladan a esta pantalla en tarjetas contraíbles; Pagos recibidos y Erogaciones muestran un acceso directo.
+- Solo web; sin API, agente ni SQL.
+
 ## 1.38.89 - 2026-11-12
 
 - API 1.38.85: mueve la protección de erogaciones vinculadas al endpoint de eliminación y retira la referencia a una variable inexistente del marcado de facturas saldadas.

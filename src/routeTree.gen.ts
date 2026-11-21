@@ -23,6 +23,7 @@ import { Route as ErogacionesRouteImport } from './routes/erogaciones'
 import { Route as FacturasRouteImport } from './routes/facturas'
 import { Route as ImportarRouteImport } from './routes/importar'
 import { Route as LicenciaRouteImport } from './routes/licencia'
+import { Route as MovimientosRouteImport } from './routes/movimientos'
 import { Route as PagosRouteImport } from './routes/pagos'
 import { Route as ParametrosRouteImport } from './routes/parametros'
 import { Route as PedidosRouteImport } from './routes/pedidos'
@@ -99,6 +100,11 @@ const LicenciaRoute = LicenciaRouteImport.update({
   path: '/licencia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MovimientosRoute = MovimientosRouteImport.update({
+  id: '/movimientos',
+  path: '/movimientos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PagosRoute = PagosRouteImport.update({
   id: '/pagos',
   path: '/pagos',
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/facturas': typeof FacturasRoute
   '/importar': typeof ImportarRoute
   '/licencia': typeof LicenciaRoute
+  '/movimientos': typeof MovimientosRoute
   '/pagos': typeof PagosRoute
   '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/facturas': typeof FacturasRoute
   '/importar': typeof ImportarRoute
   '/licencia': typeof LicenciaRoute
+  '/movimientos': typeof MovimientosRoute
   '/pagos': typeof PagosRoute
   '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/facturas': typeof FacturasRoute
   '/importar': typeof ImportarRoute
   '/licencia': typeof LicenciaRoute
+  '/movimientos': typeof MovimientosRoute
   '/pagos': typeof PagosRoute
   '/parametros': typeof ParametrosRoute
   '/pedidos': typeof PedidosRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/facturas'
     | '/importar'
     | '/licencia'
+    | '/movimientos'
     | '/pagos'
     | '/parametros'
     | '/pedidos'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/facturas'
     | '/importar'
     | '/licencia'
+    | '/movimientos'
     | '/pagos'
     | '/parametros'
     | '/pedidos'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/facturas'
     | '/importar'
     | '/licencia'
+    | '/movimientos'
     | '/pagos'
     | '/parametros'
     | '/pedidos'
@@ -270,6 +282,7 @@ export interface RootRouteChildren {
   FacturasRoute: typeof FacturasRoute
   ImportarRoute: typeof ImportarRoute
   LicenciaRoute: typeof LicenciaRoute
+  MovimientosRoute: typeof MovimientosRoute
   PagosRoute: typeof PagosRoute
   ParametrosRoute: typeof ParametrosRoute
   PedidosRoute: typeof PedidosRoute
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LicenciaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/movimientos': {
+      id: '/movimientos'
+      path: '/movimientos'
+      fullPath: '/movimientos'
+      preLoaderRoute: typeof MovimientosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pagos': {
       id: '/pagos'
       path: '/pagos'
@@ -430,6 +450,7 @@ const rootRouteChildren: RootRouteChildren = {
   FacturasRoute: FacturasRoute,
   ImportarRoute: ImportarRoute,
   LicenciaRoute: LicenciaRoute,
+  MovimientosRoute: MovimientosRoute,
   PagosRoute: PagosRoute,
   ParametrosRoute: ParametrosRoute,
   PedidosRoute: PedidosRoute,
