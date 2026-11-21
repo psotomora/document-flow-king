@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.38.92 - 2026-11-21
+
+- Movimientos registrados: filtro de Tipo con selección múltiple de créditos y débitos, persistido por usuario y aplicado a la tabla y sus totales.
+- Columna Coincidencias sugeridas: documentos de proveedores con saldo y moneda coincidentes en la misma compañía; pagos recibidos del mismo banco, moneda, monto y mes. Distingue documentos vinculados y pagos registrados de sugerencias; no modifica registros ni aplica pagos.
+- Solo aplicación web; sin API, agente ni SQL.
+
 ## 1.38.91 - 2026-11-21
 
 - Movimientos bancarios: los filtros de banco, moneda y fechas se trasladan dentro de la tarjeta Movimientos registrados, junto a los totales y la tabla.

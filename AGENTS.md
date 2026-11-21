@@ -34,3 +34,4 @@ Receivable projections use calcularSaldoProyectado with the same calculated invo
 - Agent company JSON is generated from the session-scoped company catalog, not the active company filter; schemas are explicitly editable suggestions and export contains only Companias, never credentials, to preserve existing agent settings.
 - Single-session login lives in Seguridad/SesionUnica.cs so a second login gets 409 and never displaces the first.
 - Payable payment marks own a linked erogation; create/update/reversal and audit share one locked transaction, and edits go through the payable dialog to prevent bank/document divergence.
+- Registered bank movement findings use movimientos-hallazgos to distinguish existing links from company/currency-scoped suggestions; they never apply payments or create records.

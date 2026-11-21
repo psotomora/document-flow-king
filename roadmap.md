@@ -1,3 +1,4 @@
+- [x] 1.38.92: filtro múltiple de Tipo y coincidencias en Movimientos registrados; 24 pruebas pasan, selección y persistencia al reingresar verificadas en demostración (13 movimientos, 6 créditos, 7 débitos), detalle de pago visible y móvil sin desborde. Solo web; coincidencias productivas requieren API/SQL Server real no disponibles aquí.
 - [x] 1.38.89: corregida variable fuera de alcance y advertencia de auditoría; protección en eliminación de erogaciones. Trece pruebas pasan; API 1.38.85, sin SQL nuevo.
 - [ ] 1.38.89: comprobar empaquetado y pago real — bloqueado por ausencia de SDK .NET y SQL Server/Softland en este entorno.
 - [x] 1.38.88: erogación vinculada con transferencia, edición sin duplicar y reversión conjunta; 20 pruebas pasan, recorrido controlado y móvil verificados. Actualizar web/API/SQL 30.

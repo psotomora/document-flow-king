@@ -12,6 +12,9 @@ import {
 import { DialogoErogacion } from "@/components/erogaciones/DialogoErogacion";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,6 +23,7 @@ import type { Moneda } from "@/data/tipos";
 import { fechaEnPeriodo, type PeriodoFecha } from "@/lib/filtros-fecha";
 import { formatearFecha, formatearMoneda } from "@/lib/formato";
 import { useFiltroGuardado } from "@/lib/preferencias";
+import { TIPOS_MOVIMIENTO, filtrarTiposMovimiento, hallazgosMovimiento, type TipoMovimiento } from "@/lib/movimientos-hallazgos";
 
 export const Route = createFileRoute("/movimientos")({
   head: () => ({
@@ -49,9 +53,10 @@ function TarjetaContraible({ id, titulo, children }: { id: string; titulo: strin
 }
 
 function PaginaMovimientos() {
-  const { pagos, erogaciones, bancos, companiaActiva, puedeEditar, hoy } = useApp();
+  const { pagos, erogaciones, bancos, facturas, documentosPorPagar, companiaActiva, puedeEditar, hoy } = useApp();
   const [bancoId, setBancoId] = useFiltroGuardado("movimientos", "bancoId", "todos");
   const [moneda, setMoneda] = useFiltroGuardado<Moneda | "todas">("movimientos", "moneda", "todas");
+  const [tipos, setTipos] = useFiltroGuardado<TipoMovimiento[]>("movimientos", "tipos", [...TIPOS_MOVIMIENTO]);
   const [periodo, setPeriodo] = useFiltroGuardado<PeriodoFecha>("movimientos", "periodo", "mes");
   const [fechaInicio, setFechaInicio] = useFiltroGuardado("movimientos", "fechaInicio", "");
   const [fechaFin, setFechaFin] = useFiltroGuardado("movimientos", "fechaFin", "");
@@ -68,15 +73,17 @@ function PaginaMovimientos() {
       fechaEnPeriodo(f.fecha, periodo, hoy, fechaInicio, fechaFin);
     const idsBanco = new Set(bancosCompania.map((b) => b.id));
     const creditos = pagos.filter((p) => idsBanco.has(p.bancoId)).filter(ok).map((p) => ({
-      id: `p-${p.id}`, fecha: p.fecha, bancoId: p.bancoId, moneda: p.moneda, tipo: "Crédito" as const,
+      id: `p-${p.id}`, registroId: p.id, companiaId: bancosCompania.find((b) => b.id === p.bancoId)?.companiaId ?? "", fecha: p.fecha, bancoId: p.bancoId, moneda: p.moneda, tipo: "Crédito" as const,
       referencia: p.referencia ?? "", detalle: p.metodo ?? "", monto: p.monto,
     }));
     const debitos = filtrarPorCompania(erogaciones, companiaActiva).filter(ok).map((e) => ({
-      id: `e-${e.id}`, fecha: e.fecha, bancoId: e.bancoId, moneda: e.moneda, tipo: "Débito" as const,
+      id: `e-${e.id}`, registroId: e.id, companiaId: e.companiaId, ...(e.documentoPagoId ? { documentoId: e.documentoPagoId } : {}), fecha: e.fecha, bancoId: e.bancoId, moneda: e.moneda, tipo: "Débito" as const,
       referencia: e.numeroTransferencia ?? "", detalle: e.proveedor ?? "", monto: -e.monto,
     }));
-    return [...creditos, ...debitos].sort((a, b) => b.fecha.localeCompare(a.fecha));
-  }, [pagos, erogaciones, bancosCompania, companiaActiva, bancoId, moneda, periodo, hoy, fechaInicio, fechaFin]);
+    return filtrarTiposMovimiento([...creditos, ...debitos], tipos).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  }, [pagos, erogaciones, bancosCompania, companiaActiva, bancoId, moneda, tipos, periodo, hoy, fechaInicio, fechaFin]);
+
+  const hallazgos = useMemo(() => new Map(filas.map((f) => [f.id, hallazgosMovimiento(f, documentosPorPagar, pagos, facturas)])), [filas, documentosPorPagar, pagos, facturas]);
 
   const totales = (["USD", "CRC"] as Moneda[]).map((m) => {
     const de = filas.filter((f) => f.moneda === m);
@@ -127,6 +134,20 @@ function PaginaMovimientos() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1">
+            <Label htmlFor="mov-tipos">Tipo</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button id="mov-tipos" variant="outline" className="min-w-44 justify-between" aria-label="Filtrar por tipo de movimiento">
+                  {tipos.length === 2 ? "Todos los tipos" : tipos.length === 0 ? "Ningún tipo" : tipos.join(", ")}<ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuCheckboxItem checked={TIPOS_MOVIMIENTO.every((t) => tipos.includes(t))} onSelect={(e) => e.preventDefault()} onCheckedChange={(v) => setTipos(v ? [...TIPOS_MOVIMIENTO] : [])}>Todos los tipos</DropdownMenuCheckboxItem>
+                {TIPOS_MOVIMIENTO.map((t) => <DropdownMenuCheckboxItem key={t} checked={tipos.includes(t)} onSelect={(e) => e.preventDefault()} onCheckedChange={(v) => setTipos((actual) => v ? [...actual.filter((x) => x !== t), t] : actual.filter((x) => x !== t))}>{t}</DropdownMenuCheckboxItem>)}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <FiltroFechas id="mov-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
         </div>
         <div className="mb-3 grid gap-3 sm:grid-cols-2">
@@ -149,11 +170,12 @@ function PaginaMovimientos() {
                 <TableHead>Referencia</TableHead>
                 <TableHead>Detalle</TableHead>
                 <TableHead className="text-right">Monto</TableHead>
+                <TableHead>Coincidencias sugeridas</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filas.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">Sin movimientos para los filtros elegidos.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">Sin movimientos para los filtros elegidos.</TableCell></TableRow>
               ) : filas.map((f) => (
                 <TableRow key={f.id}>
                   <TableCell>{formatearFecha(f.fecha)}</TableCell>
@@ -162,6 +184,22 @@ function PaginaMovimientos() {
                   <TableCell>{f.referencia}</TableCell>
                   <TableCell>{f.detalle}</TableCell>
                   <TableCell className={`text-right font-mono tabular-nums ${f.monto < 0 ? "text-destructive" : ""}`}>{formatearMoneda(f.monto, f.moneda)}</TableCell>
+                  <TableCell>
+                    {!hallazgos.get(f.id)?.length ? <span className="text-muted-foreground">Sin coincidencias</span> : (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" aria-label={`Ver coincidencias de ${f.referencia || f.id}`}>
+                            {hallazgos.get(f.id)?.filter((h) => h.vinculado).length ? "Registrado / vinculado" : "Sugerencias"} ({hallazgos.get(f.id)?.length})<ChevronDown className="h-3 w-3" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-96 max-w-[calc(100vw-2rem)] max-h-80 overflow-auto">
+                          <div className="space-y-3">
+                            {hallazgos.get(f.id)?.map((h) => <div key={h.id} className="space-y-1 text-sm break-words"><p className="font-medium">{h.texto}</p><p className="text-xs text-muted-foreground">{h.motivo}</p></div>)}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
