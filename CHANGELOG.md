@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.38.91 - 2026-11-21
+
+- Movimientos bancarios: los filtros de banco, moneda y fechas se trasladan dentro de la tarjeta Movimientos registrados, junto a los totales y la tabla.
+- Solo web; sin API, agente ni SQL.
+
 ## 1.38.90 - 2026-11-21
 
 - Nueva pantalla Información → Movimientos bancarios: cobros y erogaciones filtrados por banco, moneda y fechas, con totales.

@@ -89,31 +89,6 @@ function PaginaMovimientos() {
     <div className="space-y-4">
       <EncabezadoPagina titulo="Movimientos bancarios" descripcion="Cobros y erogaciones por banco, y conciliación de estados de cuenta." />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1">
-          <Label>Banco</Label>
-          <Select value={bancoId} onValueChange={setBancoId}>
-            <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos los bancos</SelectItem>
-              {bancosCompania.map((b) => <SelectItem key={b.id} value={b.id}>{b.nombre}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
-          <Label>Moneda</Label>
-          <Select value={moneda} onValueChange={(v) => setMoneda(v as Moneda | "todas")}>
-            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas</SelectItem>
-              <SelectItem value="USD">USD</SelectItem>
-              <SelectItem value="CRC">CRC</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <FiltroFechas id="mov-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
-      </div>
-
       {puedeEditar && (
         <>
           <TarjetaContraible id="cobros" titulo="Cargar estado de cuenta · Conciliar cobros (créditos)">
@@ -130,6 +105,30 @@ function PaginaMovimientos() {
       )}
 
       <TarjetaContraible id="lista" titulo={`Movimientos registrados (${filas.length})`}>
+        <div className="mb-3 flex flex-wrap items-end gap-3">
+          <div className="space-y-1">
+            <Label>Banco</Label>
+            <Select value={bancoId} onValueChange={setBancoId}>
+              <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos los bancos</SelectItem>
+                {bancosCompania.map((b) => <SelectItem key={b.id} value={b.id}>{b.nombre}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Moneda</Label>
+            <Select value={moneda} onValueChange={(v) => setMoneda(v as Moneda | "todas")}>
+              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="CRC">CRC</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <FiltroFechas id="mov-fechas" periodo={periodo} onPeriodoCambio={setPeriodo} desde={fechaInicio} hasta={fechaFin} onDesdeCambio={setFechaInicio} onHastaCambio={setFechaFin} />
+        </div>
         <div className="mb-3 grid gap-3 sm:grid-cols-2">
           {totales.map((t) => (
             <div key={t.m} className="rounded-md border border-border p-3 text-sm">
